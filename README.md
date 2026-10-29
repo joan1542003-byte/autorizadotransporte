@@ -2,7 +2,7 @@
 
 Página estática (HTML/CSS/JS, sin build) de `campanasdereciclaje.cl`, enfocada solo en RAEE (residuos de aparatos eléctricos y electrónicos), según lo pedido por el cliente el 27-10-2026. Es una vista previa: `noindex` y `robots.txt` bloquean la indexación.
 
-- `campanas-reciclaje.html`: la landing (hero con la ficha, galería 3D de aparatos, para quién, fases, servicios adicionales, preguntas frecuentes, cierre). `index.html` solo redirige a ella.
+- `campanas-reciclaje.html`: la landing (hero con la ficha, cómo funciona, para quién, servicios adicionales, galería 3D de aparatos, preguntas frecuentes, cierre). `index.html` solo redirige a ella.
 - `creditos.html`: tipografía, íconos, visor 3D y modelos, con autor y licencia. Enlazada al fondo de `preguntas.html` y en el pie. Lleva `noindex,follow` también en producción; las demás páginas llevan `noindex` solo mientras son vista previa.
 - `preguntas.html`: todas las preguntas y los requisitos del DS 29/2024 (`#requisitos`), con el formato de las guías de Transporte (`ayuda/`); la ficha se abre flotando sobre ella. `requisitos-ds-29.html` redirige a esa sección.
 - Galería de aparatos (`assets/campanas/galeria3d.js`): galería infinita con modelos 3D reales en una sola escena WebGL (three.js 0.170.0, MIT, copia local en `assets/campanas/vendor/three/`; en `GLTFLoader.js` se ajustó la ruta de `BufferGeometryUtils.js`). El visor y los modelos se descargan solo cuando la galería se acerca a la pantalla y se dibuja solo mientras está a la vista. Sin WebGL se ve una lista de respaldo.

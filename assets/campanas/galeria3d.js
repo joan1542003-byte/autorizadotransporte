@@ -21,7 +21,6 @@
     cat: g.querySelector('[data-galeria-cat]'),
     nombre: g.querySelector('[data-galeria-nombre]'),
     texto: g.querySelector('[data-galeria-texto]'),
-    nota: g.querySelector('[data-galeria-nota]'),
     add: g.querySelector('[data-galeria-add]'),
   };
   const N = datos.length;
@@ -42,7 +41,6 @@
     out.cat.textContent = it.categoria;
     out.nombre.textContent = it.nombre;
     out.texto.textContent = it.texto;
-    out.nota.textContent = it.nota;
     out.add.dataset.add = `aparatos=${it.categoria}`;
     puntos.forEach((b, i) => (i === j ? b.setAttribute('aria-current', 'true') : b.removeAttribute('aria-current')));
     g.classList.remove('is-cambio');
@@ -91,7 +89,14 @@
     luz.position.set(2.5, 4, 5);
     escena.add(luz);
     /* La niebla toma el fondo de la sección: los aparatos de los lados se difuminan hacia él */
-    const fondo = new THREE.Color(getComputedStyle(g.closest('section')).backgroundColor);
+    const fondoDe = (el) => {
+      for (; el; el = el.parentElement) {
+        const c = getComputedStyle(el).backgroundColor;
+        if (c && !/rgba\(.*,\s*0\)$/.test(c) && c !== 'transparent') return c;
+      }
+      return '#ffffff';
+    };
+    const fondo = new THREE.Color(fondoDe(g));
     escena.fog = new THREE.Fog(fondo, 5.6, 9.2);
     const camara = new THREE.PerspectiveCamera(30, 1, 0.1, 40);
     camara.position.set(0, 0.38, 5.3);
@@ -159,6 +164,9 @@
       /* En pantallas angostas la cámara se aleja para que se vean los lados */
       camara.position.z = w < 520 ? 6.6 : 5.3;
       camara.fov = w < 520 ? 34 : 30;
+      /* La niebla empieza justo detrás del aparato central: solo difumina los de los lados */
+      escena.fog.near = camara.position.z + 0.5;
+      escena.fog.far = camara.position.z + 5;
       camara.updateProjectionMatrix();
       pedir();
     };
