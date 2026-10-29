@@ -97,6 +97,14 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
   .galeria-flecha.is-next { right: 8px; }
 }
 
-/* Preguntas.html: créditos de los modelos 3D, al final */
-.creditos-lista { list-style: none; display: grid; gap: 6px; color: var(--ink-2); font-size: var(--fs-small); }
-.creditos-lista a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+/* Créditos (creditos.html): una fila por elemento, con autor, licencia y enlaces */
+.creditos-lista { list-style: none; display: grid; border-top: 1px solid var(--line); }
+.creditos-lista li { display: grid; gap: 2px; padding: 14px 2px; border-bottom: 1px solid var(--line); }
+.creditos-lista strong { font-size: var(--fs-body-sm); color: var(--ink); }
+.creditos-lista span { color: var(--ink-2); font-size: var(--fs-small); line-height: 1.5; }
+.creditos-links { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 2px; }
+.creditos-links:empty { display: none; }
+.creditos-links a { color: var(--ink); font-weight: 700; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+/* Enlace discreto al final de preguntas.html y en el pie */
+.creditos-enlace { margin-top: 48px; color: var(--muted); font-size: var(--fs-caption); }
+.creditos-enlace a, .footer-legal a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }

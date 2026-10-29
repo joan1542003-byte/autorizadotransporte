@@ -171,8 +171,8 @@
     lienzo.addEventListener('pointermove', (e) => {
       const r = lienzo.getBoundingClientRect();
       if (e.pointerType === 'mouse' && !arrastre) {
-        metaY = ((e.clientX - r.left) / r.width - 0.5) * 1.2;
-        metaX = ((e.clientY - r.top) / r.height - 0.5) * 0.5;
+        metaY = ((e.clientX - r.left) / r.width - 0.5) * 0.85;
+        metaX = ((e.clientY - r.top) / r.height - 0.5) * 0.34;
       }
       if (arrastre) {
         const dx = e.clientX - arrastre.x;
