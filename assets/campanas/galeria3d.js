@@ -151,6 +151,7 @@
         ajustar(obj, s.userData.it.alto || 1.55);
         await libre();
         if (renderer.compileAsync) await renderer.compileAsync(obj, camara, escena);
+        subirYLiberar(obj);
         s.userData.giro.add(obj);
         g.classList.add('is-lista');
         pedir();
@@ -158,6 +159,28 @@
         console.warn('Galería 3D:', s.userData.it.modelo, err);
       }
     };
+    /* Memoria (pensado para PC con 1 a 2 GB de RAM): cada textura se sube a la tarjeta de video y enseguida se suelta la
+       copia decodificada que queda en la RAM (ImageBitmap). three.js no la vuelve a leer mientras la textura no cambie;
+       solo la necesitaría si se pierde el contexto de WebGL, y en ese caso se muestra la lista de respaldo. */
+    const MAPAS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'alphaMap', 'bumpMap',
+      'clearcoatMap', 'clearcoatNormalMap', 'clearcoatRoughnessMap', 'sheenColorMap', 'sheenRoughnessMap', 'specularIntensityMap',
+      'specularColorMap', 'transmissionMap', 'thicknessMap', 'iridescenceMap', 'iridescenceThicknessMap', 'anisotropyMap'];
+    const subirYLiberar = (obj) => {
+      const texturas = new Set();
+      obj.traverse((o) => {
+        if (!o.isMesh) return;
+        (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => MAPAS.forEach((k) => m[k] && texturas.add(m[k])));
+      });
+      texturas.forEach((t) => {
+        renderer.initTexture(t);
+        const img = t.source.data;
+        if (!img || !img.width) return;
+        t.source.data = { width: img.width, height: img.height };
+        if (typeof img.close === 'function') img.close();
+      });
+    };
+    canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); g.classList.add('sin-3d'); });
+
     const orden = [0, 1, N - 1, 2, N - 2, ...datos.keys()].filter((v, i, a) => a.indexOf(v) === i && v < N);
     (async () => { for (const j of orden) { await libre(); await cargarModelo(j); } })();
 
