@@ -116,3 +116,7 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
   .logo-cr { background: var(--logo, #00CC29); transition: background-color .35s var(--ease);
     -webkit-mask: url("logo.svg") center / contain no-repeat; mask: url("logo.svg") center / contain no-repeat; }
 }
+
+/* Pie: logo de Yo Reciclo (yoreciclo.cl) en «Sitios relacionados» */
+.footer-yoreciclo { display: inline-block; margin-top: 6px; }
+.footer-yoreciclo img { display: block; width: auto; height: 56px; }

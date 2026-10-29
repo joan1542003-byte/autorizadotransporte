@@ -1,0 +1,19 @@
+# Campañas de reciclaje
+
+> Diseño y coordinación de campañas de recolección de residuos de aparatos eléctricos y electrónicos (RAEE) para municipalidades, empresas e instituciones y sistemas de gestión de la Ley REP en Chile. Contacto: WhatsApp +56 9 8606 7930.
+
+## Qué hace
+- Planifica la campaña: aparatos que se reciben, lugares, fechas, contenedores, vehículos y destino autorizado.
+- Prepara con el responsable los antecedentes de la solicitud de autorización sanitaria ante la SEREMI de Salud (DS 29/2024, art. 24). La resolución corresponde a la autoridad.
+- Coordina la recepción, clasificación, seguridad y traslado de los residuos, y el cierre con reporte en el RETC.
+- Servicios adicionales: retiro domiciliario asistido y área de equipos potencialmente reutilizables, según cada campaña.
+
+## Datos normativos clave (revisados el 2026-10-30)
+- Una campaña de recolección es un conjunto de actividades temporales y esporádicas para recibir o recoger residuos de productos prioritarios y enviarlos a un centro de acopio o a una instalación de valorización o eliminación (DS 29/2024 Minsal, art. 3 c).
+- La solicitud de autorización sanitaria se presenta ante la SEREMI de Salud al menos 40 días hábiles antes del inicio (arts. 24 y 39). La SEREMI revisa en 30 días hábiles (art. 39); las observaciones se subsanan en 5 días hábiles, prorrogables una vez por 5 más (art. 40).
+- Un mes después del término, el responsable informa en el RETC las cantidades recibidas y su destino (art. 7).
+- Fuente: https://www.bcn.cl/leychile/navegar?idNorma=1220286 · DS 22/2025 MMA (metas de pilas y AEE): https://www.diariooficial.interior.gob.cl/publicaciones/2026/05/07/44443/01/2805526.pdf
+
+## Páginas
+- [Inicio](https://campanasdereciclaje.cl/): aparatos que se reciben, para quién es, servicios, fases y preguntas frecuentes.
+- [Preguntas frecuentes y requisitos del DS 29/2024](https://campanasdereciclaje.cl/preguntas.html)
