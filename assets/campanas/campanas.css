@@ -77,17 +77,14 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
 .galeria-puntos button[aria-current] { width: 22px; background: var(--accent); }
 .galeria-puntos button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .galeria-info { display: grid; justify-items: center; gap: 6px; max-width: 520px; margin: 18px auto 0; text-align: center; }
-.galeria-cat { color: var(--accent-strong); font-size: var(--fs-small); font-weight: 800; }
+/* Categoría del aparato del centro: una píldora centrada sobre la galería */
+.galeria-cat { width: fit-content; margin: 0 auto; padding: 6px 14px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); font-size: var(--fs-small); font-weight: 800; }
+.galeria3d.is-cambio .galeria-cat { animation: galeria-texto .35s var(--ease) both; }
 .galeria-info h3 { font-size: var(--fs-subtitle); letter-spacing: -.015em; }
 .galeria-info p:not(.galeria-cat) { color: var(--ink-2); font-size: .9375rem; }
 .galeria-info .galeria-recibe { color: var(--muted); font-size: var(--fs-small); }
 .galeria-info .btn { margin-top: 10px; }
 .galeria-nota { margin-inline: auto; text-align: center; }
-.galeria-creditos { max-width: 640px; margin: 14px auto 0; color: var(--muted); font-size: var(--fs-caption); text-align: center; }
-.galeria-creditos summary { display: inline-block; cursor: pointer; font-weight: 700; }
-.galeria-creditos summary::-webkit-details-marker { display: none; }
-.galeria-creditos p { margin-top: 8px; line-height: 1.55; }
-.galeria-creditos a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 @media (prefers-reduced-motion: no-preference) {
   @keyframes galeria-texto { from { opacity: 0; transform: translateY(4px); } }
   .galeria3d.is-cambio .galeria-info > * { animation: galeria-texto .35s var(--ease) both; }
@@ -99,3 +96,7 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
   .galeria-flecha.is-prev { left: 8px; }
   .galeria-flecha.is-next { right: 8px; }
 }
+
+/* Preguntas.html: créditos de los modelos 3D, al final */
+.creditos-lista { list-style: none; display: grid; gap: 6px; color: var(--ink-2); font-size: var(--fs-small); }
+.creditos-lista a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
