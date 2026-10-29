@@ -2,7 +2,9 @@
 
 Página estática (HTML/CSS/JS, sin build) de `campanasdereciclaje.cl`, enfocada solo en RAEE (residuos de aparatos eléctricos y electrónicos), según lo pedido por el cliente el 27-10-2026. Es una vista previa: `noindex` y `robots.txt` bloquean la indexación.
 
-- `campanas-reciclaje.html`: la página. `index.html` solo redirige a ella.
+- `campanas-reciclaje.html`: la landing (hero con la ficha, aparatos, para quién, fases, servicios adicionales, cierre). `index.html` solo redirige a ella.
+- `requisitos-ds-29.html` y `preguntas.html`: guías con el formato de las de Transporte (`ayuda/`); la ficha se abre flotando sobre ellas.
+- Fotos pendientes: mientras no exista `assets/campanas/<nombre>-1200.webp` (1200 × 800), la tarjeta muestra su ícono. Nombres: `raee-computadores`, `raee-pantallas`, `raee-pequenos`, `raee-grandes`, `raee-retiro-domiciliario`, `raee-reutilizacion`.
 - `assets/site/`: copia sin cambios del sistema de diseño de Transporte Autorizado (`joan1542003-byte/ambientalia-vistas-previas`, commit `fb4c3cf`): `site.css`, `transporte.css`, `site.js`, `pickers.js`, `seleccion.js`, `filas.js`, `transporte-ui.js` y la licencia de Lucide. No incluye el chat ni el agente. Si se actualiza el sistema en el otro repositorio, cópialo de nuevo aquí y sube la versión `?v=` en el HTML.
 - `assets/campanas/`: imágenes de Campañas y `campanas.css`, con lo propio de esta página (ficha en tres pasos, fases con lista, pestañas del DS 29/2024).
 - Acento verde de Campañas: `<body data-site="campanas">`.

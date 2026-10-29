@@ -1,30 +1,45 @@
-/* Campañas de recolección de RAEE: lo propio de esta página sobre site.css y transporte.css (copias sin cambios del
+/* Campañas de recolección de RAEE: lo propio de estas páginas sobre site.css y transporte.css (copias sin cambios del
    sistema de Transporte). El acento verde viene de body[data-site="campanas"] en site.css. */
 
-/* Fases del proceso con su lista: la lista no es un paso de la línea de tiempo */
-.timeline.has-list > li > .checklist { grid-column: 2; margin-top: 6px; gap: 6px; }
-.timeline .checklist li { counter-increment: none; display: block; padding: 0 0 0 26px; border-top: 0; font-size: var(--fs-small); }
-.timeline .checklist li::before { content: ""; display: block; margin: 0; }
+/* Aparatos: cuatro tarjetas con foto, como los servicios de Transporte */
+.services.is-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.services.is-4 .service-media { aspect-ratio: 3 / 2; }
+@media (max-width: 1100px) { .services.is-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .services.is-4 .service-media { aspect-ratio: 16 / 8; } }
+/* En el teléfono, filas compactas como .cards-compact de Transporte: foto a la izquierda, texto a la derecha */
+@media (max-width: 760px) {
+  .services.is-4 { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .services.is-4 .service { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: start; }
+  .services.is-4 .service-media { aspect-ratio: 1; margin: 14px 0 14px 14px; border-bottom: 0; border-radius: 12px; }
+  .services.is-4 .service-media.is-pending svg { width: 30px; height: 30px; }
+  .services.is-4 .service-body { padding: 14px; }
+  .services.is-4 .service-foot { margin-top: 12px; gap: 6px 10px; }
+}
 
-/* Avisos con ícono: el degradado lila es de Transporte; aquí, el acento del sitio */
-body[data-site="campanas"] .partner-icon { background: var(--accent); }
+/* Mientras no llegue la foto: el espacio queda reservado con el ícono del tipo */
+.service-media.is-pending { display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.service-media.is-pending svg { width: 40px; height: 40px; opacity: .7; }
 
-/* Ícono sobre el título de una tarjeta */
-.card > .extra-icon { margin-bottom: 12px; color: var(--accent); }
+/* Para quién: portadas en degradado como los planes de Transporte, en la familia verde de Campañas */
+.plan[data-tone="municipal"] { --tone: #1c7a4b; --grad: radial-gradient(120% 90% at 15% 0%, rgb(215 245 96 / .45), transparent 55%), linear-gradient(145deg, #2c9a5f 0%, #1c7a4b 55%, #0f4f30 100%); }
+.plan[data-tone="empresa"] { --tone: #0d7a72; --grad: radial-gradient(120% 90% at 15% 0%, rgb(168 223 253 / .45), transparent 55%), linear-gradient(145deg, #19a197 0%, #0d7a72 55%, #07524d 100%); }
+.plan[data-tone="sistema"] { --tone: #3d6f1c; --grad: radial-gradient(120% 90% at 15% 0%, rgb(255 227 87 / .4), transparent 55%), linear-gradient(145deg, #5f9a2c 0%, #3d6f1c 55%, #254710 100%); }
 
-/* Requisitos del DS 29/2024 en pestañas */
-.norma-panel { padding: clamp(20px, 3vw, 28px); }
-.norma-panel > h3 { margin-bottom: 14px; }
-.norma-panel > .small { margin-top: 16px; }
-.norma-panel .grid { gap: 20px 32px; }
-.checklist.is-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 32px; }
-@media (max-width: 760px) { .checklist.is-2 { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 760px) { .norma-panel .grid { grid-template-columns: minmax(0, 1fr); } }
+/* Notas y enlaces cortos al pie de una sección */
+.section-note { max-width: 760px; margin-top: 18px; color: var(--muted); font-size: var(--fs-small); line-height: 1.5; }
+.section-link { margin-top: 22px; }
 
-/* Nota al pie de una sección */
-.section-note { max-width: 760px; margin-top: 20px; color: var(--muted); font-size: var(--fs-small); line-height: 1.5; }
+/* Ayuda en la landing: las mismas filas de enlaces de las guías de Transporte */
+.ayuda-links { margin-top: clamp(24px, 3vw, 32px); }
+.ayuda-links a { padding-block: 16px; }
 
 /* Ficha en tres pasos: en Transporte el indicador va en una línea con dos rótulos; aquí, rótulos arriba y barra abajo */
 .qform .hcard-head .stepper.is-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 6px; }
 .qform .hcard-head .stepper.is-3 .stepper-labels > :nth-child(2) { grid-column: 2; }
 .qform .hcard-head .stepper.is-3 .stepper-bar { grid-column: 1 / -1; grid-row: 2; }
+
+/* Guías: requisitos y preguntas */
+.guia-after { margin: 16px 0 0; }
+.guia-steps .law-refs { margin-top: 2px; }
+.guia-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.guia-chips li { padding: 8px 14px; border-radius: 999px; background: var(--tc-soft); color: var(--ink); font-size: var(--fs-small); font-weight: 700; }
+.guia-sec > .accordion { margin-top: -4px; }
