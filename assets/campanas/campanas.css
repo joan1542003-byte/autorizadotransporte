@@ -79,16 +79,15 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
 .galeria-info { display: grid; justify-items: center; gap: 6px; max-width: 520px; margin: 18px auto 0; text-align: center; }
 /* Categoría del aparato del centro: una píldora centrada sobre la galería */
 .galeria-cat { width: fit-content; margin: 0 auto; padding: 6px 14px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); font-size: var(--fs-small); font-weight: 800; }
-.galeria3d.is-cambio .galeria-cat { animation: galeria-texto .35s var(--ease) both; }
 .galeria-info h3 { font-size: var(--fs-subtitle); letter-spacing: -.015em; }
 .galeria-info p:not(.galeria-cat) { color: var(--ink-2); font-size: .9375rem; }
 .galeria-info .galeria-recibe { color: var(--muted); font-size: var(--fs-small); }
 .galeria-info .btn { margin-top: 10px; }
 .galeria-nota { margin-inline: auto; text-align: center; }
-@media (prefers-reduced-motion: no-preference) {
-  @keyframes galeria-texto { from { opacity: 0; transform: translateY(4px); } }
-  .galeria3d.is-cambio .galeria-info > * { animation: galeria-texto .35s var(--ease) both; }
-}
+/* Cambio de aparato: el texto se desvanece y vuelve suave (galeria3d.js agrega is-saliendo) */
+.galeria-cat, .galeria-info > * { transition: opacity .42s var(--ease), transform .42s var(--ease); }
+.galeria3d.is-saliendo .galeria-cat, .galeria3d.is-saliendo .galeria-info > * { opacity: 0; transform: translateY(3px); transition-duration: .2s; transition-timing-function: ease-in; }
+@media (prefers-reduced-motion: reduce) { .galeria-cat, .galeria-info > * { transition: none; } }
 @media (max-width: 760px) {
   .galeria-escena { margin-inline: calc(var(--gutter) * -1); }
   .galeria-lienzo { height: 300px; }
@@ -108,3 +107,11 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
 /* Enlace discreto al final de preguntas.html y en el pie */
 .creditos-enlace { margin-top: 48px; color: var(--muted); font-size: var(--fs-caption); }
 .creditos-enlace a, .footer-legal a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Logo del sitio (assets/campanas/logo.svg) en la cabecera y el pie */
+.logo-cr { display: block; width: auto; height: 38px; }
+.logo-cr.is-grande { height: 52px; }
+
+/* Hero: la foto de aparatos se encuadra hacia la derecha, donde están los equipos */
+body[data-site="campanas"] .stage-media img { object-position: 82% 60%; }
+@media (max-width: 860px) { body[data-site="campanas"] .stage-media img { object-position: 50% 60%; } }

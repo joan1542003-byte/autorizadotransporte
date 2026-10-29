@@ -20,11 +20,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="assets/campanas/campanas-jornada-comunitaria-820.webp" media="(max-width: 860px)" fetchpriority="high">
-<link rel="preload" as="image" href="assets/campanas/campanas-jornada-comunitaria-1400.webp" media="(min-width: 861px)" fetchpriority="high">
-<link rel="stylesheet" href="assets/site/site.css?v=20261030c">
-<link rel="stylesheet" href="assets/site/transporte.css?v=20261030c">
-<link rel="stylesheet" href="assets/campanas/campanas.css?v=20261030c">
+<link rel="preload" as="image" href="assets/campanas/raee-hero-820.webp" media="(max-width: 860px)" fetchpriority="high">
+<link rel="preload" as="image" href="assets/campanas/raee-hero-1600.webp" media="(min-width: 861px)" fetchpriority="high">
+<link rel="stylesheet" href="assets/site/site.css?v=20261030d">
+<link rel="stylesheet" href="assets/site/transporte.css?v=20261030d">
+<link rel="stylesheet" href="assets/campanas/campanas.css?v=20261030d">
 <script>document.documentElement.classList.add('js')</script>
 <script type="application/ld+json">
 {
@@ -101,8 +101,7 @@
 <header class="site-header">
   <div class="container">
     <a class="brand" href="#top" aria-label="Campañas de reciclaje, inicio">
-      <svg width="32" height="32" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#1c7a4b"/><path d="M12.5 15.5a9 9 0 0 1 15.2 3.5m.3-6v6h-6M27.5 24.5a9 9 0 0 1-15.2-3.5m-.3 6v-6h6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Campañas de reciclaje
+      <img class="logo-cr" src="assets/campanas/logo.svg" width="74" height="38" alt="">
     </a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav" aria-label="Abrir menú">
       <svg width="20" height="20" class="icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="5" x2="19" y1="9" y2="9"/><line x1="5" x2="19" y1="15" y2="15"/></svg>
@@ -122,8 +121,8 @@
     <div class="container">
       <div class="stage" data-hero data-view="inicio">
         <picture class="stage-media" aria-hidden="true">
-          <source media="(max-width: 860px)" srcset="assets/campanas/campanas-jornada-comunitaria-820.webp" width="820" height="547">
-          <img src="assets/campanas/campanas-jornada-comunitaria-1400.webp" width="1400" height="933" alt="" fetchpriority="high" decoding="async">
+          <source media="(max-width: 860px)" srcset="assets/campanas/raee-hero-820.webp" width="820" height="547">
+          <img src="assets/campanas/raee-hero-1600.webp" width="1600" height="534" alt="" fetchpriority="high" decoding="async">
         </picture>
 
         <div class="stage-side">
@@ -135,7 +134,7 @@
           <div class="routes" data-routes>
             <span class="routes-pill" aria-hidden="true"></span>
             <div class="routes-tabs" role="tablist" aria-label="¿Qué necesitas?" aria-orientation="vertical">
-            <button class="route" type="button" role="tab" id="tab-contacto" aria-controls="contacto" aria-selected="false" data-route="contacto">
+            <button class="route" type="button" role="tab" id="tab-contacto" aria-controls="contacto" aria-selected="false" data-route="contacto" data-foto="assets/campanas/campanas-jornada-comunitaria-1400.webp">
               <span class="route-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg></span>
               <span class="route-text"><strong>Quiero organizar una campaña</strong><small>Preparar la ficha</small></span>
               <span class="route-short" aria-hidden="true">Organizar</span>
@@ -145,7 +144,7 @@
               <span class="route-text"><strong>¿Qué aparatos se reciben?</strong><small>Computadores, pantallas y más</small></span>
               <span class="route-short" aria-hidden="true">Aparatos</span>
             </button>
-            <button class="route" type="button" role="tab" id="tab-conversar" aria-controls="conversar" aria-selected="false" data-route="conversar">
+            <button class="route" type="button" role="tab" id="tab-conversar" aria-controls="conversar" aria-selected="false" data-route="conversar" data-foto="assets/campanas/raee-conversar-1600.webp">
               <span class="route-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
               <span class="route-text"><strong>¿Prefieres conversar?</strong><small>Escribir por WhatsApp</small></span>
               <span class="route-short" aria-hidden="true">Conversar</span>
@@ -458,7 +457,7 @@
       </div>
       <div class="services reveal-group">
         <article class="service">
-          <figure class="service-media is-pending" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></figure>
+          <figure class="service-media"><img src="assets/campanas/raee-retiro-domiciliario-1200.webp" width="1200" height="900" alt="" loading="lazy" decoding="async"></figure>
           <div class="service-body">
             <h3>Retiro domiciliario asistido</h3>
             <p>Apoyo para quienes no pueden trasladar equipos voluminosos.</p>
@@ -470,7 +469,7 @@
           </div>
         </article>
         <article class="service">
-          <figure class="service-media is-pending" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5"/><path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12"/><path d="m14 16-3 3 3 3"/><path d="M8.293 13.596 7.196 9.5 3.1 10.598"/><path d="m9.344 5.811 1.093-1.892A1.83 1.83 0 0 1 11.985 3a1.784 1.784 0 0 1 1.546.888l3.943 6.843"/><path d="m13.378 9.633 4.096 1.098 1.097-4.096"/></svg></figure>
+          <figure class="service-media"><img src="assets/campanas/raee-reutilizacion-1200.webp" width="1200" height="900" alt="" loading="lazy" decoding="async"></figure>
           <div class="service-body">
             <h3>Área de equipos reutilizables</h3>
             <p>Un espacio para separar equipos completos con posible segunda vida.</p>
@@ -518,7 +517,6 @@
           </div>
           <button class="galeria-flecha is-next" type="button" data-galeria-next aria-label="Aparato siguiente"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
         </div>
-        <div class="galeria-puntos" data-galeria-puntos><button type="button" aria-label="Celular" aria-current="true"></button><button type="button" aria-label="Notebook"></button><button type="button" aria-label="Televisor"></button><button type="button" aria-label="Refrigerador"></button><button type="button" aria-label="Audífonos"></button><button type="button" aria-label="Lavadora"></button><button type="button" aria-label="Microondas"></button></div>
         <div class="galeria-info" aria-live="polite">
           <h3 data-galeria-nombre>Celular</h3>
           <p data-galeria-texto>Celulares y otros equipos eléctricos o electrónicos pequeños.</p>
@@ -589,8 +587,7 @@
     <div class="footer-grid">
       <div>
         <a class="brand" href="#top" aria-label="Campañas de reciclaje, inicio">
-          <svg width="32" height="32" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#1c7a4b"/><path d="M12.5 15.5a9 9 0 0 1 15.2 3.5m.3-6v6h-6M27.5 24.5a9 9 0 0 1-15.2-3.5m-.3 6v-6h6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Campañas de reciclaje
+          <img class="logo-cr is-grande" src="assets/campanas/logo.svg" width="101" height="52" alt="">
         </a>
         <p>Campañas de recolección de RAEE para municipalidades, empresas y sistemas de gestión.</p>
       </div>
@@ -639,12 +636,12 @@
   </nav>
 </div>
 
-<script src="assets/site/site.js?v=20261030c" defer></script>
-<script src="assets/site/pickers.js?v=20261030c" defer></script>
-<script src="assets/site/seleccion.js?v=20261030c" defer></script>
-<script src="assets/site/filas.js?v=20261030c" defer></script>
-<script src="assets/site/transporte-ui.js?v=20261030c" defer></script>
+<script src="assets/site/site.js?v=20261030d" defer></script>
+<script src="assets/site/pickers.js?v=20261030d" defer></script>
+<script src="assets/site/seleccion.js?v=20261030d" defer></script>
+<script src="assets/site/filas.js?v=20261030d" defer></script>
+<script src="assets/site/transporte-ui.js?v=20261030d" defer></script>
 <script type="importmap">{"imports": {"three": "./assets/campanas/vendor/three/three.module.min.js"}}</script>
-<script src="assets/campanas/galeria3d.js?v=20261030c" defer></script>
+<script src="assets/campanas/galeria3d.js?v=20261030d" defer></script>
 </body>
 </html>

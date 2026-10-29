@@ -35,19 +35,25 @@
 
   /* Texto e indicadores: funcionan aunque el 3D no cargue */
   const mod = (n) => ((n % N) + N) % N;
-  const mostrar = (k) => {
-    const j = mod(k);
-    if (j === actual && out.nombre.textContent === datos[j].nombre) return;
-    actual = j;
+  /* El texto cambia con un fundido: se desvanece, se reemplaza y vuelve a aparecer. Si se pasa rápido por varios
+     aparatos, solo se escribe el último (no parpadea en cada uno). */
+  let cambio = 0;
+  const escribir = (j) => {
     const it = datos[j];
     out.cat.textContent = it.categoria;
     out.nombre.textContent = it.nombre;
     out.texto.textContent = it.texto;
     out.add.dataset.add = `aparatos=${it.categoria}`;
     puntos.forEach((b, i) => (i === j ? b.setAttribute('aria-current', 'true') : b.removeAttribute('aria-current')));
-    g.classList.remove('is-cambio');
-    void g.offsetWidth;  // reinicia la entrada suave del texto
-    g.classList.add('is-cambio');
+  };
+  const mostrar = (k) => {
+    const j = mod(k);
+    if (j === actual) return;
+    actual = j;
+    clearTimeout(cambio);
+    if (quieto.matches) { escribir(j); return; }
+    g.classList.add('is-saliendo');
+    cambio = setTimeout(() => { escribir(actual); g.classList.remove('is-saliendo'); }, 220);
   };
   let pedir = () => {};
   const ir = (k) => { objetivo = k; if (en3d) pedir(); else mostrar(k); };
@@ -205,7 +211,7 @@
     /* Cursor: inclinación del aparato central; arrastre para pasar al siguiente */
     let inclX = 0, inclY = 0, metaX = 0, metaY = 0;
     let arrastre = null;
-    const ancho = () => lienzo.clientWidth * (movil.matches ? 0.55 : 0.28);
+    const ancho = () => lienzo.clientWidth * (movil.matches ? 0.38 : 0.28);
     lienzo.addEventListener('pointermove', (e) => {
       const r = lienzo.getBoundingClientRect();
       if (e.pointerType === 'mouse' && !arrastre) {
@@ -228,9 +234,15 @@
     const ray = new THREE.Raycaster();
     const soltar = (e) => {
       if (!arrastre) return;
-      const { movio } = arrastre;
+      const { movio, desde } = arrastre;
       arrastre = null;
-      if (movio) { objetivo = Math.round(objetivo); pedir(); return; }
+      if (movio) {
+        /* Al soltar: un gesto corto ya pasa al siguiente (o al anterior); uno largo puede saltar más de uno */
+        const delta = objetivo - desde;
+        objetivo = Math.round(desde) + (Math.abs(delta) < 0.1 ? 0 : Math.sign(delta) * Math.max(1, Math.round(Math.abs(delta))));
+        pedir();
+        return;
+      }
       /* Un toque sin arrastre: si cae sobre un aparato lateral, va a él */
       const r = lienzo.getBoundingClientRect();
       ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camara);
@@ -305,7 +317,7 @@
       });
       renderer.render(escena, camara);
       const r = Math.round(pos);
-      if (mod(r) !== actual || out.nombre.textContent !== datos[mod(r)].nombre) mostrar(r);
+      if (mod(r) !== actual) mostrar(r);
       const moviendo = pos !== objetivo || Math.abs(metaX - inclX) > 0.0005 || Math.abs(metaY - inclY) > 0.0005 || girando;
       if (moviendo) pedir();
     }
