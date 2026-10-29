@@ -1,0 +1,906 @@
+/* Ventanas de selección de los tres sitios. En escritorio es un diálogo centrado; en móvil, una hoja inferior.
+   Todo se elige tocando: opciones con imagen o ícono, región y comuna, calendario y horario.
+   window.Picker expone las ventanas (choose, chooseEach, commune, text, dates, time, content) y los renderizadores en
+   línea (options, communes, calendar), que también usa el asistente del hero de Transporte. HDS y Campañas las abren
+   desde filas declaradas en su HTML (filas.js). */
+(() => {
+  const d = document;
+  const PICK = window.PICK;
+  if (!PICK) return;
+  const motion = matchMedia('(prefers-reduced-motion: no-preference)');
+  const coarse = matchMedia('(pointer: coarse)');
+  const fold = PICK.fold;
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const svg = (p) => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+  const ICON = {
+    close: svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+    back: svg('<path d="m15 18-6-6 6-6"/>'),
+    next: svg('<path d="m9 18 6-6-6-6"/>'),
+    search: svg('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
+    check: svg('<path d="M20 6 9 17l-5-5"/>'),
+    help: svg('<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>'),
+    range: svg('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>')
+  };
+
+  /* ---------- Renderizadores en línea ---------- */
+  const optionHTML = (o, on) => `<button type="button" class="opt" data-value="${esc(o.value)}" aria-pressed="${on}"${o.disabled ? ' disabled' : ''}>${
+    o.img ? `<img src="${esc(o.img)}" alt="" width="48" height="48" decoding="async">` : o.icon ? `<span class="opt-icon" aria-hidden="true">${o.icon}</span>` : ''
+  }<span class="opt-text"><strong>${esc(o.label)}</strong>${o.hint ? `<small>${esc(o.hint)}</small>` : ''}</span><i class="opt-check" aria-hidden="true"></i></button>`;
+
+  /* Campo para decir cuál, bajo una opción «Otro» (pedido del cliente, 08-10-2026): aparece al elegirla */
+  const otherHTML = (value, text, label = 'Cuéntanos cuál') => `<label class="opt-other" data-other="${esc(value)}" hidden><span class="sr-only">${esc(label)}</span><input type="text" maxlength="140" autocomplete="off" enterkeyhint="done" placeholder="${esc(label)}" value="${esc(text)}"></label>`;
+  /* El campo recién desplegado queda a la vista dentro de su lista, sin mover la página. Con puntero basta lo justo
+     para verlo; con teclado en pantalla, la opción elegida sube al inicio de la lista antes de que el teclado aparezca
+     (así el teléfono no desplaza la pantalla para mostrar el campo) y, cuando ya apareció, se vuelve a revisar. */
+  const reveal = (node, anchor) => {
+    let box = node.parentElement;
+    while (box && !(box.scrollHeight > box.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(box).overflowY))) box = box.parentElement;
+    if (!box) return;
+    const fit = () => {
+      const r = node.getBoundingClientRect();
+      const b = box.getBoundingClientRect();
+      if (r.bottom > b.bottom - 12) box.scrollTop += r.bottom - b.bottom + 12;
+      else if (r.top < b.top + 8) box.scrollTop += r.top - b.top - 8;
+    };
+    if (!coarse.matches) { fit(); return; }
+    if (anchor) box.scrollTop += anchor.getBoundingClientRect().top - box.getBoundingClientRect().top - 8;
+    fit();
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const again = () => requestAnimationFrame(() => { if (d.activeElement && node.contains(d.activeElement)) fit(); });
+    vv.addEventListener('resize', again);
+    setTimeout(() => vv.removeEventListener('resize', again), 1200);
+  };
+
+  /* Opciones agrupadas. layout: 'tiles' (imagen), 'cards' (ícono y texto), 'list' (filas) o 'chips'.
+     Una opción con `disabled` se ve, pero no se puede elegir (su `hint` dice por qué). Una opción con `other: true`
+     despliega un campo para escribir cuál; ese texto se lee con other() (otherText es el texto ya escrito). */
+  const options = (host, { groups, value, multi = false, max = 0, exclusive = [], layout = 'list', onPick, onChange, otherText = '', otherLabel }) => {
+    const picked = new Set(multi ? [].concat(value || []).filter(Boolean) : []);
+    const others = groups.flatMap((g) => g.options.filter((o) => o.other).map((o) => o.value));
+    let chosen = multi ? '' : value;
+    let text = otherText;
+    const isOn = (v) => (multi ? picked.has(v) : v === chosen);
+    const syncOther = (focus) => host.querySelectorAll('[data-other]').forEach((f) => {
+      const on = isOn(f.dataset.other);
+      f.hidden = !on;
+      if (!on || focus !== f.dataset.other) return;
+      f.querySelector('input').focus({ preventScroll: true });
+      reveal(f, [...host.querySelectorAll('.opt[data-value]')].find((b) => b.dataset.value === focus));
+    });
+    const draw = (q = '') => {
+      const k = fold(q);
+      const html = groups.map((g) => {
+        const list = g.options.filter((o) => !k || fold(`${o.label} ${o.hint || ''}`).includes(k));
+        if (!list.length) return '';
+        const other = list.find((o) => o.other);
+        return `<section class="opt-group">${g.label ? `<h3>${esc(g.label)}</h3>` : ''}<div class="opts is-${g.layout || layout}">${list.map((o) => optionHTML(o, isOn(o.value))).join('')}</div>${other ? otherHTML(other.value, text, otherLabel) : ''}</section>`;
+      }).join('');
+      host.innerHTML = html || `<p class="opt-empty">No encontramos resultados para «${esc(q)}».</p>`;
+      syncOther();
+    };
+    draw();
+    host.oninput = (e) => { if (e.target.closest('[data-other]')) text = e.target.value; };
+    host.onclick = (e) => {
+      const b = e.target.closest('.opt[data-value]');
+      if (!b || b.disabled) return;
+      const v = b.dataset.value;
+      if (!multi) {
+        chosen = v;
+        host.querySelectorAll('.opt[data-value]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        syncOther(v);
+        onPick?.(v);
+        return;
+      }
+      if (picked.has(v)) picked.delete(v);
+      else {
+        if (exclusive.includes(v)) picked.clear(); else exclusive.forEach((x) => picked.delete(x));
+        picked.add(v);
+        if (max && picked.size > max) picked.delete(picked.values().next().value);
+      }
+      host.querySelectorAll('.opt[data-value]').forEach((x) => x.setAttribute('aria-pressed', String(picked.has(x.dataset.value))));
+      syncOther(picked.has(v) ? v : '');
+      onChange?.([...picked]);
+    };
+    return { filter: draw, get: () => [...picked], others, other: () => text.trim().replace(/\s+/g, ' ') };
+  };
+
+  /* Comunas que se atienden (PICK.COBERTURA): todas a la vista; buscar es opcional */
+  const REGION = 'Metropolitana';
+  const communes = (host, { value = {}, onPick }) => {
+    const list = PICK.COBERTURA;
+    const draw = (names, q = '') => {
+      host.innerHTML = names.length
+        ? `<div class="opts is-grid">${names.map((c) => `<button type="button" class="opt" data-commune="${esc(c)}" aria-pressed="${c === value.commune}"><span class="opt-text"><strong>${esc(c)}</strong></span><i class="opt-check" aria-hidden="true"></i></button>`).join('')}</div>`
+        : `<p class="opt-empty">Por ahora atendemos ${esc(PICK.coberturaTexto)}. Si estás en otra comuna, escríbenos por WhatsApp.</p>`;
+    };
+    const search = (q) => {
+      const k = fold(q);
+      if (!k) { draw(list); return; }
+      draw(list.filter((c) => fold(c).includes(k)).sort((a, b) => Number(fold(b).startsWith(k)) - Number(fold(a).startsWith(k))), q);
+    };
+    host.onclick = (e) => {
+      const c = e.target.closest('[data-commune]');
+      if (c) onPick?.({ commune: c.dataset.commune, region: REGION });
+    };
+    draw(list);
+    return { search };
+  };
+
+  /* Calendario mensual. Por defecto (retiros de Transporte): lunes a sábado, desde mañana y hasta tres meses.
+     `desde` y `hasta` son días contados desde hoy; `domingos` los habilita (p. ej., la fecha estimada de una campaña). */
+  const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const iso = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+  const parse = (v) => { const [y, m, dd] = v.split('-').map(Number); return new Date(y, m - 1, dd, 12); };
+  /* months > 1: varios meses seguidos, uno bajo otro y sin flechas (en pantalla completa se recorren deslizando) */
+  const calendar = (host, { multi = false, max = 3, value = [], onChange, months = 1, desde = 1, hasta = 92, domingos = false }) => {
+    const picked = [].concat(value).filter(Boolean);
+    const today = new Date(); today.setHours(12, 0, 0, 0);
+    const min = new Date(today); min.setDate(min.getDate() + desde);
+    const lim = new Date(today); lim.setDate(lim.getDate() + hasta);
+    const view = picked[0] ? parse(picked[0]) : new Date(min);
+    view.setDate(1);
+    const month = (y, m, nav) => {
+      const lead = (new Date(y, m, 1, 12).getDay() + 6) % 7;
+      const count = new Date(y, m + 1, 0).getDate();
+      const at = y * 12 + m;
+      let cells = '<span></span>'.repeat(lead);
+      for (let n = 1; n <= count; n += 1) {
+        const dt = new Date(y, m, n, 12);
+        const v = iso(dt);
+        const off = dt < min || dt > lim || (!domingos && dt.getDay() === 0);
+        cells += `<button type="button" class="cal-day${v === iso(today) ? ' is-today' : ''}" data-date="${v}" aria-pressed="${picked.includes(v)}" aria-label="${PICK.longDate(v)}"${off ? ' disabled' : ''}>${n}</button>`;
+      }
+      return `<div class="cal">
+        <div class="cal-head">
+          ${nav ? `<button type="button" class="cal-nav" data-cal-nav="-1" aria-label="Mes anterior"${at > min.getFullYear() * 12 + min.getMonth() ? '' : ' disabled'}>${ICON.back}</button>` : ''}
+          <strong aria-live="polite">${MONTHS[m]} ${y}</strong>
+          ${nav ? `<button type="button" class="cal-nav" data-cal-nav="1" aria-label="Mes siguiente"${at < lim.getFullYear() * 12 + lim.getMonth() ? '' : ' disabled'}>${ICON.next}</button>` : ''}
+        </div>
+        <div class="cal-week" aria-hidden="true"><span>lu</span><span>ma</span><span>mi</span><span>ju</span><span>vi</span><span>sá</span><span>do</span></div>
+        <div class="cal-grid">${cells}</div>
+      </div>`;
+    };
+    const draw = () => {
+      if (months > 1) {
+        const start = new Date(min.getFullYear(), min.getMonth(), 1, 12);
+        /* Hasta el mes del último día permitido (92 días): el chat y el formulario aceptan las mismas fechas */
+        const span = Math.max(months, (lim.getFullYear() - start.getFullYear()) * 12 + lim.getMonth() - start.getMonth() + 1);
+        host.innerHTML = `<div class="cal-months">${Array.from({ length: span }, (_, i) => {
+          const d0 = new Date(start.getFullYear(), start.getMonth() + i, 1, 12);
+          return month(d0.getFullYear(), d0.getMonth(), false);
+        }).join('')}</div>`;
+        return;
+      }
+      host.innerHTML = month(view.getFullYear(), view.getMonth(), true);
+    };
+    host.onclick = (e) => {
+      const nav = e.target.closest('[data-cal-nav]');
+      if (nav && !nav.disabled) {
+        view.setMonth(view.getMonth() + Number(nav.dataset.calNav));
+        draw();
+        host.querySelector(`[data-cal-nav="${nav.dataset.calNav}"]:not([disabled])`)?.focus({ preventScroll: true });
+        return;
+      }
+      const b = e.target.closest('[data-date]');
+      if (!b || b.disabled) return;
+      const v = b.dataset.date;
+      if (!multi) picked.splice(0, picked.length, v);
+      else if (picked.includes(v)) picked.splice(picked.indexOf(v), 1);
+      else { picked.push(v); if (picked.length > max) picked.shift(); }
+      host.querySelectorAll('[data-date]').forEach((x) => x.setAttribute('aria-pressed', String(picked.includes(x.dataset.date))));
+      onChange?.([...picked].sort());
+    };
+    draw();
+    return { get: () => [...picked].sort() };
+  };
+
+  /* Señal implícita de que hay más contenido: el borde por donde continúa se difumina (arriba o abajo),
+     sin textos ni botones que pidan desplazarse. Marca data-more y data-scrolled en el contenedor. */
+  const hint = (scroller) => {
+    if (!scroller || scroller.dataset.hint) return () => {};
+    scroller.dataset.hint = '1';
+    const update = () => {
+      const rest = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
+      const scrollable = scroller.scrollHeight > scroller.clientHeight + 2 && getComputedStyle(scroller).overflowY !== 'visible';
+      scroller.toggleAttribute('data-more', scrollable && rest > 8);
+      scroller.toggleAttribute('data-scrolled', scrollable && scroller.scrollTop > 4);
+    };
+    scroller.addEventListener('scroll', update, { passive: true });
+    if ('ResizeObserver' in window) new ResizeObserver(update).observe(scroller);
+    new MutationObserver(() => requestAnimationFrame(update)).observe(scroller, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
+    update();
+    return update;
+  };
+
+  /* ---------- Ventana ---------- */
+  let dlg; let el; let resolver = null; let lastFocus = null;
+  const hooks = { back: null, search: null, done: null, action: null, tab: null };
+  /* Hoja inferior: se cierra bajándola con el dedo desde la manilla o la cabecera (no desde botones ni campos).
+     Si no llega al umbral, vuelve a su lugar; hacia arriba apenas cede. */
+  const drag = (surface, { handles, dismiss, enabled = () => true }) => {
+    let id = null; let y0 = 0; let dy = 0; let t0 = 0;
+    surface.addEventListener('pointerdown', (e) => {
+      if (id !== null || !enabled() || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      if (!e.target.closest(handles) || e.target.closest('button, a, input, select, textarea, label')) return;
+      id = e.pointerId; y0 = e.clientY; dy = 0; t0 = performance.now();
+      try { surface.setPointerCapture(id); } catch { /* puntero sintético o ya liberado */ }
+      surface.style.transition = 'none';
+    });
+    surface.addEventListener('pointermove', (e) => {
+      if (e.pointerId !== id) return;
+      const raw = e.clientY - y0;
+      dy = raw > 0 ? raw : raw / 4;
+      surface.style.transform = `translateY(${dy}px)`;
+    });
+    const end = (e) => {
+      if (e.pointerId !== id) return;
+      id = null;
+      const speed = dy / Math.max(1, performance.now() - t0);
+      surface.style.transition = 'transform .3s cubic-bezier(.32, .72, 0, 1)';
+      if (dy > Math.min(120, surface.offsetHeight * .25) || (speed > .5 && dy > 24)) {
+        surface.style.transform = `translateY(${surface.offsetHeight + 40}px)`;
+        setTimeout(dismiss, 200);
+      } else {
+        surface.style.transform = '';
+      }
+    };
+    surface.addEventListener('pointerup', end);
+    surface.addEventListener('pointercancel', end);
+  };
+  const sheet = matchMedia('(max-width: 640px)');
+
+  const build = () => {
+    dlg = d.createElement('dialog');
+    dlg.className = 'picker';
+    dlg.setAttribute('aria-labelledby', 'picker-title');
+    /* Al abrir, el foco va a un punto de inicio fijo (fuera de la tarjeta que sube), no a un botón que todavía viene subiendo:
+       enfocar algo fuera de la pantalla hacía que el navegador desplazara la vista (la ventana «se iba hacia arriba») */
+    dlg.innerHTML = `
+      <span class="dialog-start" tabindex="-1" autofocus></span>
+      <div class="picker-card">
+        <span class="picker-grab" aria-hidden="true"></span>
+        <header class="picker-head">
+          <button class="picker-icon" type="button" data-back hidden aria-label="Volver">${ICON.back}</button>
+          <div class="picker-titles"><h2 id="picker-title"></h2><p hidden></p></div>
+          <button class="picker-icon" type="button" data-close aria-label="Cerrar">${ICON.close}</button>
+        </header>
+        <label class="picker-search" hidden>${ICON.search}<span class="sr-only">Buscar</span><input type="search" autocomplete="off" spellcheck="false" enterkeyhint="search"></label>
+        <div class="picker-tabs" role="tablist" hidden></div>
+        <div class="picker-body"></div>
+        <footer class="picker-foot" hidden><div class="picker-links" hidden></div><button class="btn btn-quiet btn-small" type="button" data-action hidden></button><span class="picker-count" aria-live="polite"></span><button class="btn btn-primary btn-small" type="button" data-done>Listo</button></footer>
+      </div>`;
+    d.body.append(dlg);
+    el = {
+      title: dlg.querySelector('h2'), sub: dlg.querySelector('.picker-titles p'), back: dlg.querySelector('[data-back]'),
+      searchWrap: dlg.querySelector('.picker-search'), search: dlg.querySelector('.picker-search input'),
+      body: dlg.querySelector('.picker-body'), foot: dlg.querySelector('.picker-foot'), tabs: dlg.querySelector('.picker-tabs'),
+      done: dlg.querySelector('[data-done]'), count: dlg.querySelector('.picker-count'), action: dlg.querySelector('[data-action]'), links: dlg.querySelector('.picker-links')
+    };
+    hint(el.body);
+    el.card = dlg.querySelector('.picker-card');
+    drag(el.card, { handles: '.picker-grab, .picker-head', enabled: () => sheet.matches, dismiss: () => finish(undefined, { instant: true }) });
+    /* El fondo cierra solo si el toque empezó en el fondo (seleccionar texto y soltar fuera no cierra) */
+    let downOnVeil = false;
+    dlg.addEventListener('pointerdown', (e) => { downOnVeil = e.target === dlg; });
+    dlg.addEventListener('click', (e) => {
+      if ((e.target === dlg && downOnVeil) || e.target.closest('[data-close]')) finish();
+      else if (e.target.closest('[data-back]')) hooks.back?.();
+      else if (e.target.closest('[data-done]')) hooks.done?.();
+      else if (e.target.closest('[data-action]')) hooks.action?.();
+      else if (e.target.closest('[data-tab]')) hooks.tab?.(Number(e.target.closest('[data-tab]').dataset.tab));
+    });
+    dlg.addEventListener('cancel', (e) => { e.preventDefault(); finish(); });
+    el.search.addEventListener('input', () => hooks.search?.(el.search.value));
+    /* Enter en el campo de un «Otro» confirma la ventana */
+    el.body.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.closest('[data-other]')) { e.preventDefault(); hooks.done?.(); } });
+    el.search.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      el.body.querySelector('button:not([disabled])')?.click();
+    });
+  };
+  const finish = (value, { instant = false } = {}) => {
+    if (!dlg?.open) return;
+    const done = resolver;
+    resolver = null;
+    const end = () => {
+      dlg.close();
+      dlg.classList.remove('is-closing');
+      el.card.style.transform = el.card.style.transition = '';
+      d.documentElement.classList.remove('picker-open');
+      lastFocus?.focus?.({ preventScroll: true });
+      done?.(value);
+    };
+    if (motion.matches && !instant) { dlg.classList.add('is-closing'); setTimeout(end, sheet.matches ? 220 : 180); } else end();
+  };
+  const open = ({ title, sub = '', search = '', done = '', still = false }) => {
+    if (!dlg) build();
+    dlg.classList.toggle('is-still', still);
+    if (dlg.open) { resolver?.(); resolver = null; dlg.close(); }
+    lastFocus = d.activeElement;
+    Object.keys(hooks).forEach((k) => { hooks[k] = null; });
+    el.title.textContent = title;
+    el.sub.textContent = sub;
+    el.sub.hidden = !sub;
+    el.back.hidden = true;
+    el.searchWrap.hidden = !search;
+    el.search.value = '';
+    el.search.placeholder = search;
+    el.foot.hidden = !done;
+    el.done.hidden = !done;
+    el.done.innerHTML = `${ICON.check}${esc(done || 'Listo')}`;
+    el.done.disabled = false;
+    el.count.textContent = '';
+    el.action.hidden = true;
+    el.links.hidden = true;
+    el.links.innerHTML = '';
+    el.tabs.hidden = true;
+    el.tabs.innerHTML = '';
+    el.body.innerHTML = '';
+    el.body.onclick = null;
+    el.body.scrollTop = 0;
+    d.documentElement.classList.add('picker-open');
+    dlg.showModal();
+    return new Promise((res) => { resolver = res; });
+  };
+  /* La lista abre ya posicionada en la opción elegida (antes del primer cuadro, sin moverse mientras sube);
+     el foco se da después, sin desplazar nada */
+  const place = (on) => {
+    if (!on) return;
+    const box = el.body.getBoundingClientRect();
+    const r = on.getBoundingClientRect();
+    if (r.top < box.top || r.bottom > box.bottom) el.body.scrollTop += r.top - box.top - (box.height - r.height) / 2;
+  };
+  const focusFirst = () => {
+    const on = el.body.querySelector('[aria-pressed="true"]');
+    place(on);
+    if (coarse.matches) return;  // en pantallas táctiles el foco queda en la ventana; con teclado, en la opción
+    requestAnimationFrame(() => {
+      const target = on || (!el.searchWrap.hidden && !coarse.matches ? el.search : el.body.querySelector('button:not([disabled]), input, select'));
+      target?.focus({ preventScroll: true });
+    });
+  };
+  const counter = (n, one, many) => (n ? `${n} ${n === 1 ? one : many}` : '');
+  /* Si la ventana abre con un «Otro» ya elegido, el cursor queda al final de lo escrito (solo con teclado físico) */
+  const focusOther = () => {
+    const f = el.body.querySelector('[data-other]:not([hidden]) input');
+    if (f && !coarse.matches) requestAnimationFrame(() => { f.focus({ preventScroll: true }); f.setSelectionRange(f.value.length, f.value.length); reveal(f.closest('[data-other]')); });
+  };
+
+  /* Una opción (se cierra al tocar) o varias (con «Listo») */
+  /* Con tabs, cada grupo se muestra en su pestaña (así ningún grupo queda escondido bajo el scroll);
+     al buscar, se muestran los resultados de todos los grupos. action agrega un botón al pie (p. ej. «No lo sé»). */
+  const choose = (o) => {
+    const p = open({ title: o.title, sub: o.sub, search: o.search, done: o.multi ? (o.done || 'Listo') : '' });
+    const sync = (list) => {
+      el.done.disabled = Boolean(o.required) && !list.length;
+      el.count.textContent = counter(list.length, 'elegida', 'elegidas');
+    };
+    let active = Math.max(0, o.groups.findIndex((g) => g.options.some((x) => [].concat(o.value).includes(x.value))));
+    let ctrl;
+    const render = (q = '') => {
+      const tabbed = o.tabs && !q.trim();
+      if (o.tabs) {
+        el.tabs.hidden = !tabbed;
+        el.tabs.innerHTML = o.groups.map((g, i) => `<button type="button" role="tab" data-tab="${i}" aria-selected="${i === active}">${esc(g.tab || g.label)}<span>${g.count ?? g.options.length}</span></button>`).join('');
+      }
+      const groups = tabbed ? [{ ...o.groups[active], label: '' }] : o.groups;
+      ctrl = options(el.body, { ...o, groups, value: o.multi && ctrl ? ctrl.get() : o.value, otherText: ctrl ? ctrl.other() : o.otherText, onPick: pick, onChange: sync });
+      if (q) ctrl.filter(q);
+    };
+    /* Con una opción «Otro» (other: true) el resultado es { value, text } —o { values, text } si son varias—: al elegirla
+       la ventana no se cierra, aparece su campo y se confirma con «Listo» */
+    const hasOther = o.groups.some((g) => g.options.some((x) => x.other));
+    const pick = (v) => {
+      if (!ctrl.others.includes(v)) { finish(hasOther ? { value: v, text: '' } : v); return; }
+      el.foot.hidden = false;
+      el.done.hidden = false;
+      hooks.done = () => finish({ value: v, text: ctrl.other() });
+    };
+    render();
+    hooks.search = (q) => render(q);
+    hooks.tab = (i) => { active = i; render(); el.body.scrollTop = 0; el.tabs.querySelector(`[data-tab="${i}"]`)?.focus({ preventScroll: true }); };
+    if (o.multi) { sync(ctrl.get()); hooks.done = () => finish(hasOther ? { values: ctrl.get(), text: ctrl.other() } : ctrl.get()); }
+    else if (hasOther && ctrl.others.includes(o.value)) pick(o.value);
+    focusOther();
+    if (o.action) {
+      el.foot.hidden = false;
+      el.action.hidden = false;
+      el.action.innerHTML = `${ICON.help}${esc(o.action.label)}`;
+      hooks.action = () => finish(o.action.value);
+    }
+    focusFirst();
+    return p;
+  };
+
+  /* Varios grupos en una ventana, con «Listo»: cada grupo es de una opción o, con multi, de varias */
+  const chooseEach = ({ title, sub, groups, value = {}, layout = 'chips' }) => {
+    const p = open({ title, sub, done: 'Listo' });
+    const picked = Object.fromEntries(groups.map((g) => [g.key, g.multi ? [].concat(value[g.key] || []) : value[g.key] || '']));
+    const on = (g, v) => (g.multi ? picked[g.key].includes(v) : picked[g.key] === v);
+    /* Un grupo con una opción «Otro» (other: true) despliega su campo al elegirla; lo escrito vuelve en `${key}Otro` */
+    const otherOf = (g) => g.options.find((o) => o.other);
+    el.body.innerHTML = groups.map((g) => `<section class="opt-group" data-group="${esc(g.key)}"><h3>${esc(g.label)}</h3><div class="opts is-${g.layout || layout}">${g.options.map((o) => optionHTML(o, on(g, o.value))).join('')}</div>${otherOf(g) ? otherHTML(otherOf(g).value, value[`${g.key}Otro`] || '', g.otherLabel) : ''}</section>`).join('');
+    const syncOther = (focus) => el.body.querySelectorAll('[data-other]').forEach((f) => {
+      const g = groups.find((x) => x.key === f.closest('[data-group]').dataset.group);
+      const shown = on(g, f.dataset.other);
+      f.hidden = !shown;
+      if (!shown || focus !== f) return;
+      f.querySelector('input').focus({ preventScroll: true });
+      reveal(f, [...f.closest('[data-group]').querySelectorAll('.opt[data-value]')].find((b) => b.dataset.value === f.dataset.other));
+    });
+    /* Un grupo con `allowed(picked)` muestra solo las opciones que esa función devuelve según lo elegido en los otros
+       (p. ej., el almacenamiento según el estado del residuo; null = todas). Si lo marcado queda fuera, se desmarca */
+    const filtrar = () => groups.forEach((g) => {
+      if (!g.allowed) return;
+      const ok = g.allowed(picked);
+      if (ok) picked[g.key] = g.multi ? picked[g.key].filter((v) => ok.includes(v)) : ok.includes(picked[g.key]) ? picked[g.key] : '';
+      el.body.querySelectorAll(`[data-group="${g.key}"] .opt[data-value]`).forEach((x) => {
+        x.hidden = Boolean(ok) && !ok.includes(x.dataset.value);
+        x.setAttribute('aria-pressed', String(on(g, x.dataset.value)));
+      });
+    });
+    filtrar();
+    syncOther();
+    el.body.onclick = (e) => {
+      const b = e.target.closest('.opt[data-value]');
+      if (!b) return;
+      const g = groups.find((x) => x.key === b.closest('[data-group]').dataset.group);
+      const v = b.dataset.value;
+      if (g.multi) picked[g.key] = on(g, v) ? picked[g.key].filter((x) => x !== v) : [...picked[g.key], v];
+      else picked[g.key] = picked[g.key] === v ? '' : v;
+      b.closest('.opts').querySelectorAll('.opt').forEach((x) => x.setAttribute('aria-pressed', String(on(g, x.dataset.value))));
+      filtrar();
+      syncOther(otherOf(g)?.value === v ? b.closest('[data-group]').querySelector('[data-other]') : null);
+    };
+    hooks.done = () => {
+      groups.forEach((g) => {
+        const f = el.body.querySelector(`[data-group="${g.key}"] [data-other]`);
+        if (f) picked[`${g.key}Otro`] = f.hidden ? '' : f.querySelector('input').value.trim().replace(/\s+/g, ' ');
+      });
+      finish(picked);
+    };
+    focusFirst();
+    return p;
+  };
+
+  /* Comuna (solo las que se atienden; con pocas, sin buscador) */
+  const commune = ({ value = {}, title = '¿En qué comuna está el residuo?' } = {}) => {
+    const p = open({ title, sub: `Por ahora atendemos ${PICK.coberturaTexto}.`, search: PICK.COBERTURA.length > 8 ? 'Buscar comuna' : '' });
+    const ctrl = communes(el.body, { value, onPick: (v) => finish(v) });
+    hooks.search = (q) => ctrl.search(q);
+    focusFirst();
+    return p;
+  };
+
+  /* Modalidad, día(s) y horario del retiro */
+  /* Modalidades de retiro (las usa el asistente) */
+  const MODES = [
+    { value: 'express', label: 'Retiro Express', hint: 'Prioridad dentro de 24 horas hábiles.' },
+    { value: 'programado', label: 'Retiro Programado', hint: 'Eliges el día del retiro.' },
+    { value: 'flexible', label: 'Espera y ahorra', hint: 'Propones hasta tres días.' }
+  ];
+
+  /* Texto en su propia ventana (p. ej., la dirección): el campo queda arriba, así el teclado nunca lo tapa
+     y la pantalla no se mueve; «Listo» queda sobre el teclado. El foco se da en el mismo toque para que el teclado abra. */
+  /* Ventana de texto. Con `suggest` (función async que recibe lo escrito y una señal para cancelar) muestra sugerencias
+     bajo el campo mientras se escribe; al elegir una, queda escrita y se puede seguir completando (bodega, piso…). */
+  const PIN = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>';
+  /* Fila con el mapa de la dirección (mapa.js). `map` lo arma MAPA.paraTexto(): { value, onDone(punto), onPlace({ comuna }),
+     key(texto), parts(texto), locate(texto, comuna), search(texto, comuna), reverse(punto), near(texto, punto, metros), warm() } */
+  /* El mapa está siempre a la vista (pedido del cliente, 02-10-2026): no es una opción que haya que abrir */
+  const MAP_ROW = `<div class="text-map is-open" data-map>
+      <div class="map-open is-static" data-map-open>
+        <span class="map-open-icon" aria-hidden="true">${PIN}</span>
+        <span class="map-open-text"><strong></strong><small></small></span>
+      </div>
+      <div class="map-fold" id="picker-map"><div class="map-fold-in"><div data-map-slot></div></div></div>
+    </div>`;
+  /* `optional`: el texto se puede dejar vacío (devuelve ''); sin él, «Listo» espera a que haya algo escrito */
+  const text = ({ title, sub = '', label = title, value = '', placeholder = '', hint = '', autocomplete = 'off', maxlength = 200, done = 'Listo', suggest = null, onSuggest = null, source = '', map = null, optional = false }) => {
+    const p = open({ title, sub, done, still: true });
+    const withMap = Boolean(map && window.MAPA);
+    let point = map?.value || null;
+    el.body.innerHTML = `<div class="text-field">
+      <label class="sr-only" for="picker-text">${esc(label)}</label>
+      <textarea id="picker-text" rows="3" maxlength="${maxlength}" autocomplete="${esc(autocomplete)}" enterkeyhint="done" placeholder="${esc(placeholder)}"${suggest ? ' aria-controls="picker-suggest" aria-autocomplete="list"' : ''}>${esc(value)}</textarea>
+      ${hint ? `<p class="text-hint">${esc(hint)}</p>` : ''}
+      ${suggest ? `<ul class="text-suggest" id="picker-suggest" aria-label="Sugerencias" hidden></ul><p class="text-source" hidden>${esc(source)}</p>` : ''}
+      ${withMap ? MAP_ROW : ''}
+    </div>`;
+    const input = el.body.querySelector('textarea');
+    const sync = () => { el.done.disabled = !optional && !input.value.trim(); };
+    /* «Listo» (o Enter) guarda el texto y, si hay mapa, el punto marcado */
+    const commit = () => {
+      if (!optional && !input.value.trim()) return;
+      if (withMap) map.onDone?.(point);
+      finish(input.value.trim().replace(/\s+/g, ' '));
+    };
+    input.addEventListener('input', sync);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' && el.body.querySelector('.suggest')) { e.preventDefault(); el.body.querySelector('.suggest').focus(); return; }
+      if (e.key !== 'Enter' || e.shiftKey) return;
+      e.preventDefault();
+      commit();
+    });
+    let hideSuggest = () => {};
+    let chosen = '';                // calle ya elegida (sugerencia o mapa): lo que se agregue después no reabre la lista
+    let comunaElegida = '';         // comuna de la sugerencia elegida: orienta al mapa mientras la calle siga siendo esa
+    let alCambiarTexto = () => {};  // lo conecta el mapa: muestra en él la dirección escrita
+    if (withMap) {
+      /* Texto y mapa se completan entre sí, con estas reglas:
+         - El punto que marca la persona (mover el mapa, tocar un lugar, «Mi ubicación», «Marcar aquí») es suyo: nada
+           de lo que escriba después lo mueve ni lo quita. Solo lo cambia ella, en el mapa.
+         - Al marcar un punto se escribe su dirección. El número que la persona escribió a mano se respeta si el punto
+           quedó en esa misma calle o junto a ella; el que había escrito el mapa se reemplaza por el del nuevo lugar.
+         - Sin punto de la persona, el mapa sigue a lo escrito; si conoce ese número exacto, lo deja marcado.
+         Cada acción (escribir, mover el mapa) deja obsoletas las respuestas que venían en camino. */
+      const zone = el.body.querySelector('[data-map]');
+      const opener = zone.querySelector('[data-map-open]');
+      const clave = (t) => (map.key ? map.key(t) : t.trim().toLowerCase());
+      const partesDe = (t) => (map.parts ? map.parts(t) : { calle: t.trim(), numero: '', resto: '' });
+      const AVISO = {
+        escrita: 'Escribimos la dirección de ese lugar.',
+        faltaNumero: 'Falta el número: agrégalo a la dirección.',
+        seMantiene: 'Se mantiene la dirección que escribiste.',
+        sinCalle: 'Escribe la dirección de ese lugar.',
+        otraCalle: 'El punto marcado no está en esa calle. Mueve el mapa si el lugar cambió.',
+        tramo: 'No tenemos ese número exacto: el mapa muestra dónde debería estar. Toca el lugar para marcarlo.',
+        zona: 'No tenemos ese número: el mapa muestra la zona aproximada de la calle. Toca el lugar exacto para marcarlo.',
+        comunas: 'Esa calle existe en más de una comuna. Elige la tuya en las sugerencias o toca el lugar para marcarlo.',
+        calles: 'Hay más de una calle con ese nombre en la comuna. Si es aquí, toca el lugar para marcarlo; si no, mueve el mapa.'
+      };
+      let ctl = null;
+      let origen = point ? 'persona' : '';  // quién puso el punto: 'persona' o 'busqueda' (el mapa conocía la dirección escrita)
+      let buscado = null;                   // { calle, numero }: dirección a la que corresponde el punto de la búsqueda
+      let delMapa = null;                   // { calle, numero }: lo último que el mapa escribió en el campo (ese número no es de la persona)
+      let turno = 0;
+      let tecleo = 0;
+      let toques = 0;                       // veces que la persona tocó el mapa: desde ahí, lo ya escrito no lo mueve
+      let visto = { t: point ? value.trim() : '', preciso: Boolean(point) };  // última dirección que ya se llevó al mapa
+      let tCalle = 0;
+      let tNumero = 0;
+      const paintRow = () => {
+        zone.classList.toggle('has-point', Boolean(point));
+        opener.querySelector('strong').textContent = point ? 'Punto marcado en el mapa' : 'Ubicación en el mapa';
+        opener.querySelector('small').textContent = point ? 'Se enviará como enlace de Google Maps' : 'Escribe la dirección o toca el lugar: se completan entre sí';
+      };
+      const sinPunto = () => { point = null; origen = ''; buscado = null; paintRow(); };
+      /* Mapa → texto: la persona marcó un punto (o lo quitó) y se escribe su dirección */
+      const alMover = (x, como, extra) => {
+        const mine = ++turno;
+        /* Con «Mi ubicación» se dice con qué margen de error quedó el punto: la persona sabe si conviene ajustarlo */
+        const decir = (msg) => ctl?.note(`${como === 'ubicacion' ? `Punto marcado donde estás${extra?.margen ? ` (±${extra.margen})` : ''}` : 'Punto marcado'}. ${msg}`);
+        if (!x) {
+          sinPunto();
+          visto = { t: input.value.trim(), preciso: true };  // quitar el punto no hace que el mapa lo vuelva a buscar
+          return;
+        }
+        point = x;
+        origen = 'persona';
+        buscado = null;
+        paintRow();
+        if (!map.reverse) return;
+        const antes = tecleo;
+        (async () => {
+          let r = null;
+          try { r = await map.reverse(x); } catch { r = null; }
+          if (mine !== turno || !dlg.open || !r) return;
+          if (r.comuna) map.onPlace?.({ comuna: r.comuna });
+          if (tecleo !== antes) return;  // la persona siguió escribiendo: manda su texto
+          const cur = partesDe(input.value);
+          if (!r.calle) { if (!input.value.trim()) decir(AVISO.sinCalle); return; }
+          const manual = Boolean(cur.numero) && !(delMapa && delMapa.numero === cur.numero && delMapa.calle === clave(cur.calle));
+          const misma = clave(cur.calle) === clave(r.calle);
+          if (manual && !misma) {
+            let cerca = null;
+            try { cerca = await map.near?.(input.value, x); } catch { cerca = null; }
+            if (mine !== turno || !dlg.open || tecleo !== antes) return;
+            if (cerca !== false) { decir(AVISO.seMantiene); return; }  // el punto quedó junto a la calle escrita (o no se puede comparar)
+          }
+          /* Con «Mi ubicación» no se escribe número: el dispositivo no distingue una casa de la del lado */
+          const numero = manual && misma ? cur.numero : como === 'ubicacion' ? '' : r.numero;
+          const base = `${r.calle}${numero ? ` ${numero}` : ''}`;
+          input.value = `${base}${cur.resto ? `, ${cur.resto}` : ''}`.slice(0, maxlength);
+          delMapa = manual && misma ? null : { calle: clave(base), numero };
+          chosen = base;
+          comunaElegida = r.comuna || '';
+          visto = { t: input.value.trim(), preciso: true };
+          hideSuggest();
+          sync();
+          decir(manual && misma ? AVISO.seMantiene : numero ? AVISO.escrita : AVISO.faltaNumero);
+        })();
+      };
+      const abrir = () => {
+        if (ctl) return;
+        map.warm?.();  // datos para convertir punto ↔ dirección
+        ctl = window.MAPA.mount(zone.querySelector('[data-map-slot]'), { value: point, vista: point ? null : map.locate?.(input.value), onChange: alMover, zona: map.zona });
+      };
+      /* Cuando la persona toca el mapa, lo toma ella: lo que ya estaba escrito deja de moverlo (hasta que el texto
+         cambie), y se descarta la búsqueda que venía en camino. Si no, el mapa se correría bajo su dedo y el toque
+         quedaría marcado en otro lugar */
+      zone.addEventListener('pointerdown', (e) => {
+        if (!e.target.closest('[data-map-slot]')) return;
+        toques += 1;
+        clearTimeout(tCalle);
+        clearTimeout(tNumero);
+        if (origen !== 'persona') visto = { t: input.value.trim(), preciso: true };
+      }, true);
+      /* Texto → mapa: la calle escrita se muestra de inmediato (aproximada). Con `preciso` se busca además el número:
+         si el mapa lo conoce, el punto queda marcado; si no, muestra dónde debería estar, sin marcarlo. */
+      alCambiarTexto = async ({ preciso = false } = {}) => {
+        clearTimeout(tCalle);
+        if (preciso) clearTimeout(tNumero);
+        const t = input.value.trim();
+        const k = clave(t);
+        if (origen === 'persona') {  // el punto es de la persona: lo escrito no lo mueve; solo se avisa si ya no calza
+          if (!preciso || k.length < 3 || !map.near || t === visto.t) return;
+          visto = { t, preciso: true };
+          const mine = turno;
+          let cerca = null;
+          try { cerca = await map.near(t, point, 150); } catch { cerca = null; }
+          if (mine === turno && dlg.open && origen === 'persona') ctl?.note(cerca === false ? AVISO.otraCalle : '');
+          return;
+        }
+        if (k.length < 3) return;
+        const cur = partesDe(t);
+        if (!preciso && cur.numero) return;  // con número, se espera la pasada precisa: el mapa se mueve una sola vez
+        if (t === visto.t && (visto.preciso || !preciso)) return;  // esta misma dirección ya se mostró
+        visto = { t, preciso };
+        const mine = ++turno;
+        const antes = toques;
+        const vigente = () => mine === turno && antes === toques && dlg.open;
+        const pref = chosen && t.startsWith(chosen) ? comunaElegida : '';
+        let v = null;
+        let e = null;
+        try { v = await map.locate?.(t, pref); } catch { v = null; }
+        if (!vigente()) return;
+        if (preciso && cur.numero && map.search) {
+          try { e = await map.search(t, pref); } catch { e = null; }
+          if (!vigente()) return;
+        }
+        if (e?.nivel === 'exacto') {
+          abrir();
+          ctl.show(e, { marcar: true });
+          point = ctl.get();
+          origen = 'busqueda';
+          /* La dirección quedó resuelta: se escribe con el nombre oficial de la calle (si no se está editando a mitad
+             del texto) y la lista de sugerencias se cierra, para dejar ver el mapa */
+          if (e.calle && (d.activeElement !== input || input.selectionStart === input.value.length)) {
+            input.value = `${e.calle} ${cur.numero}${cur.resto ? `, ${cur.resto}` : ''}`.slice(0, maxlength);
+            visto = { t: input.value.trim(), preciso: true };
+            sync();
+          }
+          buscado = { calle: clave(input.value), numero: cur.numero };
+          chosen = input.value.trim();
+          hideSuggest();
+          paintRow();
+          if (e.comuna) map.onPlace?.({ comuna: e.comuna });
+          return;
+        }
+        const destino = e || (v?.nivel === 'calle' ? v : null);
+        if (!destino) return;
+        if (point) sinPunto();  // otra dirección: el punto que había encontrado la búsqueda ya no corresponde
+        abrir();
+        ctl.show(destino, e ? { aviso: e.nivel === 'duda' ? AVISO[e.varias] : e.zoom < 17 ? AVISO.zona : AVISO.tramo } : {});
+      };
+      input.addEventListener('input', () => {
+        tecleo += 1;
+        /* El punto que encontró la búsqueda vale solo para esa calle y ese número */
+        if (origen === 'busqueda' && !(clave(input.value) === buscado.calle && partesDe(input.value).numero === buscado.numero)) { sinPunto(); ctl?.release(); }
+        clearTimeout(tCalle);
+        clearTimeout(tNumero);
+        tCalle = setTimeout(() => alCambiarTexto(), 450);
+        tNumero = setTimeout(() => alCambiarTexto({ preciso: true }), 1100);
+      });
+      /* Al dejar el campo se busca de inmediato (si se dejó tocando el mapa, ese toque ya dio la dirección por vista) */
+      input.addEventListener('blur', () => { if (dlg.open) alCambiarTexto({ preciso: true }); });
+      paintRow();
+      /* El mapa se monta al abrir la ventana; con una dirección ya escrita, la muestra de inmediato */
+      abrir();
+      if (input.value.trim()) {
+        if (!point) alCambiarTexto({ preciso: true });
+        else if (map.search) {
+          /* Un punto guardado que coincide con el número exacto de la dirección es de la búsqueda, no de la persona */
+          const inicial = point;
+          map.search(input.value.trim(), '').then((e) => {
+            if (e?.nivel !== 'exacto' || point !== inicial || tecleo || Math.abs(e.lat - inicial.lat) > 2e-5 || Math.abs(e.lng - inicial.lng) > 2e-5) return;
+            origen = 'busqueda';
+            buscado = { calle: clave(input.value), numero: partesDe(input.value).numero };
+          }).catch(() => {});
+        }
+      }
+      p.finally?.(() => { clearTimeout(tCalle); clearTimeout(tNumero); ctl?.destroy(); });
+    }
+    if (suggest) {
+      const box = el.body.querySelector('.text-suggest');
+      const note = el.body.querySelector('.text-source');
+      let items = [];
+      let ctrl = null;
+      let timer = 0;
+      let turn = 0;
+      const draw = (list) => {
+        /* La entrada escalonada solo al aparecer: mientras se sigue escribiendo, la lista cambia sin volver a animarse */
+        box.classList.toggle('is-fresh', box.hidden && list.length > 0);
+        const same = list.length === items.length && list.every((it, i) => it.label === items[i].label && it.sub === items[i].sub);
+        items = list;
+        if (same && !box.hidden) return;
+        box.innerHTML = list.map((it, i) => `<li><button type="button" class="suggest" data-i="${i}"><span class="suggest-pin">${PIN}</span><span class="suggest-text"><strong>${esc(it.label)}</strong><small>${esc(it.sub)}</small></span></button></li>`).join('');
+        box.hidden = !list.length;
+        note.hidden = !list.length || !source;
+      };
+      const ask = () => {
+        clearTimeout(timer);
+        const q = input.value.trim();
+        /* Elegida una calle, lo que se agrega después (oficina, bodega, referencia) no vuelve a abrir la lista */
+        if (q.length < 3 || (chosen && q.startsWith(chosen))) { ctrl?.abort(); turn += 1; draw([]); return; }
+        timer = setTimeout(async () => {
+          ctrl?.abort();
+          ctrl = new AbortController();
+          const mine = ++turn;
+          let list = [];
+          try { list = await suggest(q, ctrl.signal); } catch { list = []; }
+          if (mine === turn && dlg.open) draw(list || []);
+        }, 140);
+      };
+      input.addEventListener('input', ask);
+      box.addEventListener('click', (e) => {
+        const b = e.target.closest('.suggest');
+        if (!b) return;
+        const it = items[Number(b.dataset.i)];
+        chosen = it.label;
+        comunaElegida = it.comuna || '';
+        input.value = it.value;
+        onSuggest?.(it);
+        draw([]);
+        sync();
+        alCambiarTexto({ preciso: true });
+        input.focus({ preventScroll: true });
+        input.setSelectionRange(input.value.length, input.value.length);
+      });
+      box.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+        const all = [...box.querySelectorAll('.suggest')];
+        const k = all.indexOf(d.activeElement);
+        e.preventDefault();
+        if (e.key === 'ArrowUp' && k <= 0) input.focus(); else all[Math.min(all.length - 1, k + (e.key === 'ArrowDown' ? 1 : -1))]?.focus();
+      });
+      hideSuggest = () => { clearTimeout(timer); ctrl?.abort(); turn += 1; draw([]); };
+      p.finally?.(() => { clearTimeout(timer); ctrl?.abort(); });
+    }
+    hooks.done = commit;
+    sync();
+    input.focus({ preventScroll: true });
+    input.setSelectionRange(input.value.length, input.value.length);
+    return p;
+  };
+
+  /* Solo el calendario: un día (se cierra al tocarlo) o hasta `max` días posibles (con «Listo») */
+  const dates = ({ title, sub = '', multi = false, max = 3, value = [], months = 3, desde = 1, hasta = 92, domingos = false }) => {
+    const p = open({ title, sub, done: multi ? 'Listo' : '' });
+    let list = [...value];
+    const sync = () => {
+      if (!multi) return;
+      el.done.disabled = !list.length;
+      el.count.textContent = counter(list.length, 'día elegido', 'días elegidos');
+    };
+    el.body.innerHTML = '<div class="when"><div data-cal></div></div>';
+    calendar(el.body.querySelector('[data-cal]'), {
+      multi, max, value: list, months, desde, hasta, domingos,
+      onChange: (next) => {
+        list = next;
+        if (!multi && next.length) setTimeout(() => finish(next), 160);  // se alcanza a ver el día marcado
+        else sync();
+      }
+    });
+    hooks.done = () => finish(list);
+    sync();
+    /* Abre en el día elegido o en el primero disponible (no en una flecha), sin moverse después */
+    const day = el.body.querySelector('.cal-day[aria-pressed="true"]') || el.body.querySelector('.cal-day:not([disabled])');
+    place(day);
+    if (!coarse.matches) requestAnimationFrame(() => day?.focus({ preventScroll: true }));
+    return p;
+  };
+
+  /* Horario: opciones de un toque o un rango con un deslizador de dos puntas (23-10-2026; antes, botones de hora):
+     de 8:00 a 18:00, cada media hora, con al menos una hora entre «desde» y «hasta». Con teclado, las flechas lo mueven */
+  const INICIO = 8 * 60;
+  const FIN = 18 * 60;
+  const PASO = 30;
+  const mins = (h) => Number(h.split(':')[0]) * 60 + Number(h.split(':')[1] || 0);
+  const hora = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
+  const valida = (h) => /^\d{1,2}:\d{2}$/.test(h || '') && mins(h) >= INICIO && mins(h) <= FIN && mins(h) % PASO === 0;
+  const time = ({ value = {} } = {}) => {
+    const p = open({ title: '¿En qué horario?', sub: 'Es tu preferencia: la confirmamos al coordinar el retiro.', done: 'Listo' });
+    let desde = valida(value.desde) ? mins(value.desde) : 9 * 60;
+    let hasta = valida(value.hasta) ? mins(value.hasta) : 12 * 60;
+    if (desde > FIN - 60) desde = FIN - 60;
+    if (hasta < desde + 60) hasta = desde + 60;
+    const st = { slot: value.slot || 'Cualquier horario' };
+    const presets = [
+      { value: 'Cualquier horario', label: 'Cualquier horario', hint: 'Toda la jornada', icon: PICK.ICONS.clock },
+      { value: 'Mañana', label: 'Mañana', hint: '8:00 a 13:00', icon: PICK.ICONS.sun },
+      { value: 'Tarde', label: 'Tarde', hint: '13:00 a 18:00', icon: PICK.ICONS.sunset },
+      { value: 'Vespertino', label: 'Vespertino', hint: 'De noche · sujeto a confirmación', icon: PICK.ICONS.moon },
+      { value: 'otro', label: 'Elegir un rango', hint: 'Desde y hasta, con el deslizador', icon: ICON.range }
+    ];
+    const marcas = [8, 10, 12, 14, 16, 18].map((h) => `<span>${h}:00</span>`).join('');
+    el.body.innerHTML = `<div class="time">
+      <div class="opts is-cards" data-presets role="group" aria-label="Horario">${presets.map((o) => optionHTML(o, st.slot === o.value)).join('')}</div>
+      <section class="time-range" data-range${st.slot === 'otro' ? '' : ' hidden'}>
+        <p class="slider-valor" aria-live="polite"><strong data-desde-t></strong><span>a</span><strong data-hasta-t></strong></p>
+        <div class="slider" data-slider>
+          <div class="slider-pista" aria-hidden="true"><i></i></div>
+          <input type="range" min="${INICIO}" max="${FIN}" step="${PASO}" value="${desde}" aria-label="Desde" data-desde>
+          <input type="range" min="${INICIO}" max="${FIN}" step="${PASO}" value="${hasta}" aria-label="Hasta" data-hasta>
+        </div>
+        <div class="slider-marcas" aria-hidden="true">${marcas}</div>
+      </section>
+    </div>`;
+    const range = el.body.querySelector('[data-range]');
+    const slider = range.querySelector('[data-slider]');
+    const inDesde = slider.querySelector('[data-desde]');
+    const inHasta = slider.querySelector('[data-hasta]');
+    const paintRange = () => {
+      inDesde.value = desde;
+      inHasta.value = hasta;
+      inDesde.setAttribute('aria-valuetext', hora(desde));
+      inHasta.setAttribute('aria-valuetext', hora(hasta));
+      slider.style.setProperty('--a', (desde - INICIO) / (FIN - INICIO));
+      slider.style.setProperty('--b', (hasta - INICIO) / (FIN - INICIO));
+      range.querySelector('[data-desde-t]').textContent = hora(desde);
+      range.querySelector('[data-hasta-t]').textContent = hora(hasta);
+      el.count.textContent = st.slot === 'otro' ? `Entre ${hora(desde)} y ${hora(hasta)}` : '';
+      el.foot.hidden = st.slot !== 'otro';
+    };
+    /* Cada punta empuja a la otra si se acercan a menos de una hora */
+    inDesde.addEventListener('input', () => {
+      desde = Math.min(Number(inDesde.value), FIN - 60);
+      if (hasta < desde + 60) hasta = desde + 60;
+      paintRange();
+    });
+    inHasta.addEventListener('input', () => {
+      hasta = Math.max(Number(inHasta.value), INICIO + 60);
+      if (desde > hasta - 60) desde = hasta - 60;
+      paintRange();
+    });
+    /* La punta que se toca queda encima (si están juntas, se puede tomar la que corresponde) */
+    slider.addEventListener('pointerdown', (e) => {
+      const r = slider.getBoundingClientRect();
+      const m = INICIO + ((e.clientX - r.left) / r.width) * (FIN - INICIO);
+      const cerca = Math.abs(m - desde) <= Math.abs(m - hasta) ? inDesde : inHasta;
+      inDesde.classList.toggle('is-arriba', cerca === inDesde);
+      inHasta.classList.toggle('is-arriba', cerca === inHasta);
+    });
+    el.body.onclick = (e) => {
+      const opt = e.target.closest('.opt[data-value]');
+      if (!opt) return;
+      el.body.querySelectorAll('[data-presets] .opt').forEach((x) => x.setAttribute('aria-pressed', String(x === opt)));
+      if (opt.dataset.value !== 'otro') { finish({ slot: opt.dataset.value }); return; }
+      st.slot = 'otro';
+      range.hidden = false;
+      paintRange();
+      range.scrollIntoView({ block: 'nearest', behavior: motion.matches ? 'smooth' : 'auto' });
+    };
+    hooks.done = () => finish({ slot: 'otro', desde: hora(desde), hasta: hora(hasta) });
+    paintRange();
+    focusFirst();
+    return p;
+  };
+
+  /* Ventana de contenido (p. ej., vista previa de una norma): contenido libre y enlaces de acción al pie, sobre el pulgar */
+  const content = ({ title, sub = '', html = '', links = '' }) => {
+    const p = open({ title, sub });
+    el.body.innerHTML = html;
+    if (links) {
+      el.foot.hidden = false;
+      el.done.hidden = true;
+      el.links.hidden = false;
+      el.links.innerHTML = links;
+    }
+    return p;
+  };
+
+  window.Picker = { content, choose, chooseEach, commune, text, dates, time, options, communes, calendar, hint, drag, reveal, MODES, close: () => finish() };
+})();

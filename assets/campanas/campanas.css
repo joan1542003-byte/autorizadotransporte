@@ -1,0 +1,30 @@
+/* Campañas de recolección de RAEE: lo propio de esta página sobre site.css y transporte.css (copias sin cambios del
+   sistema de Transporte). El acento verde viene de body[data-site="campanas"] en site.css. */
+
+/* Fases del proceso con su lista: la lista no es un paso de la línea de tiempo */
+.timeline.has-list > li > .checklist { grid-column: 2; margin-top: 6px; gap: 6px; }
+.timeline .checklist li { counter-increment: none; display: block; padding: 0 0 0 26px; border-top: 0; font-size: var(--fs-small); }
+.timeline .checklist li::before { content: ""; display: block; margin: 0; }
+
+/* Avisos con ícono: el degradado lila es de Transporte; aquí, el acento del sitio */
+body[data-site="campanas"] .partner-icon { background: var(--accent); }
+
+/* Ícono sobre el título de una tarjeta */
+.card > .extra-icon { margin-bottom: 12px; color: var(--accent); }
+
+/* Requisitos del DS 29/2024 en pestañas */
+.norma-panel { padding: clamp(20px, 3vw, 28px); }
+.norma-panel > h3 { margin-bottom: 14px; }
+.norma-panel > .small { margin-top: 16px; }
+.norma-panel .grid { gap: 20px 32px; }
+.checklist.is-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 32px; }
+@media (max-width: 760px) { .checklist.is-2 { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) { .norma-panel .grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Nota al pie de una sección */
+.section-note { max-width: 760px; margin-top: 20px; color: var(--muted); font-size: var(--fs-small); line-height: 1.5; }
+
+/* Ficha en tres pasos: en Transporte el indicador va en una línea con dos rótulos; aquí, rótulos arriba y barra abajo */
+.qform .hcard-head .stepper.is-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 6px; }
+.qform .hcard-head .stepper.is-3 .stepper-labels > :nth-child(2) { grid-column: 2; }
+.qform .hcard-head .stepper.is-3 .stepper-bar { grid-column: 1 / -1; grid-row: 2; }
