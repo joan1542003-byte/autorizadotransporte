@@ -20,10 +20,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="assets/campanas/campanas-jornada-comunitaria-1400.webp" fetchpriority="high">
-<link rel="stylesheet" href="assets/site/site.css?v=20261029y">
-<link rel="stylesheet" href="assets/site/transporte.css?v=20261029y">
-<link rel="stylesheet" href="assets/campanas/campanas.css?v=20261029y">
+<link rel="preload" as="image" href="assets/campanas/campanas-jornada-comunitaria-820.webp" media="(max-width: 860px)" fetchpriority="high">
+<link rel="preload" as="image" href="assets/campanas/campanas-jornada-comunitaria-1400.webp" media="(min-width: 861px)" fetchpriority="high">
+<link rel="stylesheet" href="assets/site/site.css?v=20261030b">
+<link rel="stylesheet" href="assets/site/transporte.css?v=20261030b">
+<link rel="stylesheet" href="assets/campanas/campanas.css?v=20261030b">
 <script>document.documentElement.classList.add('js')</script>
 <script type="application/ld+json">
 {
@@ -121,6 +122,7 @@
     <div class="container">
       <div class="stage" data-hero data-view="inicio">
         <picture class="stage-media" aria-hidden="true">
+          <source media="(max-width: 860px)" srcset="assets/campanas/campanas-jornada-comunitaria-820.webp" width="820" height="547">
           <img src="assets/campanas/campanas-jornada-comunitaria-1400.webp" width="1400" height="933" alt="" fetchpriority="high" decoding="async">
         </picture>
 
@@ -409,22 +411,7 @@
     </div>
   </section>
 
-  <section class="section section-alt" id="proceso" aria-labelledby="proceso-title">
-    <div class="container">
-      <div class="section-head reveal">
-        <h2 class="title" id="proceso-title">Cómo funciona una campaña.</h2>
-      </div>
-      <ol class="timeline is-4 reveal-group">
-        <li><h3>Planificación</h3><p>Qué se recibe, dónde, cuándo y con qué recursos.</p></li>
-        <li><h3>Autorización sanitaria</h3><p>Preparamos los antecedentes para la SEREMI de Salud, al menos 40 días hábiles antes.</p></li>
-        <li><h3>Ejecución</h3><p>Recepción, clasificación, seguridad y traslado a un destino autorizado.</p></li>
-        <li><h3>Cierre y reporte</h3><p>Cantidades, respaldo del destino y reporte en el RETC.</p></li>
-      </ol>
-      <p class="section-link reveal"><a class="link" href="preguntas.html#requisitos">Qué pide el DS 29/2024 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a></p>
-    </div>
-  </section>
-
-  <section class="section" id="publicos" aria-labelledby="publicos-title">
+  <section class="section section-alt" id="publicos" aria-labelledby="publicos-title">
     <div class="container">
       <div class="section-head reveal">
         <h2 class="title" id="publicos-title">Una campaña para cada organización.</h2>
@@ -464,7 +451,7 @@
     </div>
   </section>
 
-  <section class="section section-alt" id="adicionales" aria-labelledby="adicionales-title">
+  <section class="section" id="adicionales" aria-labelledby="adicionales-title">
     <div class="container">
       <div class="section-head reveal">
         <h2 class="title" id="adicionales-title">Servicios adicionales.</h2>
@@ -495,6 +482,21 @@
           </div>
         </article>
       </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="proceso" aria-labelledby="proceso-title">
+    <div class="container">
+      <div class="section-head reveal">
+        <h2 class="title" id="proceso-title">Cómo funciona una campaña.</h2>
+      </div>
+      <ol class="timeline is-4 reveal-group">
+        <li><h3>Planificación</h3><p>Qué se recibe, dónde, cuándo y con qué recursos.</p></li>
+        <li><h3>Autorización sanitaria</h3><p>Preparamos los antecedentes para la SEREMI de Salud, al menos 40 días hábiles antes.</p></li>
+        <li><h3>Ejecución</h3><p>Recepción, clasificación, seguridad y traslado a un destino autorizado.</p></li>
+        <li><h3>Cierre y reporte</h3><p>Cantidades, respaldo del destino y reporte en el RETC.</p></li>
+      </ol>
+      <p class="section-link reveal"><a class="link" href="preguntas.html#requisitos">Qué pide el DS 29/2024 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a></p>
     </div>
   </section>
 
@@ -637,12 +639,12 @@
   </nav>
 </div>
 
-<script src="assets/site/site.js?v=20261029y" defer></script>
-<script src="assets/site/pickers.js?v=20261029y" defer></script>
-<script src="assets/site/seleccion.js?v=20261029y" defer></script>
-<script src="assets/site/filas.js?v=20261029y" defer></script>
-<script src="assets/site/transporte-ui.js?v=20261029y" defer></script>
+<script src="assets/site/site.js?v=20261030b" defer></script>
+<script src="assets/site/pickers.js?v=20261030b" defer></script>
+<script src="assets/site/seleccion.js?v=20261030b" defer></script>
+<script src="assets/site/filas.js?v=20261030b" defer></script>
+<script src="assets/site/transporte-ui.js?v=20261030b" defer></script>
 <script type="importmap">{"imports": {"three": "./assets/campanas/vendor/three/three.module.min.js"}}</script>
-<script src="assets/campanas/galeria3d.js?v=20261029y" defer></script>
+<script src="assets/campanas/galeria3d.js?v=20261030b" defer></script>
 </body>
 </html>

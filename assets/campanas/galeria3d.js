@@ -27,6 +27,8 @@
   const quieto = matchMedia('(prefers-reduced-motion: reduce)');
   const movil = matchMedia('(max-width: 760px)');
   const base = g.dataset.modelos;
+  /* Espera a un momento libre del navegador (con tope, para que no se quede esperando para siempre) */
+  const libre = () => new Promise((r) => (window.requestIdleCallback ? requestIdleCallback(() => r(), { timeout: 2000 }) : setTimeout(r, 200)));
   let objetivo = 0;   // índice entero al que se va (sin límite: la galería no tiene fin)
   let actual = 0;     // el que se muestra en el texto
   let en3d = false;    // con el 3D cargado, el texto lo actualiza cada cuadro
@@ -82,6 +84,7 @@
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
     const escena = new THREE.Scene();
+    await libre();
     const pmrem = new THREE.PMREMGenerator(renderer);
     escena.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     pmrem.dispose();
@@ -136,23 +139,27 @@
       escena.add(soporte);
       return soporte;
     });
-    const cargarModelo = (j) => {
+    /* De a un modelo y en tiempo libre: se descarga, se decodifica (las texturas fuera del hilo principal), se compilan
+       sus shaders en segundo plano (compileAsync) y recién entonces entra a la escena. Así el resto de la página sigue
+       fluida mientras llegan. Primero el del centro y sus vecinos; después el resto. */
+    const cargarModelo = async (j) => {
       const s = soportes[j];
-      if (s.userData.listo || s.userData.cargando) return;
-      s.userData.cargando = true;
-      const poner = (obj) => {
+      try {
+        const gltf = await loader.loadAsync(base + s.userData.it.modelo);
+        const obj = gltf.scene;
         obj.rotation.set(s.userData.it.incl || 0, s.userData.base, 0);
         ajustar(obj, s.userData.it.alto || 1.55);
+        await libre();
+        if (renderer.compileAsync) await renderer.compileAsync(obj, camara, escena);
         s.userData.giro.add(obj);
-        s.userData.listo = true;
         g.classList.add('is-lista');
         pedir();
-      };
-      loader.load(base + s.userData.it.modelo, (gltf) => poner(gltf.scene), undefined, (err) => { s.userData.cargando = false; console.warn('Galería 3D:', s.userData.it.modelo, err); });
+      } catch (err) {
+        console.warn('Galería 3D:', s.userData.it.modelo, err);
+      }
     };
-    /* Primero el del centro y sus vecinos; después el resto */
     const orden = [0, 1, N - 1, 2, N - 2, ...datos.keys()].filter((v, i, a) => a.indexOf(v) === i && v < N);
-    orden.forEach((j, i) => setTimeout(() => cargarModelo(j), i * 120));
+    (async () => { for (const j of orden) { await libre(); await cargarModelo(j); } })();
 
     /* Tamaño del lienzo */
     const medir = () => {
@@ -285,12 +292,17 @@
     medir();
   };
 
-  /* Se descarga recién cuando la galería se acerca a la pantalla */
-  const io = new IntersectionObserver(([e]) => {
+  /* El 3D es lo último del sitio: espera a que la página termine de cargar (imágenes y demás), a que el navegador esté
+     libre y a que la galería se acerque a la pantalla. Recién ahí descarga three.js y los modelos. */
+  const cargada = new Promise((r) => (d.readyState === 'complete' ? r() : addEventListener('load', r, { once: true })));
+  const io = new IntersectionObserver(async ([e]) => {
     if (!e.isIntersecting) return;
     io.disconnect();
+    await cargada;
+    await libre();
     g.classList.add('is-cargando');
-    cargar().catch((err) => { console.warn('Galería 3D:', err); g.classList.add('sin-3d'); }).finally(() => g.classList.remove('is-cargando'));
-  }, { rootMargin: '400px 0px' });
+    /* «Cargando…» se ve hasta que entra el primer modelo (is-lista) */
+    cargar().catch((err) => { console.warn('Galería 3D:', err); g.classList.add('sin-3d'); });
+  }, { rootMargin: '300px 0px' });
   io.observe(lienzo);
 })();
