@@ -1,10 +1,12 @@
 /* Aparatos que se reciben: galería infinita con modelos 3D reales (three.js 0.170, MIT, copia local en vendor/three).
-   Una sola escena y un solo <canvas>: el aparato del centro queda de frente, gira lento y se inclina hacia el cursor;
-   los demás esperan a los lados, más atrás y difuminados por la niebla. Se cambia deslizando, con la rueda o el trackpad
+   Una sola escena y un solo <canvas>: el aparato del centro queda de frente y quieto; mira sutilmente hacia el cursor
+   cuando este pasa cerca y vuelve a quedarse quieto; al hacerle clic da una vuelta suave y regresa a su posición. Los
+   demás esperan a los lados, más atrás y difuminados por la niebla. Se cambia deslizando, con la rueda o el trackpad
    en horizontal, con las flechas (pantalla y teclado), con los puntos o tocando un aparato lateral; al llegar al final
    vuelve a empezar. Al cambiar se actualizan el texto y «Incluir en la ficha» (data-add de filas.js).
    Optimización: three.js y los modelos (GLB con meshopt y texturas WebP de 1024 px, de Sketchfab, CC BY 4.0) se descargan
-   recién cuando la galería se acerca a la pantalla; se dibuja solo mientras está a la vista y la pestaña está activa;
+   recién cuando la galería se acerca a la pantalla; se dibuja solo mientras algo se mueve, está a la vista y la pestaña
+   está activa;
    la densidad de píxeles queda en 2 como máximo (1,5 en el teléfono). Sin WebGL se ve la lista de respaldo. */
 (() => {
   const d = document;
@@ -137,7 +139,7 @@
     };
     const soportes = datos.map((it) => {
       const soporte = new THREE.Group();
-      const giro = new THREE.Group();   // giro lento del centro e inclinación hacia el cursor
+      const giro = new THREE.Group();   // mirada hacia el cursor y vuelta al hacer clic
       soporte.add(giro);
       const sombra = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.9), sombraMat);
       sombra.rotation.x = -Math.PI / 2;
@@ -187,8 +189,8 @@
     lienzo.addEventListener('pointermove', (e) => {
       const r = lienzo.getBoundingClientRect();
       if (e.pointerType === 'mouse' && !arrastre) {
-        metaY = ((e.clientX - r.left) / r.width - 0.5) * 0.9;
-        metaX = ((e.clientY - r.top) / r.height - 0.5) * 0.45;
+        metaY = ((e.clientX - r.left) / r.width - 0.5) * 0.6;
+        metaX = ((e.clientY - r.top) / r.height - 0.5) * 0.24;
       }
       if (arrastre) {
         const dx = e.clientX - arrastre.x;
@@ -217,7 +219,9 @@
       let o = hit.object;
       while (o && !soportes.includes(o)) o = o.parent;
       const rel = o?.userData.rel;
-      if (rel && Math.abs(rel) > 0.5) ir(Math.round(objetivo + rel));
+      if (rel === undefined) return;
+      if (Math.abs(rel) > 0.5) ir(Math.round(objetivo + rel));
+      else if (!quieto.matches && !o.userData.vuelta) { o.userData.vuelta = performance.now(); pedir(); }
     };
     lienzo.addEventListener('pointerup', soltar);
     lienzo.addEventListener('pointercancel', () => { if (arrastre) { arrastre = null; objetivo = Math.round(objetivo); pedir(); } });
@@ -239,7 +243,8 @@
     let visible = false;
     let raf = 0;
     let antes = performance.now();
-    let spin = 0;
+    const VUELTA = 1400;  // ms
+    const suave = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
     pedir = () => { if (!raf && visible && !d.hidden) raf = requestAnimationFrame(cuadro); };
     function cuadro(t) {
       raf = 0;
@@ -250,8 +255,8 @@
       if (Math.abs(objetivo - pos) < 0.0005) pos = objetivo;
       inclX += (metaX - inclX) * (1 - Math.exp(-dt * 6));
       inclY += (metaY - inclY) * (1 - Math.exp(-dt * 6));
-      if (!lento) spin += dt * 0.35;
       const sep = lienzo.clientWidth < 520 ? 1.7 : 2.3;
+      let girando = false;
       soportes.forEach((s, j) => {
         let rel = mod(j - pos + N / 2) - N / 2;
         s.userData.rel = rel;
@@ -263,13 +268,19 @@
         s.scale.setScalar(1 - Math.min(a, 2) * 0.16);
         s.rotation.y = -rel * 0.42;
         const giro = s.userData.giro;
-        giro.rotation.y = k * (Math.sin(spin) * 0.55 + inclY);
+        let vuelta = 0;
+        if (s.userData.vuelta) {
+          const avance = (t - s.userData.vuelta) / VUELTA;
+          if (avance >= 1) s.userData.vuelta = 0;
+          else { vuelta = suave(avance) * Math.PI * 2; girando = true; }
+        }
+        giro.rotation.y = k * inclY + vuelta;
         giro.rotation.x = k * inclX;
       });
       renderer.render(escena, camara);
       const r = Math.round(pos);
       if (mod(r) !== actual || out.nombre.textContent !== datos[mod(r)].nombre) mostrar(r);
-      const moviendo = pos !== objetivo || Math.abs(metaX - inclX) > 0.001 || Math.abs(metaY - inclY) > 0.001 || !lento;
+      const moviendo = pos !== objetivo || Math.abs(metaX - inclX) > 0.0005 || Math.abs(metaY - inclY) > 0.0005 || girando;
       if (moviendo) pedir();
     }
 
