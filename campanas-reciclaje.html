@@ -21,9 +21,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="assets/campanas/campanas-jornada-comunitaria-1400.webp" fetchpriority="high">
-<link rel="stylesheet" href="assets/site/site.css?v=20261029e">
-<link rel="stylesheet" href="assets/site/transporte.css?v=20261029e">
-<link rel="stylesheet" href="assets/campanas/campanas.css?v=20261029e">
+<link rel="stylesheet" href="assets/site/site.css?v=20261029i">
+<link rel="stylesheet" href="assets/site/transporte.css?v=20261029i">
+<link rel="stylesheet" href="assets/campanas/campanas.css?v=20261029i">
 <script>document.documentElement.classList.add('js')</script>
 <script type="application/ld+json">
 {
@@ -110,8 +110,7 @@
     <nav class="nav" id="nav" aria-label="Principal">
       <a href="#aparatos">Aparatos</a>
       <a href="#proceso">Cómo funciona</a>
-      <a href="requisitos-ds-29.html">Requisitos</a>
-      <a href="preguntas.html">Preguntas</a>
+      <a href="#preguntas">Preguntas</a>
       <a class="btn btn-primary btn-small" href="#contacto">Organizar una campaña</a>
     </nav>
   </div>
@@ -131,8 +130,9 @@
             <p class="lead">Organizamos campañas de recolección de aparatos eléctricos y electrónicos en desuso.</p>
           </div>
 
-          <div class="routes" role="tablist" aria-label="¿Qué necesitas?" aria-orientation="vertical" data-routes>
+          <div class="routes" data-routes>
             <span class="routes-pill" aria-hidden="true"></span>
+            <div class="routes-tabs" role="tablist" aria-label="¿Qué necesitas?" aria-orientation="vertical">
             <button class="route" type="button" role="tab" id="tab-contacto" aria-controls="contacto" aria-selected="false" data-route="contacto">
               <span class="route-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg></span>
               <span class="route-text"><strong>Quiero organizar una campaña</strong><small>Preparar la ficha</small></span>
@@ -148,6 +148,7 @@
               <span class="route-text"><strong>¿Prefieres conversar?</strong><small>Escribir por WhatsApp</small></span>
               <span class="route-short" aria-hidden="true">Conversar</span>
             </button>
+            </div>
           </div>
         </div>
 
@@ -414,57 +415,34 @@
         <h2 class="title" id="aparatos-title">¿Qué aparatos se reciben?</h2>
         <p class="lead">Cada campaña define sus aparatos antes de anunciarse.</p>
       </div>
-      <div class="services is-4 reveal-group">
-        <article class="service">
-          <figure class="service-media is-pending" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></svg></figure>
-          <div class="service-body">
-            <h3>Computadores</h3>
-            <p>Notebooks, teclados, impresoras y otros periféricos.</p>
-            <div class="service-foot">
-              <a class="btn btn-primary btn-small" href="#contacto" data-add="aparatos=Computadores">Incluir en la ficha <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
-              <button class="more-toggle" type="button" aria-expanded="false" aria-controls="ap-informaticos" data-toggle><span class="pm" aria-hidden="true"></span>Cómo se recibe</button>
-            </div>
-            <div class="collapse" id="ap-informaticos"><div class="collapse-inner"><p class="service-more">Indica si traen baterías incorporadas: cambian la forma de recibirlos y almacenarlos.</p></div></div>
-          </div>
-        </article>
-        <article class="service">
-          <figure class="service-media is-pending" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg></figure>
-          <div class="service-body">
-            <h3>Pantallas y monitores</h3>
-            <p>Televisores, monitores y otras pantallas electrónicas.</p>
-            <div class="service-foot">
-              <a class="btn btn-primary btn-small" href="#contacto" data-add="aparatos=Pantallas y monitores">Incluir en la ficha <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
-              <button class="more-toggle" type="button" aria-expanded="false" aria-controls="ap-pantallas" data-toggle><span class="pm" aria-hidden="true"></span>Cómo se recibe</button>
-            </div>
-            <div class="collapse" id="ap-pantallas"><div class="collapse-inner"><p class="service-more">Las pantallas dañadas requieren condiciones de recepción y manipulación adecuadas.</p></div></div>
-          </div>
-        </article>
-        <article class="service">
-          <figure class="service-media is-pending" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></figure>
-          <div class="service-body">
-            <h3>Pequeños aparatos</h3>
-            <p>Celulares y otros equipos eléctricos o electrónicos pequeños.</p>
-            <div class="service-foot">
-              <a class="btn btn-primary btn-small" href="#contacto" data-add="aparatos=Pequeños aparatos">Incluir en la ficha <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
-              <button class="more-toggle" type="button" aria-expanded="false" aria-controls="ap-pequenos" data-toggle><span class="pm" aria-hidden="true"></span>Cómo se recibe</button>
-            </div>
-            <div class="collapse" id="ap-pequenos"><div class="collapse-inner"><p class="service-more">Las pilas y baterías sueltas no se incluyen por defecto.</p></div></div>
-          </div>
-        </article>
-        <article class="service">
-          <figure class="service-media is-pending" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h3"/><path d="M17 6h.01"/><rect width="18" height="20" x="3" y="2" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M12 18a2.5 2.5 0 0 0 0-5 2.5 2.5 0 0 1 0-5"/></svg></figure>
-          <div class="service-body">
-            <h3>Grandes aparatos</h3>
-            <p>Electrodomésticos y otros equipos de mayor tamaño.</p>
-            <div class="service-foot">
-              <a class="btn btn-primary btn-small" href="#contacto" data-add="aparatos=Grandes aparatos">Incluir en la ficha <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
-              <button class="more-toggle" type="button" aria-expanded="false" aria-controls="ap-grandes" data-toggle><span class="pm" aria-hidden="true"></span>Cómo se recibe</button>
-            </div>
-            <div class="collapse" id="ap-grandes"><div class="collapse-inner"><p class="service-more">Dependen del espacio, la carga y el destino disponibles; los de refrigeración pueden requerir condiciones específicas.</p></div></div>
-          </div>
-        </article>
+      <div class="galeria reveal" data-galeria data-inicio="1">
+        <div class="galeria-escena">
+          <button class="galeria-flecha is-prev" type="button" data-galeria-prev aria-label="Aparato anterior"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+          <ul class="galeria-pista" aria-label="Aparatos que se reciben" tabindex="0">
+          <li class="galeria-item" data-nombre="Computadores" data-texto="Notebooks, teclados, impresoras y otros periféricos." data-nota="Indica si traen baterías incorporadas: cambian la forma de recibirlos y almacenarlos.">
+            <button class="galeria-boton" type="button" aria-label="Computadores"><span class="galeria-figura"><svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></svg></span></button>
+          </li>
+          <li class="galeria-item" data-nombre="Pantallas y monitores" data-texto="Televisores, monitores y otras pantallas electrónicas." data-nota="Las pantallas dañadas requieren condiciones de recepción y manipulación adecuadas." aria-current="true">
+            <button class="galeria-boton" type="button" aria-label="Pantallas y monitores"><span class="galeria-figura"><svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg></span></button>
+          </li>
+          <li class="galeria-item" data-nombre="Pequeños aparatos" data-texto="Celulares y otros equipos eléctricos o electrónicos pequeños." data-nota="Las pilas y baterías sueltas no se incluyen por defecto.">
+            <button class="galeria-boton" type="button" aria-label="Pequeños aparatos"><span class="galeria-figura"><svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></span></button>
+          </li>
+          <li class="galeria-item" data-nombre="Grandes aparatos" data-texto="Electrodomésticos y otros equipos de mayor tamaño." data-nota="Dependen del espacio, la carga y el destino disponibles; los de refrigeración pueden requerir condiciones específicas.">
+            <button class="galeria-boton" type="button" aria-label="Grandes aparatos"><span class="galeria-figura"><svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h3"/><path d="M17 6h.01"/><rect width="18" height="20" x="3" y="2" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M12 18a2.5 2.5 0 0 0 0-5 2.5 2.5 0 0 1 0-5"/></svg></span></button>
+          </li>
+          </ul>
+          <button class="galeria-flecha is-next" type="button" data-galeria-next aria-label="Aparato siguiente"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+        <div class="galeria-puntos" data-galeria-puntos><button type="button" aria-label="Computadores"></button><button type="button" aria-label="Pantallas y monitores" aria-current="true"></button><button type="button" aria-label="Pequeños aparatos"></button><button type="button" aria-label="Grandes aparatos"></button></div>
+        <div class="galeria-info" aria-live="polite">
+          <h3 data-galeria-nombre>Pantallas y monitores</h3>
+          <p data-galeria-texto>Televisores, monitores y otras pantallas electrónicas.</p>
+          <p class="galeria-recibe" data-galeria-nota>Las pantallas dañadas requieren condiciones de recepción y manipulación adecuadas.</p>
+          <a class="btn btn-primary btn-small" href="#contacto" data-add="aparatos=Pantallas y monitores" data-galeria-add>Incluir en la ficha <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        </div>
       </div>
-      <p class="section-note reveal">Pilas y baterías sueltas, residuos domiciliarios y materiales que no son RAEE no se incluyen por defecto.</p>
+      <p class="section-note galeria-nota reveal">Pilas y baterías sueltas, residuos domiciliarios y materiales que no son RAEE no se incluyen por defecto.</p>
     </div>
   </section>
 
@@ -522,7 +500,7 @@
         <li><h3>Ejecución</h3><p>Recepción, clasificación, seguridad y traslado a un destino autorizado.</p></li>
         <li><h3>Cierre y reporte</h3><p>Cantidades, respaldo del destino y reporte en el RETC.</p></li>
       </ol>
-      <p class="section-link reveal"><a class="link" href="requisitos-ds-29.html">Ver lo que pide el DS 29/2024 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a></p>
+      <p class="section-link reveal"><a class="link" href="preguntas.html#requisitos">Ver lo que pide el DS 29/2024 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a></p>
     </div>
   </section>
 
@@ -560,7 +538,28 @@
     </div>
   </section>
 
-  <section class="section section-alt" id="empezar" aria-labelledby="empezar-title">
+  <section class="section section-alt" id="preguntas" aria-labelledby="preguntas-title">
+    <div class="container split-layout">
+      <div class="section-head reveal">
+        <h2 class="title" id="preguntas-title">Preguntas frecuentes.</h2>
+        <p class="faq-more">¿Tienes otra pregunta?</p>
+        <div class="actions faq-actions">
+          <a class="btn btn-secondary btn-small" href="preguntas.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Ver más preguntas</a>
+          <a class="btn btn-quiet btn-small" href="#conversar"><svg class="wa-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>Escríbenos</a>
+        </div>
+      </div>
+      <div class="accordion reveal">
+        <details><summary>¿Qué es una campaña de recolección de RAEE?<span class="plus" aria-hidden="true"></span></summary><div class="answer"><p>Un conjunto de actividades temporales y esporádicas para recibir o recoger aparatos eléctricos y electrónicos en desuso y enviarlos a un centro de acopio o a una instalación de valorización o eliminación (DS 29/2024, art. 3, letra c).</p></div></details>
+        <details><summary>¿La campaña necesita autorización sanitaria?<span class="plus" aria-hidden="true"></span></summary><div class="answer"><p>Sí. La solicitud se presenta ante la SEREMI de Salud de la región, al menos 40 días hábiles antes del inicio (arts. 24 y 39). Revisa los <a class="text-link" href="preguntas.html#requisitos">requisitos del DS 29/2024</a>.</p></div></details>
+        <details><summary>¿Puedo llevar un televisor o un computador?<span class="plus" aria-hidden="true"></span></summary><div class="answer"><p>Depende de los aparatos definidos para cada campaña. Las pantallas dañadas y otros equipos especiales requieren condiciones de recepción adecuadas.</p></div></details>
+        <details><summary>¿Se reciben pilas y baterías sueltas?<span class="plus" aria-hidden="true"></span></summary><div class="answer"><p>No por defecto. El DS 22/2025 del Ministerio del Medio Ambiente regula pilas y aparatos eléctricos y electrónicos, pero una campaña de RAEE debe definir expresamente si recibe otros residuos.</p></div></details>
+        <details><summary>¿Cómo funciona el retiro domiciliario asistido?<span class="plus" aria-hidden="true"></span></summary><div class="answer"><p>Es una modalidad adicional en campañas que lo permitan. Antes de confirmar un retiro se revisan el equipo, la dirección, el acceso, la cobertura y los vehículos disponibles.</p></div></details>
+        <details><summary>¿Cuánto cuesta organizar una campaña?<span class="plus" aria-hidden="true"></span></summary><div class="answer"><p>Depende del lugar, la duración, los aparatos, la cantidad estimada y los servicios necesarios. Con la ficha podemos evaluar una propuesta.</p></div></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="empezar" aria-labelledby="empezar-title">
     <div class="container">
       <div class="cta-band reveal">
         <div>
@@ -572,14 +571,10 @@
           <a class="btn btn-secondary" href="#conversar"><svg class="wa-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>Escribir por WhatsApp</a>
         </div>
       </div>
-      <ul class="guia-links ayuda-links reveal" data-tema="rep">
-        <li><a href="requisitos-ds-29.html"><span class="doc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span><span><strong>Requisitos del DS 29/2024</strong><small>Plazos, antecedentes y condiciones de la autorización sanitaria.</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li>
-        <li><a href="preguntas.html"><span class="doc-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span><span><strong>Preguntas frecuentes</strong><small>Aparatos, autorización, servicios adicionales y cierre.</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li>
-      </ul>
     </div>
   </section>
 
-  <section class="section" id="relacionados" aria-labelledby="relacionados-title">
+  <section class="section section-alt" id="relacionados" aria-labelledby="relacionados-title">
     <div class="container">
       <div class="section-head reveal">
         <h2 class="title" id="relacionados-title">Servicios relacionados.</h2>
@@ -620,8 +615,8 @@
       <div>
         <h2>Ayuda</h2>
         <ul>
-          <li><a href="requisitos-ds-29.html">Requisitos del DS 29/2024</a></li>
           <li><a href="preguntas.html">Preguntas frecuentes</a></li>
+          <li><a href="preguntas.html#requisitos">Requisitos del DS 29/2024</a></li>
           <li><a href="https://www.diariooficial.interior.gob.cl/publicaciones/2026/05/07/44443/01/2805526.pdf" target="_blank" rel="noopener noreferrer">DS 22/2025 MMA</a></li>
         </ul>
       </div>
@@ -653,10 +648,11 @@
   </nav>
 </div>
 
-<script src="assets/site/site.js?v=20261029e" defer></script>
-<script src="assets/site/pickers.js?v=20261029e" defer></script>
-<script src="assets/site/seleccion.js?v=20261029e" defer></script>
-<script src="assets/site/filas.js?v=20261029e" defer></script>
-<script src="assets/site/transporte-ui.js?v=20261029e" defer></script>
+<script src="assets/site/site.js?v=20261029i" defer></script>
+<script src="assets/site/pickers.js?v=20261029i" defer></script>
+<script src="assets/site/seleccion.js?v=20261029i" defer></script>
+<script src="assets/site/filas.js?v=20261029i" defer></script>
+<script src="assets/site/transporte-ui.js?v=20261029i" defer></script>
+<script src="assets/campanas/galeria.js?v=20261029i" defer></script>
 </body>
 </html>
