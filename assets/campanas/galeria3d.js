@@ -137,11 +137,55 @@
       obj.position.sub(new THREE.Vector3(c.x, 0, c.z));
       obj.position.y += PISO - min;
     };
+    /* Carga de cada modelo: una órbita fina e inclinada en el verde del sitio, con un trazo que la recorre y un punto de
+       luz en la punta, y un punto que late al centro. Cada una va desfasada y las de los lados quedan chicas y
+       difuminadas por la niebla, así varias a la vez no se amontonan. Al llegar el modelo, la órbita se desvanece y el
+       aparato entra con un fundido, subiendo apenas. Geometrías y materiales compartidos: cuestan casi nada. */
+    const VERDE = 0x1c7a4b;
+    const geoAnillo = new THREE.TorusGeometry(0.62, 0.0035, 6, 96);
+    const geoTrazo = new THREE.TorusGeometry(0.62, 0.009, 6, 48, Math.PI * 0.55);
+    const geoPunto = new THREE.SphereGeometry(0.028, 16, 12);
+    const geoNucleo = new THREE.SphereGeometry(0.045, 20, 14);
+    const crearCarga = (fase) => {
+      const mat = (o) => new THREE.MeshBasicMaterial({ color: VERDE, transparent: true, opacity: o, depthWrite: false });
+      const carga = new THREE.Group();
+      carga.position.y = PISO + 0.8;
+      const orbita = new THREE.Group();
+      orbita.rotation.set(1.15, 0.35, 0);
+      const anillo = new THREE.Mesh(geoAnillo, mat(0.16));
+      const trazo = new THREE.Mesh(geoTrazo, mat(0.55));
+      const punto = new THREE.Mesh(geoPunto, mat(0.95));
+      punto.position.set(0.62, 0, 0);
+      const giroTrazo = new THREE.Group();
+      giroTrazo.add(trazo, punto);
+      trazo.rotation.z = -Math.PI * 0.55;
+      orbita.add(anillo, giroTrazo);
+      const nucleo = new THREE.Mesh(geoNucleo, mat(0.35));
+      carga.add(orbita, nucleo);
+      carga.userData = { giroTrazo, nucleo, fase, mats: [anillo, trazo, punto, nucleo].map((m) => [m.material, m.material.opacity]) };
+      return carga;
+    };
+    const ENTRADA = 900;  // ms
+    const entrar = (s, avance) => {
+      const e = Math.min(1, avance);
+      const k = 1 - (1 - e) ** 3;  // sale rápido y frena suave
+      s.userData.modelo.position.y = s.userData.y0 - 0.12 * (1 - k);
+      s.userData.fundidos.forEach(([m, o]) => { m.opacity = o * k; });
+      const c = s.userData.carga;
+      if (c) c.userData.mats.forEach(([m, o]) => { m.opacity = o * Math.max(0, 1 - e * 2.2); });
+      if (e >= 1) {
+        s.userData.fundidos.forEach(([m, o, tr]) => { m.opacity = o; m.transparent = tr; });
+        if (c) { c.removeFromParent(); c.userData.mats.forEach(([m]) => m.dispose()); s.userData.carga = null; }
+        s.userData.entrada = 0;
+      }
+    };
     const soportes = datos.map((it) => {
       const soporte = new THREE.Group();
       const giro = new THREE.Group();   // mirada hacia el cursor y vuelta al hacer clic
       soporte.add(giro);
-      soporte.userData = { giro, base: it.giro || 0, listo: false, it };
+      const carga = crearCarga(Math.random() * Math.PI * 2);
+      soporte.add(carga);
+      soporte.userData = { giro, base: it.giro || 0, listo: false, it, carga };
       escena.add(soporte);
       return soporte;
     });
@@ -158,6 +202,18 @@
         await libre();
         if (renderer.compileAsync) await renderer.compileAsync(obj, camara, escena);
         subirYLiberar(obj);
+        /* Fundido de entrada: los materiales pasan a transparentes mientras dura y después vuelven a como venían */
+        const fundidos = [];
+        obj.traverse((o) => {
+          if (!o.isMesh) return;
+          (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => {
+            if (fundidos.some(([x]) => x === m)) return;
+            fundidos.push([m, m.opacity, m.transparent]);
+            m.transparent = true;
+            m.opacity = 0;
+          });
+        });
+        Object.assign(s.userData, { modelo: obj, y0: obj.position.y, fundidos, entrada: performance.now() });
         s.userData.giro.add(obj);
         g.classList.add('is-lista');
         pedir();
@@ -207,6 +263,7 @@
       pedir();
     };
     new ResizeObserver(medir).observe(lienzo);
+    g.classList.add('is-lista');  // el lienzo aparece ya con las órbitas de carga
 
     /* Cursor: inclinación del aparato central; arrastre para pasar al siguiente */
     let inclX = 0, inclY = 0, metaX = 0, metaY = 0;
@@ -300,6 +357,17 @@
         const k = Math.max(0, 1 - a);  // 1 en el centro, 0 a partir del vecino
         s.scale.setScalar(1 - Math.min(a, 2) * 0.27);
         s.rotation.y = -rel * 0.42;
+        const c = s.userData.carga;
+        if (c && !s.userData.entrada) {
+          /* Esperando el modelo: el trazo recorre la órbita y el núcleo late (quieto si se pidió menos movimiento) */
+          if (!lento) {
+            const u = t / 1000 + c.userData.fase;
+            c.userData.giroTrazo.rotation.z = -u * 2.4;
+            c.userData.nucleo.scale.setScalar(1 + Math.sin(u * 2.2) * 0.18);
+          }
+          girando = true;
+        }
+        if (s.userData.entrada) { entrar(s, lento ? 1 : (t - s.userData.entrada) / ENTRADA); girando = true; }
         const giro = s.userData.giro;
         let vuelta = 0;
         if (s.userData.vuelta) {

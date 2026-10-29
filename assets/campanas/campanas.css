@@ -108,10 +108,11 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
 .creditos-enlace { margin-top: 48px; color: var(--muted); font-size: var(--fs-caption); }
 .creditos-enlace a, .footer-legal a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 
-/* Logo del sitio (assets/campanas/logo.svg) en la cabecera y el pie */
-.logo-cr { display: block; width: auto; height: 38px; }
+/* Logo del sitio (assets/campanas/logo.svg): una máscara pintada con --logo, para cambiar de color al pasar el
+   puntero como el de Transporte (campanas.js). Si la máscara no está disponible, se ve el SVG tal cual. */
+.logo-cr { display: block; flex: none; height: 38px; aspect-ratio: 106 / 44; background: url("logo.svg") center / contain no-repeat; }
 .logo-cr.is-grande { height: 52px; }
-
-/* Hero: la foto de aparatos se encuadra hacia la derecha, donde están los equipos */
-body[data-site="campanas"] .stage-media img { object-position: 82% 60%; }
-@media (max-width: 860px) { body[data-site="campanas"] .stage-media img { object-position: 50% 60%; } }
+@supports ((-webkit-mask-image: url("")) or (mask-image: url(""))) {
+  .logo-cr { background: var(--logo, #00CC29); transition: background-color .35s var(--ease);
+    -webkit-mask: url("logo.svg") center / contain no-repeat; mask: url("logo.svg") center / contain no-repeat; }
+}
