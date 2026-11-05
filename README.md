@@ -54,3 +54,9 @@ La ficha no envía datos a ningún servidor: arma un resumen y abre WhatsApp (`5
 - Con un solo fondo, el espacio entre secciones bajó a la mitad (`.section` en `campanas.css`).
 - La ficha dice «Campaña» (no «La campaña»); «Empresas» es «Para equipos en desuso».
 - Material interno (informes, notas de reuniones, prompts de imágenes) no va en este repositorio: GitHub Pages publica todos sus archivos, README incluido.
+
+## Normativa (05-11-2026)
+
+- `normativa.html` y una página por norma: `ds-29-2024-minsal.html`, `ds-22-2025-mma.html` y `ley-20920.html`. Cada una trae lo que exige a una campaña de RAEE en simple (con la cita a su artículo), los artículos que aplican tal como los publica la fuente oficial, preguntas frecuentes y datos estructurados (Legislation, WebPage, BreadcrumbList, FAQPage). Están en el menú, en el pie y en `sitemap.xml` y `llms.txt`; las citas de `preguntas.html` llevan al artículo en el sitio.
+- Las genera `python3 tools/normativa.py`, con `preguntas.html` como plantilla (cabecera, ficha flotante, pie y scripts): si cambia el diseño de `preguntas.html`, se vuelve a correr. Los textos están en `tools/cache/`: el XML de Ley Chile del DS 29/2024 y de la Ley 20.920 (`--actualizar` los vuelve a descargar y avisa si cambiaron) y el texto del DS 22/2025 extraído del PDF del Diario Oficial (CVE 2805526), que no está en Ley Chile como XML. Revisados el 05-11-2026: iguales a la versión vigente.
+- El formato de los artículos es el de la biblioteca de normativa de Transporte Autorizado (`tools/normativa.py` de ese repositorio).

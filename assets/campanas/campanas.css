@@ -254,3 +254,20 @@ body[data-site="campanas"] main > .section:last-child { padding-bottom: clamp(48
   @keyframes ficha-gracias-foto { from { opacity: 0; transform: translateY(18px) scale(.82) rotate(-4deg); filter: blur(6px); } }
   @keyframes ficha-gracias-texto { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } }
 }
+
+/* Normativa (normativa.html y una página por norma, tools/normativa.py): resumen en simple, artículos oficiales y tabla */
+.norm-simple { max-width: 820px; margin-top: 8px; }
+.norm-simple .guia-points li { font-size: 1rem; }
+.norm-nota { margin: -4px 0 8px; color: var(--muted); font-size: var(--fs-small); line-height: 1.5; }
+.norm-text .norm-tabla { margin: 8px 0 16px; }
+.norm-text .norm-tabla table { font-size: var(--fs-small); }
+.norm .guia-sec { max-width: 820px; }
+.norm-art { scroll-margin-top: 96px; }
+@media (prefers-reduced-motion: no-preference) { .norm-art:target { animation: norm-flash 2.4s var(--ease); } }
+/* Teléfono: los tres datos de la norma en dos columnas (estado arriba) y las dos acciones a lo ancho */
+.norm-facts time { white-space: nowrap; }
+@media (max-width: 640px) {
+  .norm .norm-facts li, .norm .norm-facts li:first-child, .norm .norm-facts li:last-child { grid-column: span 3; order: 0; }
+  .norm .norm-facts li:first-child { grid-column: 1 / -1; }
+  .norm .norm-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
