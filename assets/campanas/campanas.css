@@ -166,17 +166,18 @@ body[data-site="campanas"] .stage-panel > .hcard { height: 100%; }
 .peso-nota { color: var(--muted); font-size: var(--fs-caption); line-height: 1.4; }
 @media (prefers-reduced-motion: reduce) { .peso-lleno { transition: none; } }
 
-/* Fondo de todo el sitio: papel verde sutil, el mismo en todas las secciones; las tarjetas y paneles siguen blancos.
-   La galería 3D toma este color para su niebla (galeria3d.js busca el primer fondo opaco). */
-body[data-site="campanas"] {
-  background-color: #f8fbf7;
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .11 0 0 0 0 .37 0 0 0 0 .2 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"),
-    radial-gradient(90% 60% at 10% 0%, rgb(215 245 96 / .1), transparent 70%);
-  background-attachment: scroll, fixed;
-}
+/* Fondo de todo el sitio: blanco, el mismo en todas las secciones. El verde queda para detalles: la raya bajo los títulos
+   de sección, los «+» de las preguntas, las viñetas, la selección de texto y el borde de las tarjetas al pasar el puntero.
+   La galería 3D toma este blanco para su niebla (galeria3d.js busca el primer fondo opaco). */
+body[data-site="campanas"] { background: #fff; }
 body[data-site="campanas"] .section-alt { background: transparent; }
 body[data-site="campanas"] .related { background: #fff; }
+body[data-site="campanas"] ::selection { background: #d7f5c4; color: var(--ink); }
+body[data-site="campanas"] .section-head .title::after { content: ""; display: block; width: 36px; height: 3px; margin-top: 14px; border-radius: 3px; background: linear-gradient(90deg, var(--accent), #7fd36b); }
+body[data-site="campanas"] .accordion .plus { color: var(--accent); }
+body[data-site="campanas"] .accordion summary:hover { color: var(--accent-strong); }
+body[data-site="campanas"] :is(.plan, .service, .related):hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+body[data-site="campanas"] .site-footer { border-top-color: color-mix(in srgb, var(--accent) 22%, var(--line)); }
 
 
 /* Teléfono: el hero ocupa la pantalla bajo la barra; la foto crece y toma el alto que sobra */

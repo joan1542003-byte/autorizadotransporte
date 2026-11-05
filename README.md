@@ -50,7 +50,7 @@ La ficha no envía datos a ningún servidor: arma un resumen y abre WhatsApp (`5
 ## Cambios del 05-11-2026 (4)
 
 - Personajes: Don Reco (el perro) y Lola Lata (la gata). Al presionar «Enviar» en el resumen de la ficha, aparecen en grande cubriendo el panel, con «¡Gracias!», «Ver resumen» (vuelve al resumen) y «Volver» (cierra el panel, como la X) (`[data-ficha-enviada]`, `campanas.js`). Son un WebP animado de 400 × 400 (`campanas-reco-lola.webp`, 222 KB; el GIF pesaba 1,7 MB) que se pide al preparar la ficha, no al cargar la página; con «reducir movimiento», un cuadro quieto.
-- Fondo casi blanco (`#f8fbf7`); la barra superior vuelve a la sombra oscura del sistema.
+- Fondo blanco en todo el sitio; el verde queda en detalles (raya bajo los títulos de sección, «+» de las preguntas, selección de texto, borde de las tarjetas al pasar el puntero y línea del pie). La barra superior lleva la sombra oscura del sistema.
 - Con un solo fondo, el espacio entre secciones bajó a la mitad (`.section` en `campanas.css`).
 - La ficha dice «Campaña» (no «La campaña»); «Empresas» es «Para equipos en desuso».
 - Material interno (informes, notas de reuniones, prompts de imágenes) no va en este repositorio: GitHub Pages publica todos sus archivos, README incluido.
