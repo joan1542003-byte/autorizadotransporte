@@ -234,16 +234,23 @@ body[data-site="campanas"] .section { padding-block: clamp(30px, 4vw, 48px); }
 body[data-site="campanas"] .hero + .section { padding-top: clamp(40px, 5vw, 64px); }
 body[data-site="campanas"] main > .section:last-child { padding-bottom: clamp(48px, 6vw, 72px); }
 
-/* Resumen de la ficha, después de «Enviar»: Don Reco y Lola Lata agradecen, en chico, sobre el texto */
-.ficha-enviada { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 14px; margin: 14px 20px 0; padding: 10px 14px 10px 10px; border-radius: 18px; background: #f6f3ea; }
+/* Después de «Enviar»: Don Reco y Lola Lata en grande, cubriendo el panel, con «Ver resumen» y «Volver» debajo */
+.hcard .summary { position: relative; }
+.ficha-enviada { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px 22px; background: #fff; text-align: center; }
 .ficha-enviada[hidden] { display: none; }
-.ficha-enviada img { width: 96px; height: 96px; border-radius: 14px; }
-.ficha-enviada p { color: var(--ink-2); font-size: var(--fs-small); line-height: 1.45; }
-.ficha-enviada .ficha-enviada-titulo { color: var(--ink); font-size: 1rem; font-weight: 800; }
-@media (max-width: 860px) { .ficha-enviada { margin-inline: 14px; } }
+.ficha-enviada picture { display: flex; justify-content: center; width: 100%; }
+.ficha-enviada img { width: min(320px, 78%, 46vh); height: auto; aspect-ratio: 1; border-radius: 24px; }
+.ficha-enviada-titulo { margin-top: 6px; color: var(--ink); font-size: clamp(1.375rem, 1.2rem + .8vw, 1.75rem); font-weight: 800; letter-spacing: -.02em; }
+.ficha-enviada-titulo:focus { outline: none; }
+.ficha-enviada-texto { max-width: 34ch; color: var(--ink-2); font-size: .9375rem; line-height: 1.5; }
+.ficha-enviada-acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; }
 @media (prefers-reduced-motion: no-preference) {
-  .ficha-enviada:not([hidden]) { animation: ficha-gracias .7s cubic-bezier(.2, .9, .3, 1.2) both; }
-  .ficha-enviada:not([hidden]) img { animation: ficha-gracias-foto .8s .1s cubic-bezier(.34, 1.56, .64, 1) both; }
-  @keyframes ficha-gracias { from { opacity: 0; transform: translateY(-10px) scale(.97); filter: blur(4px); } }
-  @keyframes ficha-gracias-foto { from { transform: scale(.6) rotate(-8deg); } }
+  .ficha-enviada:not([hidden]) { animation: ficha-gracias .5s var(--ease) both; }
+  .ficha-enviada:not([hidden]) picture { animation: ficha-gracias-foto .8s .05s cubic-bezier(.34, 1.56, .64, 1) both; }
+  .ficha-enviada:not([hidden]) :is(.ficha-enviada-titulo, .ficha-enviada-texto, .ficha-enviada-acciones) { animation: ficha-gracias-texto .6s var(--ease) both; }
+  .ficha-enviada:not([hidden]) .ficha-enviada-texto { animation-delay: .08s; }
+  .ficha-enviada:not([hidden]) .ficha-enviada-acciones { animation-delay: .16s; }
+  @keyframes ficha-gracias { from { opacity: 0; } }
+  @keyframes ficha-gracias-foto { from { opacity: 0; transform: translateY(18px) scale(.82) rotate(-4deg); filter: blur(6px); } }
+  @keyframes ficha-gracias-texto { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } }
 }

@@ -85,15 +85,28 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   });
 })();
 
-/* Resumen de la ficha: al presionar «Enviar» (abre WhatsApp con el texto), Don Reco y Lola Lata agradecen sobre el
-   resumen. Se esconden de nuevo al editar o al preparar otra ficha. */
+/* Resumen de la ficha: al presionar «Enviar» (abre WhatsApp con el texto), Don Reco y Lola Lata agradecen en grande,
+   cubriendo el panel, con «Ver resumen» (vuelve al resumen) y «Volver» (cierra el panel; data-hero-close, como la X).
+   Mientras se ven, lo de abajo queda inerte para el teclado. Se esconden al editar o al preparar otra ficha. */
 (() => {
   document.querySelectorAll('[data-ficha-enviada]').forEach((gracias) => {
     const resumen = gracias.closest('.summary');
-    const form = resumen && document.querySelector(`form[data-summary="${resumen.id}"]`);
-    resumen?.querySelector('[data-send]')?.addEventListener('click', () => { gracias.hidden = false; });
-    form?.addEventListener('submit', () => { gracias.hidden = true; });
-    resumen?.querySelector('[data-edit]')?.addEventListener('click', () => { gracias.hidden = true; });
+    if (!resumen) return;
+    const form = document.querySelector(`form[data-summary="${resumen.id}"]`);
+    const debajo = [...resumen.children].filter((el) => el !== gracias);
+    const muestra = (on) => {
+      gracias.hidden = !on;
+      debajo.forEach((el) => { el.inert = on; });
+      if (on) gracias.querySelector('.ficha-enviada-titulo').focus({ preventScroll: true });
+    };
+    resumen.querySelector('[data-send]')?.addEventListener('click', () => muestra(true));
+    gracias.querySelector('[data-ver-resumen]').addEventListener('click', () => {
+      muestra(false);
+      resumen.querySelector('[data-send]')?.focus({ preventScroll: true });
+    });
+    gracias.querySelector('[data-hero-close]').addEventListener('click', () => setTimeout(() => muestra(false), 400));
+    /* La animación (222 KB) se pide al preparar la ficha, no al cargar la página: así ya está al presionar «Enviar» */
+    form?.addEventListener('submit', () => { muestra(false); gracias.querySelector('img').loading = 'eager'; });
   });
 })();
 
