@@ -29,9 +29,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site/site.css?v=20261105b">
-<link rel="stylesheet" href="assets/site/transporte.css?v=20261105b">
-<link rel="stylesheet" href="assets/campanas/campanas.css?v=20261105b">
+<link rel="stylesheet" href="assets/site/site.css?v=20261105c">
+<link rel="stylesheet" href="assets/site/transporte.css?v=20261105c">
+<link rel="stylesheet" href="assets/campanas/campanas.css?v=20261105c">
 <script>document.documentElement.classList.add('js')</script>
 <script type="application/ld+json">
 {
@@ -350,7 +350,7 @@
                       <input type="hidden" name="comuna" data-label="Comuna"><input type="hidden" name="region" data-label="Región">
                       <p class="pick-error">Elige la comuna de la campaña.</p>
                       </div>
-                      <div class="pick" data-fila="opciones" data-layout="grid" data-meses data-title="¿En qué mes sería la campaña?" data-sub="Es una estimación. La autorización sanitaria se pide con al menos dos meses de anticipación (40 días hábiles), por eso los meses parten desde el primero posible.">
+                      <div class="pick" data-fila="meses" data-meses data-title="¿En qué mes sería la campaña?" data-sub="Es una estimación. La autorización sanitaria se pide con al menos dos meses de anticipación (40 días hábiles), por eso los meses parten desde el primero posible.">
                       <button type="button" class="pick-btn" aria-haspopup="dialog">
                         <span class="pick-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg></span>
                         <span class="pick-text"><span class="pick-label">Mes estimado</span><span class="pick-value is-empty" data-empty="Opcional">Opcional</span></span>
@@ -377,13 +377,12 @@
                       <input type="hidden" name="aparatos" data-label="Aparatos">
                       <p class="pick-error">Elige al menos un tipo de aparato.</p>
                       </div>
-                      <div class="pick" data-fila="opciones" data-title="Peso total estimado" data-sub="Un rango aproximado para todos los aparatos. Se precisa en la reunión.">
-                      <button type="button" class="pick-btn" aria-haspopup="dialog">
-                        <span class="pick-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="3"/><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z"/></svg></span>
-                        <span class="pick-text"><span class="pick-label">Peso total estimado</span><span class="pick-value is-empty" data-empty="Opcional">Opcional</span></span>
-                        <span class="pick-chev" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
-                      </button>
-                      <select name="peso" data-label="Peso total estimado" hidden><option value="" selected hidden>Opcional</option><option value="Menos de 500 kg">Menos de 500 kg</option><option value="500 kg a 1 tonelada">500 kg a 1 tonelada</option><option value="1 a 3 toneladas">1 a 3 toneladas</option><option value="3 a 10 toneladas">3 a 10 toneladas</option><option value="Más de 10 toneladas">Más de 10 toneladas</option><option value="Aún no lo sé">Aún no lo sé</option></select>
+                      <div class="pick pick-field pick-peso" data-peso>
+                        <span class="peso-icono" aria-hidden="true"><svg viewBox="0 0 24 24" width="40" height="40"><defs><clipPath id="peso-forma"><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z"/></clipPath></defs><circle cx="12" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><g clip-path="url(#peso-forma)"><rect class="peso-lleno" x="0" y="8" width="24" height="13"/></g><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="12" y="17.2" text-anchor="middle">KG</text></svg></span>
+                        <span class="pick-text"><label class="pick-label" for="c-peso">Peso total estimado</label><span class="peso-valor is-empty" data-peso-texto>Opcional: desliza para elegir</span>
+                          <input id="c-peso" class="peso-rango" type="range" min="0" max="4" step="1" value="0" aria-valuetext="Sin elegir">
+                          <span class="peso-nota">Para todos los aparatos en conjunto. Se precisa en la reunión.</span></span>
+                        <input type="hidden" name="peso" data-label="Peso total estimado">
                       </div>
                       <div class="pick" data-fila="varias" data-show-when="tipo=municipal" data-title="Servicios adicionales para municipalidades" data-sub="Opcional. No vienen incluidos en la campaña: se cotizan aparte y se prestan durante ella." data-options="Retiro domiciliario asistido|Área de equipos potencialmente reutilizables">
                       <button type="button" class="pick-btn" aria-haspopup="dialog">
@@ -443,13 +442,13 @@
                     <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span data-resumen-titulo>Tu ficha está lista.</span></h2>
                     <button class="hcard-close" type="button" data-hero-close aria-label="Cerrar y volver al inicio"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
                   </div>
-                  <p class="hcard-sub" data-resumen-bajada>Se abrirá WhatsApp con este texto escrito: revísalo, adjunta fotos si las tienes y envíalo. No presenta la solicitud ante la SEREMI.</p>
+                  <p class="hcard-sub" data-resumen-bajada>Revisa los datos y envía la ficha. No presenta la solicitud ante la SEREMI.</p>
                 </div>
                 <div class="hcard-body"><pre></pre></div>
                 <div class="hcard-foot">
                   <button class="btn btn-primary btn-small" type="button" data-enviar hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg><span>Enviar solicitud</span></button>
                   <span class="foot-label" hidden>Enviar por</span>
-                  <a class="btn btn-wa btn-small" data-send target="_blank" rel="noopener noreferrer"><svg class="wa-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg><span><span class="btn-pre">Enviar por </span>WhatsApp<span class="sr-only"> (abre WhatsApp)</span></span></a>
+                  <a class="btn btn-primary btn-small" data-send target="_blank" rel="noopener noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg><span>Enviar<span class="sr-only"> (abre WhatsApp)</span></span></a>
                   <a class="btn btn-secondary btn-small" data-mail hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span><span class="btn-pre">Enviar por </span><span class="btn-cap">correo</span></span></a>
                   <span class="foot-more">
                     <button class="btn btn-secondary btn-small" type="button" data-copy><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span>Copiar</span></button>
@@ -693,8 +692,8 @@
     <div class="container">
       <div class="cta-band reveal">
         <div>
-          <h2 class="title" id="empezar-title">Cuéntanos tu idea.</h2>
-          <p class="lead">Completa la ficha en tres pasos y te ayudamos a definir la campaña.</p>
+          <h2 class="title" id="empezar-title">¿Tu campaña es en los próximos meses?</h2>
+          <p class="lead">Pídela con al menos dos meses de anticipación. Completa la ficha y coordinamos una reunión para definir aparatos, cantidades y lugares.</p>
         </div>
         <div class="actions">
           <a class="btn btn-primary" href="#contacto">Organizar una campaña <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
@@ -778,13 +777,13 @@
   </nav>
 </div>
 
-<script src="assets/site/site.js?v=20261105b" defer></script>
-<script src="assets/site/pickers.js?v=20261105b" defer></script>
-<script src="assets/site/seleccion.js?v=20261105b" defer></script>
-<script src="assets/site/filas.js?v=20261105b" defer></script>
-<script src="assets/site/transporte-ui.js?v=20261105b" defer></script>
-<script src="assets/campanas/campanas.js?v=20261105b" defer></script>
+<script src="assets/site/site.js?v=20261105c" defer></script>
+<script src="assets/site/pickers.js?v=20261105c" defer></script>
+<script src="assets/site/seleccion.js?v=20261105c" defer></script>
+<script src="assets/site/filas.js?v=20261105c" defer></script>
+<script src="assets/site/transporte-ui.js?v=20261105c" defer></script>
+<script src="assets/campanas/campanas.js?v=20261105c" defer></script>
 <script type="importmap">{"imports": {"three": "./assets/campanas/vendor/three/three.module.min.js"}}</script>
-<script src="assets/campanas/galeria3d.js?v=20261105b" defer></script>
+<script src="assets/campanas/galeria3d.js?v=20261105c" defer></script>
 </body>
 </html>

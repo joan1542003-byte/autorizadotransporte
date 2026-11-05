@@ -143,3 +143,32 @@ body[data-site="campanas"] .stage-media.stage-color {
 .hero-cambia > .is-organizar, .stage[data-view="contacto"] .hero-cambia > .is-base { opacity: 0; visibility: hidden; }
 .stage[data-view="contacto"] .hero-cambia > .is-organizar { opacity: 1; visibility: visible; }
 @media (prefers-reduced-motion: reduce) { .hero-cambia > span { transition: none; } }
+
+/* Hero: el panel ocupa siempre todo el alto disponible, para que no cambie de tamaño al pasar de un paso a otro */
+body[data-site="campanas"] .stage-panel { align-items: stretch; }
+body[data-site="campanas"] .stage-panel > .hcard { height: 100%; }
+
+/* Ficha: peso total estimado con un deslizador y una pesa que se llena (campanas.js pone --lleno, de 0 a 1) */
+.pick-field.pick-peso { grid-template-columns: 56px minmax(0, 1fr); align-items: center; }
+.peso-icono { display: grid; place-items: center; width: 56px; height: 56px; color: var(--ink-2); }
+.peso-icono svg { width: 52px; height: 52px; overflow: visible; }
+.peso-lleno { fill: var(--accent); transform: scaleY(var(--lleno, 0)); transform-box: fill-box; transform-origin: 50% 100%; transition: transform .35s var(--ease); }
+.peso-icono text { font: 800 4.6px/1 var(--font); fill: currentColor; letter-spacing: .02em; }
+.pick-peso.is-lleno .peso-icono text { fill: #fff; transition: fill .35s; }
+.peso-valor { font-size: .9375rem; font-weight: 700; color: var(--ink); }
+.peso-valor.is-empty { color: var(--muted); font-weight: 600; }
+.peso-rango { width: 100%; margin: 8px 0 2px; accent-color: var(--accent); cursor: pointer; }
+.peso-nota { color: var(--muted); font-size: var(--fs-caption); line-height: 1.4; }
+@media (prefers-reduced-motion: reduce) { .peso-lleno { transition: none; } }
+
+/* Fondo de todo el sitio: papel verde sutil, el mismo en todas las secciones; las tarjetas y paneles siguen blancos.
+   La galería 3D toma este color para su niebla (galeria3d.js busca el primer fondo opaco). */
+body[data-site="campanas"] {
+  background-color: #eef4ec;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .11 0 0 0 0 .37 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"),
+    radial-gradient(90% 60% at 10% 0%, rgb(215 245 96 / .16), transparent 70%);
+  background-attachment: scroll, fixed;
+}
+body[data-site="campanas"] .section-alt { background: transparent; }
+body[data-site="campanas"] .related { background: #fff; }
