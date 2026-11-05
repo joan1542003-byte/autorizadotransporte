@@ -37,32 +37,51 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   });
 })();
 
-/* Peso total estimado ([data-peso]): un deslizador por rangos y una pesa que se llena según el rango. Mientras no se
-   mueve, el peso queda sin informar; el campo oculto lleva el texto del rango al resumen. */
+/* Peso total estimado ([data-peso]): un deslizador continuo, de 100 kg a 20 toneladas en escala logarítmica (así cabe
+   el detalle de las campañas chicas y el de las grandes), y una pesa que se llena según la posición. Dice el peso
+   aproximado del punto donde quedó, redondeado, y el tramo al que pertenece. Mientras no se mueve, el peso queda sin
+   informar; el campo oculto lleva el texto al resumen. */
 (() => {
-  const RANGOS = ['Menos de 500 kg', '500 kg a 1 tonelada', '1 a 3 toneladas', '3 a 10 toneladas', 'Más de 10 toneladas'];
+  const MIN = 100, MAX = 20000;
+  const TRAMOS = [[500, 'menos de 500 kg'], [1000, 'entre 500 kg y 1 tonelada'], [3000, 'entre 1 y 3 toneladas'], [10000, 'entre 3 y 10 toneladas'], [Infinity, 'más de 10 toneladas']];
+  const num = (n, d = 0) => n.toLocaleString('es-CL', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const kilos = (p) => MIN * (MAX / MIN) ** p;
+  /* Redondeo que se lee bien: 50 kg bajo una tonelada, medio decimal hasta 10 t y enteros después */
+  const redondea = (kg) => (kg < 1000 ? Math.max(MIN, Math.round(kg / 50) * 50) : kg < 10000 ? Math.round(kg / 100) * 100 : Math.round(kg / 1000) * 1000);
+  const toneladas = (kg) => { const t = kg / 1000; return `${num(t, Number.isInteger(t) ? 0 : 1)} ${t === 1 ? 'tonelada' : 'toneladas'}`; };
+  const texto = (kg) => (kg >= MAX ? 'Más de 20 toneladas' : kg < 1000 ? `Aprox. ${num(kg)} kg` : `Aprox. ${toneladas(kg)}`);
+  const tramo = (kg) => TRAMOS.find(([tope]) => kg < tope)[1];
   document.querySelectorAll('[data-peso]').forEach((row) => {
     const rango = row.querySelector('input[type="range"]');
     const campo = row.querySelector('input[type="hidden"]');
-    const texto = row.querySelector('[data-peso-texto]');
-    const vacio = texto.textContent;
-    const pinta = () => {
-      const v = campo.value;
-      const i = RANGOS.indexOf(v);
-      if (i >= 0) rango.value = i;
-      row.style.setProperty('--lleno', i >= 0 ? (i + 1) / RANGOS.length : 0);
-      row.classList.toggle('is-lleno', i >= 2);  // con la pesa sobre la mitad, «KG» va en blanco
-      texto.textContent = v || vacio;
-      texto.classList.toggle('is-empty', !v);
-      rango.setAttribute('aria-valuetext', v || 'Sin elegir');
+    const valor = row.querySelector('[data-peso-texto]');
+    const vacio = valor.textContent;
+    const pinta = (p) => {
+      row.style.setProperty('--lleno', p);
+      row.classList.toggle('is-lleno', p >= .45);  // con la pesa sobre la mitad, «KG» va en blanco
     };
     rango.addEventListener('input', () => {
-      campo.value = RANGOS[Number(rango.value)];
-      pinta();
+      const p = Number(rango.value) / Number(rango.max);
+      const kg = redondea(kilos(p));
+      const t = texto(kg);
+      const enTramo = kg < MAX ? tramo(kg) : '';  // «Más de 20 toneladas» ya dice su tramo
+      campo.value = enTramo ? `${t} (${enTramo})` : t;
+      valor.textContent = t;
+      if (enTramo) valor.dataset.tramo = enTramo; else delete valor.dataset.tramo;
+      valor.classList.remove('is-empty');
+      rango.setAttribute('aria-valuetext', t);
+      pinta(p);
       campo.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    row.closest('form')?.addEventListener('reset', () => setTimeout(pinta));
-    pinta();
+    /* Mientras se arrastra, la pesa sigue al dedo sin retraso; con teclado o un toque, se llena con transición */
+    rango.addEventListener('pointerdown', () => row.classList.add('is-arrastrando'));
+    addEventListener('pointerup', () => row.classList.remove('is-arrastrando'));
+    row.closest('form')?.addEventListener('reset', () => setTimeout(() => {
+      if (campo.value) return;
+      rango.value = 0; valor.textContent = vacio; valor.classList.add('is-empty'); delete valor.dataset.tramo;
+      rango.setAttribute('aria-valuetext', 'Sin elegir'); pinta(0);
+    }));
+    pinta(campo.value ? Number(rango.value) / Number(rango.max) : 0);
   });
 })();
 
