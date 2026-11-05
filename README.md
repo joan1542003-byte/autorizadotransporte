@@ -30,8 +30,9 @@ El informe técnico del cliente cita el reporte RETC como «Art. 5»; el texto o
 ## Ajustes de la última reunión (notas recibidas el 05-11-2026)
 
 - Solo RAEE y solo la Región Metropolitana: el selector de comuna muestra solo esa región (`campanas.js` reduce `PICK.REGION_NAMES`; `filas.js` sigue sin cambios). Título, descripción, JSON-LD (`areaServed`) y `llms.txt` lo dicen.
-- Plazo a la vista: la autorización sanitaria se pide con al menos dos meses de anticipación, 40 días hábiles antes del inicio (DS 29/2024, arts. 24 y 39). Va en el hero, la ficha, «Cómo funciona», las preguntas y los requisitos.
-- Ficha: «Cantidades estimadas» pasó a «Peso total estimado» por rangos, para todos los aparatos en conjunto (los tipos y cantidades se precisan en la reunión). Se quitaron «Estado predominante» y «Estado sanitario». «Más información» pide «Condiciones del lugar».
+- Plazo a la vista: la autorización sanitaria se pide con al menos dos meses de anticipación, 40 días hábiles antes del inicio (DS 29/2024, arts. 24 y 39). Al abrir «Quiero organizar una campaña», el título y la bajada del hero cambian al plazo (`.hero-cambia`, según `data-view` del hero); también va en la ficha, «Cómo funciona», las preguntas y los requisitos.
+- Ficha: se elige el mes de la campaña, no el día (`[data-meses]`: `campanas.js` ofrece doce meses desde el primero posible, contando 40 días hábiles de lunes a viernes, sin feriados). «Cantidades estimadas» pasó a «Peso total estimado» por rangos, para todos los aparatos en conjunto (los tipos y cantidades se precisan en la reunión). Se quitaron «Estado predominante» y «Estado sanitario». «Más información» pide «Condiciones del lugar».
 - Servicios adicionales: son para municipalidades, no vienen incluidos en la campaña, se cotizan aparte y se prestan durante ella. En la ficha solo aparecen con «Municipalidad», y «Consultar» la preselecciona.
 - `preguntas.html` ya no lista los antecedentes de la solicitud (art. 24, letras a a k) ni el plan de contingencia (art. 24 h), que es parte de ellos.
 - El generador de las páginas (fuera del repositorio) ya no está: desde ahora se edita el HTML directamente.
+- `docs/catastro-imagenes.md`: imágenes que faltan o servirían, con prompts para ChatGPT (hero con el camión, imagen para redes, portadas, reunión, íconos y GIF opcionales).

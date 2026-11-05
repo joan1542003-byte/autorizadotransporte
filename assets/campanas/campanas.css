@@ -132,9 +132,14 @@ body[data-site="campanas"] .stage-media.stage-color {
 @media (max-width: 860px) {
   body[data-site="campanas"] .stage-media.stage-color { height: 120px; }
 }
-.hero-plazo { max-width: none; display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 6px 12px; border-radius: 999px; background: rgb(255 255 255 / .12); color: #fff; font-size: var(--fs-small); font-weight: 700; }
-.hero-plazo svg { flex: none; opacity: .85; }
 
 /* Servicios adicionales: para quién son y cuándo se prestan */
 .service-tag { width: fit-content; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); font-size: var(--fs-caption); font-weight: 800; }
-@media (min-width: 420px) { .hero-plazo { white-space: nowrap; } }
+
+/* Hero: con «Quiero organizar una campaña» abierto, el título y la bajada pasan al plazo (data-view de transporte-ui.js).
+   Los dos textos ocupan la misma celda; el que no corresponde queda invisible y fuera de la lectura en voz alta. */
+.hero-cambia { display: grid; }
+.hero-cambia > span { grid-area: 1 / 1; transition: opacity .35s var(--ease), visibility .35s; }
+.hero-cambia > .is-organizar, .stage[data-view="contacto"] .hero-cambia > .is-base { opacity: 0; visibility: hidden; }
+.stage[data-view="contacto"] .hero-cambia > .is-organizar { opacity: 1; visibility: visible; }
+@media (prefers-reduced-motion: reduce) { .hero-cambia > span { transition: none; } }
