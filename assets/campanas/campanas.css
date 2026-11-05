@@ -110,19 +110,19 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
 
 /* Logo del sitio (assets/campanas/logo.svg): una máscara pintada con --logo, para cambiar de color al pasar el
    puntero como el de Transporte (campanas.js). Si la máscara no está disponible, se ve el SVG tal cual. */
-.logo-cr { display: block; flex: none; height: 38px; aspect-ratio: 106 / 44; background: url("logo.svg") center / contain no-repeat; }
-.logo-cr.is-grande { height: 52px; }
+.logo-cr { display: block; flex: none; height: 34px; aspect-ratio: 100 / 31; background: url("logo.svg?v=2") center / contain no-repeat; }
+.logo-cr.is-grande { height: 46px; }
 @supports ((-webkit-mask-image: url("")) or (mask-image: url(""))) {
   .logo-cr { background: var(--logo, #00CC29); transition: background-color .35s var(--ease);
-    -webkit-mask: url("logo.svg") center / contain no-repeat; mask: url("logo.svg") center / contain no-repeat; }
+    -webkit-mask: url("logo.svg?v=2") center / contain no-repeat; mask: url("logo.svg?v=2") center / contain no-repeat; }
 }
 
 /* Pie: logo de Yo Reciclo (yoreciclo.cl) en «Sitios relacionados» */
 .footer-yoreciclo { display: inline-block; margin-top: 6px; }
 .footer-yoreciclo img { display: block; width: auto; height: 56px; }
 
-/* Hero: la foto del camión con toldo (sin contenedores, para no sugerir que los ponemos) sobre un fondo de color, que
-   se ve donde la foto se funde con el tono del hero. */
+/* Hero: la foto del punto de entrega (toldos, mesas y camión tolva; sin contenedores, para no sugerir que los ponemos)
+   sobre un fondo de color, que se ve donde la foto se funde con el tono del hero. */
 body[data-site="campanas"] .stage-media.stage-color {
   background:
     radial-gradient(70% 90% at 88% 18%, rgb(215 245 96 / .55), transparent 60%),
@@ -130,9 +130,6 @@ body[data-site="campanas"] .stage-media.stage-color {
     linear-gradient(120deg, #0e2b1d 0%, #15613b 40%, #1c7a4b 62%, #2c9a5f 100%);
 }
 body[data-site="campanas"] .stage-media img { object-position: 62% 58%; }
-@media (min-width: 861px) {
-  body[data-site="campanas"] .stage-media img { aspect-ratio: 1734 / 907; }
-}
 
 /* Servicios adicionales: para quién son y cuándo se prestan */
 .service-tag { width: fit-content; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); font-size: var(--fs-caption); font-weight: 800; }
@@ -172,18 +169,15 @@ body[data-site="campanas"] .stage-panel > .hcard { height: 100%; }
 /* Fondo de todo el sitio: papel verde sutil, el mismo en todas las secciones; las tarjetas y paneles siguen blancos.
    La galería 3D toma este color para su niebla (galeria3d.js busca el primer fondo opaco). */
 body[data-site="campanas"] {
-  background-color: #f4f8f3;
+  background-color: #f8fbf7;
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .11 0 0 0 0 .37 0 0 0 0 .2 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"),
-    radial-gradient(90% 60% at 10% 0%, rgb(215 245 96 / .14), transparent 70%);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .11 0 0 0 0 .37 0 0 0 0 .2 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"),
+    radial-gradient(90% 60% at 10% 0%, rgb(215 245 96 / .1), transparent 70%);
   background-attachment: scroll, fixed;
 }
 body[data-site="campanas"] .section-alt { background: transparent; }
 body[data-site="campanas"] .related { background: #fff; }
 
-/* Barra superior: en vez de sombra oscura, un halo blanco que la separa del fondo verde */
-body[data-site="campanas"] .site-header .container::before { box-shadow: 0 12px 32px -14px rgb(255 255 255 / .95), 0 0 0 1px rgb(255 255 255 / .75); }
-body[data-site="campanas"] .site-header.is-scrolled .container::before { background: rgb(255 255 255 / .8); box-shadow: 0 16px 40px -12px rgb(255 255 255 / 1), 0 0 0 1px rgb(255 255 255 / .85); }
 
 /* Teléfono: el hero ocupa la pantalla bajo la barra; la foto crece y toma el alto que sobra */
 @media (max-width: 860px) {
@@ -210,11 +204,6 @@ body[data-site="campanas"] .site-header.is-scrolled .container::before { backgro
 .cta-foto img { width: 100%; height: 100%; object-fit: cover; }
 @media (max-width: 860px) { .cta-band.has-foto { grid-template-columns: minmax(0, 1fr); } .cta-foto { order: -1; aspect-ratio: 16 / 10; } }
 
-/* «¿Prefieres conversar?»: los personajes llenan el espacio libre del panel */
-#conversar .hcard-body { display: flex; flex-direction: column; }
-.personajes { flex: 1 1 auto; display: grid; place-items: center; min-height: 170px; margin: 14px 0 0; overflow: hidden; border-radius: 20px; background: #fdf7f1; }
-.personajes picture { display: contents; }
-.personajes img { width: auto; height: 100%; max-height: 330px; object-fit: contain; }
 
 /* ---------- Movimiento: suave y con cuerpo (desplazamiento, escala y un leve desenfoque), no solo fundidos ----------
    Mismos nombres que site.css y transporte.css: como este archivo va después, estas versiones mandan. */
@@ -238,4 +227,23 @@ body[data-site="campanas"] .site-header.is-scrolled .container::before { backgro
   /* Servicios y planes se elevan al pasar el puntero */
   :is(.plan, .service, .related) { transition: transform .5s cubic-bezier(.2, .8, .2, 1), box-shadow .5s var(--ease), border-color .4s var(--ease); }
   @media (hover: hover) { :is(.plan, .service, .related):hover { transform: translateY(-4px); box-shadow: 0 22px 40px -26px rgb(14 43 29 / .45); } }
+}
+
+/* Un solo fondo para todo el sitio: sin el cambio de color entre secciones, el espacio entre ellas se reduce a la mitad */
+body[data-site="campanas"] .section { padding-block: clamp(30px, 4vw, 48px); }
+body[data-site="campanas"] .hero + .section { padding-top: clamp(40px, 5vw, 64px); }
+body[data-site="campanas"] main > .section:last-child { padding-bottom: clamp(48px, 6vw, 72px); }
+
+/* Resumen de la ficha, después de «Enviar»: Don Reco y Lola Lata agradecen, en chico, sobre el texto */
+.ficha-enviada { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 14px; margin: 14px 20px 0; padding: 10px 14px 10px 10px; border-radius: 18px; background: #f6f3ea; }
+.ficha-enviada[hidden] { display: none; }
+.ficha-enviada img { width: 96px; height: 96px; border-radius: 14px; }
+.ficha-enviada p { color: var(--ink-2); font-size: var(--fs-small); line-height: 1.45; }
+.ficha-enviada .ficha-enviada-titulo { color: var(--ink); font-size: 1rem; font-weight: 800; }
+@media (max-width: 860px) { .ficha-enviada { margin-inline: 14px; } }
+@media (prefers-reduced-motion: no-preference) {
+  .ficha-enviada:not([hidden]) { animation: ficha-gracias .7s cubic-bezier(.2, .9, .3, 1.2) both; }
+  .ficha-enviada:not([hidden]) img { animation: ficha-gracias-foto .8s .1s cubic-bezier(.34, 1.56, .64, 1) both; }
+  @keyframes ficha-gracias { from { opacity: 0; transform: translateY(-10px) scale(.97); filter: blur(4px); } }
+  @keyframes ficha-gracias-foto { from { transform: scale(.6) rotate(-8deg); } }
 }

@@ -85,7 +85,19 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   });
 })();
 
-/* Campañas de reciclaje: lo propio de estas páginas que no está en el sistema de Transporte.
+/* Resumen de la ficha: al presionar «Enviar» (abre WhatsApp con el texto), Don Reco y Lola Lata agradecen sobre el
+   resumen. Se esconden de nuevo al editar o al preparar otra ficha. */
+(() => {
+  document.querySelectorAll('[data-ficha-enviada]').forEach((gracias) => {
+    const resumen = gracias.closest('.summary');
+    const form = resumen && document.querySelector(`form[data-summary="${resumen.id}"]`);
+    resumen?.querySelector('[data-send]')?.addEventListener('click', () => { gracias.hidden = false; });
+    form?.addEventListener('submit', () => { gracias.hidden = true; });
+    resumen?.querySelector('[data-edit]')?.addEventListener('click', () => { gracias.hidden = true; });
+  });
+})();
+
+/* Campañas de recolección: lo propio de estas páginas que no está en el sistema de Transporte.
    Logo: como el de Transporte, solo mientras el puntero está encima toma otro color de la paleta de la marca (cada
    pasada, el siguiente); al salir vuelve a su verde, que define el CSS. */
 (() => {
