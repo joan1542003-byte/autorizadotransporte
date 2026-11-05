@@ -1,3 +1,6 @@
+/* Campañas solo en la Región Metropolitana: el selector de comuna (filas.js, copia sin cambios) muestra solo esa región */
+if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
+
 /* Campañas de reciclaje: lo propio de estas páginas que no está en el sistema de Transporte.
    Logo: como el de Transporte, solo mientras el puntero está encima toma otro color de la paleta de la marca (cada
    pasada, el siguiente); al salir vuelve a su verde, que define el CSS. */
