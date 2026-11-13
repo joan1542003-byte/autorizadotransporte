@@ -180,8 +180,14 @@ for c in CHECKLISTS:
 
 
 # ---------- Guías ----------
+def entrada(t):
+    """«Antes de abrir: la carpeta…» → el momento en negrita, para leer la lista de un vistazo."""
+    i = t.find(': ')
+    return f'<strong>{t[:i + 1]}</strong>{t[i + 1:]}' if '<' not in t and 0 < i <= 40 else t
+
+
 def puntos(items):
-    return '<ul class="guia-points">' + ''.join(f'<li>{I["punto"]}<span>{t}{refs_html(r)}</span></li>' for t, r in items) + '</ul>'
+    return '<ul class="guia-points">' + ''.join(f'<li>{I["punto"]}<span>{entrada(t)}{refs_html(r)}</span></li>' for t, r in items) + '</ul>'
 
 
 def chips(datos):
@@ -191,7 +197,7 @@ def chips(datos):
 def franja_ck(c, root=''):
     return (f'<div class="download-strip"><span class="download-icon">{I["lista"]}</span>'
             f'<p><strong>{esc(c["titulo"])}</strong><small>{c["total"]} preguntas · Sí, No o No sé, con qué hacer en cada caso</small></p>'
-            f'<span class="download-actions"><a class="btn btn-ink btn-small" href="{c["slug"]}.html">Usar el checklist</a></span></div>')
+            f'<span class="download-actions"><a class="btn btn-quiet btn-small" href="{c["slug"]}.html">Usar el checklist</a></span></div>')
 
 
 ETAPAS_GUIA = {
@@ -228,8 +234,8 @@ def guia_paso_a_paso():
     for c in CHECKLISTS:
         e = c['etapa']
         secciones.append(
-            f'<section class="guia-sec" id="etapa-{e}" aria-labelledby="h-etapa-{e}"><h2 id="h-etapa-{e}">{e}. {esc(c["nombre"])}</h2>'
-            f'<p class="guia-sub">{esc(c["lema"])}.</p>{chips(c["datos"])}{puntos(ETAPAS_GUIA[e])}'
+            f'<section class="guia-sec guia-etapa" id="etapa-{e}" aria-labelledby="h-etapa-{e}"><p class="guia-etapa-n">Etapa {e} de 4</p><h2 id="h-etapa-{e}">{esc(c["nombre"])}</h2>'
+            f'<p class="guia-sub">{esc(c["lema"])}.</p>{puntos(ETAPAS_GUIA[e])}'
             f'<p class="guia-resultado"><strong>Al terminar esta etapa:</strong> {esc(c["resultado"])}</p>{franja_ck(c)}</section>')
     roles = ''.join(f'<li>{I["punto"]}<span><strong>{esc(a)}.</strong> {esc(b)}</span></li>' for a, b in ROLES)
     cuerpo = (
@@ -252,10 +258,27 @@ def guia_paso_a_paso():
 
 
 EJEMPLOS = [
-    ('Pequeños', 'Ninguna de sus medidas supera 50 cm', 'Celulares, notebooks, tablets, routers, cámaras, consolas, hervidores, secadores de pelo, planchas, tostadoras, licuadoras, aspiradoras de mano, herramientas eléctricas pequeñas y la mayoría de los microondas.'),
+    ('Pequeños', 'Ninguna de sus medidas supera 50 cm', 'Celulares, notebooks, tablets, routers, cámaras, consolas, hervidores, secadores de pelo, planchas, tostadoras, licuadoras, aspiradoras de mano, herramientas eléctricas pequeñas y muchos microondas.'),
     ('Grandes', 'Alguna de sus medidas supera 50 cm', 'Lavadoras, secadoras, lavavajillas, cocinas y hornos eléctricos, impresoras de oficina y televisores o monitores grandes.'),
     ('De intercambio de temperatura', 'Cualquier tamaño', 'Refrigeradores, congeladores, aire acondicionado y otros aparatos que enfrían, calientan o deshumidifican con gases refrigerantes o aceites. Se reciben enteros y aparte.'),
 ]
+
+
+MEDIDAS = [
+    ('Celular o tablet', '15 a 25 cm', 'Pequeños aparatos'),
+    ('Hervidor, plancha o secador de pelo', '20 a 30 cm', 'Pequeños aparatos'),
+    ('Microondas', '45 a 50 cm de ancho', 'Pequeños aparatos; si supera 50 cm, grandes'),
+    ('Notebook', '30 a 40 cm', 'Computadores'),
+    ('Televisor de 32″ o de 55″', '73 o 123 cm de ancho', 'Pantallas y monitores'),
+    ('Lavadora', '60 × 85 cm', 'Grandes aparatos'),
+    ('Refrigerador', '1,4 a 1,8 m de alto', 'Grandes aparatos; se recibe entero y aparte'),
+]
+
+
+def medidas_html():
+    filas = ''.join(f'<tr><th scope="row">{esc(a)}<small>{esc(c)}</small></th><td>{esc(b)}</td></tr>' for a, b, c in MEDIDAS)
+    return (f'<table class="tabla-tamanos"><caption class="sr-only">Medidas aproximadas de aparatos comunes</caption>'
+            f'<thead><tr><th scope="col">Aparato y grupo en la ficha</th><th scope="col">Medida aprox.</th></tr></thead><tbody>{filas}</tbody></table>')
 
 
 def guia_tamano():
@@ -271,6 +294,9 @@ def guia_tamano():
         f'<p class="guia-texto">Para organizar la campaña usamos la referencia de la normativa europea de residuos de aparatos eléctricos y electrónicos (Directiva 2012/19/UE): un aparato es <strong>pequeño</strong> si ninguna de sus medidas exteriores supera 50 cm, y <strong>grande</strong> si alguna la supera.</p>'
         f'<ul class="tamano-tipos">{tarjetas}</ul>'
         f'<p class="guia-sub">En la ficha, los computadores y las pantallas van en su propio grupo, sean pequeños o grandes.</p></section>'
+        f'<section class="guia-sec" aria-labelledby="h-medidas"><h2 id="h-medidas">Medidas de referencia</h2>'
+        f'<p class="guia-texto">Medidas aproximadas de aparatos comunes, para saber en qué grupo va cada uno. Lo que vale es la medida de tu aparato.</p>'
+        f'{medidas_html()}</section>'
         f'<section class="guia-sec" aria-labelledby="h-influye"><h2 id="h-influye">Cómo influye el tamaño en la campaña</h2>'
         + puntos([('<strong>Recepción:</strong> los pequeños se reciben en mesones y contenedores; los grandes necesitan una zona de carga, acceso para vehículos y ayuda para bajarlos.', []),
                   ('<strong>Contenedores y transporte:</strong> el tamaño y la cantidad definen cuántos contenedores, cuánto espacio y qué vehículos se necesitan.', [r29(24, 'c'), r29(24, 'j')]),
@@ -278,7 +304,7 @@ def guia_tamano():
                   ('<strong>Peso estimado:</strong> en la ficha indicas el peso total aproximado de todo lo que esperas recibir; los tipos y cantidades se precisan en la reunión.', [])]) +
         '</section>')
     faq = [
-        ('¿Un microondas es pequeño o grande?', 'Depende de sus medidas: la mayoría mide menos de 50 cm por lado y cuenta como pequeño.'),
+        ('¿Un microondas es pequeño o grande?', 'Depende de sus medidas: si ninguna supera 50 cm, cuenta como pequeño. Muchos microondas de uso doméstico miden entre 45 y 50 cm de ancho.'),
         ('¿Un refrigerador se recibe como aparato grande?', 'Es un aparato de intercambio de temperatura: puede contener gases refrigerantes o aceites, por eso se recibe entero y aparte, cualquiera sea su tamaño.'),
         ('¿La ley chilena define qué es un aparato pequeño?', 'No. La Ley 20.920 y el DS 22/2025 no clasifican los aparatos por tamaño. El criterio de 50 cm es una referencia práctica de la normativa europea que usamos para organizar la campaña.'),
     ]
@@ -369,10 +395,10 @@ def menu_html():
                       f'<div class="ayu-acciones"><a class="ayu-btn is-guia" href="normativa.html">Toda la normativa{I["flecha"]}</a></div>')
         else:
             cuerpo = f'<ul class="ayu-guias">{"".join(_fila_guia(G[s]) for s in slugs)}</ul>'
-        partes[k] = (f'<button class="ayu-tema" type="button" id="ayu-t-{k}" aria-expanded="false" aria-controls="ayu-{k}" data-ayu-tema="{k}">'
+        partes[k] = (f'<button class="ayu-tema" type="button" id="ayu-t-{k}" aria-expanded="false" aria-controls="ayu-{k}" data-ayu-tema="{k}" data-tema="{k}">'
                      f'<span class="doc-icon">{I[icono]}</span><span class="ayu-tema-t"><strong>{esc(nombre)}</strong><small>{esc(bajada)}</small></span>'
                      f'<span class="ayu-tema-chev">{I["abajo"]}</span></button>'
-                     f'<div class="ayu-detalle" id="ayu-{k}" role="region" aria-labelledby="ayu-t-{k}" data-ayu-detalle="{k}" inert><div class="ayu-detalle-in">{cuerpo}</div></div>')
+                     f'<div class="ayu-detalle" id="ayu-{k}" role="region" aria-labelledby="ayu-t-{k}" data-ayu-detalle="{k}" data-tema="{k}" inert><div class="ayu-detalle-in">{cuerpo}</div></div>')
     grupos = ''.join(f'<p class="ayu-titulo">{esc(nombre)}</p><div class="ayu-temas">{"".join(partes[k] for k in claves)}</div>' for nombre, claves in GRUPOS)
     pie = (f'<div class="docs-pie"><p>¿No encuentras lo que buscas?</p><button class="docs-pie-btn" type="button" data-dock-open="conversar">{I["conversar"]}<span>Conversar por WhatsApp</span></button></div>')
     return (f'<div class="docs-panel" id="docs-panel" data-docs-panel inert><div class="docs-inner"><div class="docs-scroll"><div class="docs-wrap">'
@@ -396,14 +422,45 @@ def con_menu(s):
 
 
 # ---------- «Cómo funciona una campaña» en la portada: solo el título de cada etapa; al tocarlo se despliega ----------
+# Qué se hace, quién y cuándo, del procedimiento del cliente y del DS 29/2024 (los plazos, con su artículo en el paso a paso)
+ETAPAS_PORTADA = {
+    1: {'pasos': ['Acordar el alcance: comuna, fecha tentativa, número de jornadas y servicios adicionales.',
+                  'Decidir qué aparatos se reciben y cuáles no, con una estimación de cuánto llegará.',
+                  'Elegir el lugar y los horarios, y gestionar el permiso de uso del espacio.',
+                  'Dejar definido a dónde irán los residuos y quién los transporta.'],
+        'quien': 'La municipalidad o la empresa, con nuestro equipo.',
+        'cuando': 'Antes de pedir la autorización sanitaria, que se presenta al menos 40 días hábiles antes de la campaña.'},
+    2: {'pasos': ['Reunir los antecedentes: responsable, aparatos y cantidades, contenedores, cronograma, plan de contingencia, destino y vehículos.',
+                  'Presentar la solicitud a la SEREMI de Salud de la región.',
+                  'Responder las observaciones, si las hay, dentro de 5 días hábiles (prorrogables una vez).'],
+        'quien': 'El responsable de la campaña. Si la organizas con nosotros, preparamos contigo la solicitud.',
+        'cuando': 'Al menos 40 días hábiles antes del inicio. La SEREMI tiene 30 días hábiles para revisarla.'},
+    3: {'pasos': ['Antes: informar a la comunidad qué se recibe, capacitar al equipo y montar el punto con señalización y contenedores.',
+                  'Durante: recibir solo los aparatos contemplados, revisarlos a la vista sin abrirlos ni enchufarlos, clasificarlos y registrarlos.',
+                  'Al terminar cada jornada: limpiar el lugar y llevar los residuos a un destino autorizado.'],
+        'quien': 'El equipo de la campaña y el transportista; la organización coordina el lugar y la difusión.',
+        'cuando': 'Durante las jornadas de la campaña.'},
+    4: {'pasos': ['Confirmar que se retiró todo y que el lugar quedó limpio.',
+                  'Sumar lo recibido por tipo de aparato y guardar los respaldos de transporte y destino.',
+                  'Reportar en el RETC las cantidades y la instalación de destino.'],
+        'quien': 'El responsable de la campaña, con el equipo técnico.',
+        'cuando': 'Al terminar; el reporte en el RETC, luego de un mes del término.'},
+}
+
+
 def etapas_html():
-    filas = ''.join(
-        f'<details><summary><span class="etapa-n">{c["etapa"]}</span><span class="etapa-titulo"><strong>{esc(c["nombre"])}</strong></span>'
-        f'<span class="plus" aria-hidden="true"></span></summary><div class="answer"><p>{esc(c["intro"])}</p>{chips(c["datos"])}'
-        f'<p class="etapa-acciones"><a class="btn btn-quiet btn-small" href="{c["slug"]}.html">{I["lista"]}<span>Checklist · {c["total"]} preguntas</span></a>'
-        f'<a class="btn btn-quiet btn-small" href="paso-a-paso.html#etapa-{c["etapa"]}">{I["guia"]}<span>Paso a paso</span></a></p></div></details>'
-        for c in CHECKLISTS)
-    return f'      <div class="accordion etapas-lista reveal">{filas}</div>'
+    filas = []
+    for c in CHECKLISTS:
+        e = ETAPAS_PORTADA[c['etapa']]
+        pasos = ''.join(f'<li>{entrada(t)}</li>' for t in e['pasos'])
+        datos = ''.join(f'<div><dt>{a}</dt><dd>{esc(b)}</dd></div>' for a, b in (('Quién', e['quien']), ('Cuándo', e['cuando']), ('Resultado', c['resultado'][0].upper() + c['resultado'][1:])))
+        filas.append(
+            f'<details><summary><span class="etapa-n">{c["etapa"]}</span><span class="etapa-titulo"><strong>{esc(c["nombre"])}</strong></span>'
+            f'<span class="plus" aria-hidden="true"></span></summary><div class="answer"><p>{esc(c["intro"])}</p>'
+            f'<ul class="etapa-pasos">{pasos}</ul><dl class="etapa-datos">{datos}</dl>'
+            f'<p class="etapa-acciones"><a href="{c["slug"]}.html">Checklist de {c["total"]} preguntas{I["flecha"]}</a>'
+            f'<a href="paso-a-paso.html#etapa-{c["etapa"]}">Paso a paso{I["flecha"]}</a></p></div></details>')
+    return f'      <div class="accordion etapas-lista reveal">{"".join(filas)}</div>'
 
 
 def con_etapas(s):
@@ -413,6 +470,23 @@ def con_etapas(s):
     return s[:s.index(a) + len(a)] + '\n' + etapas_html() + '\n      ' + s[s.index(b):]
 
 
+# ---------- Ventana «Tamaño de los aparatos» de la ficha (la abre el «?» de «Aparatos» y va dentro de su ventana) ----------
+def tamanos_html():
+    return ('<div id="guia-tamanos" hidden data-title="Tamaño de los aparatos" data-pregunta="¿Qué tamaño tiene cada tipo?" '
+            'data-sub="Pequeño si ninguna medida supera 50 cm; grande si alguna la supera.">'
+            '<p>Es la referencia de la normativa europea (Directiva 2012/19/UE): la ley chilena no clasifica los aparatos por tamaño. '
+            'Los computadores y las pantallas van en su propio grupo, de cualquier tamaño.</p>'
+            f'{medidas_html()}'
+            '<p><a class="link" href="tamano-de-los-aparatos.html" target="_blank" rel="noopener">Ver la guía completa<span class="sr-only"> (se abre en otra pestaña)</span></a></p></div>')
+
+
+def con_tamanos(s):
+    a, b = '<!-- ayuda:tamanos:inicio -->', '<!-- ayuda:tamanos:fin -->'
+    if a not in s:
+        return s
+    return s[:s.index(a) + len(a)] + '\n' + tamanos_html() + '\n' + s[s.index(b):]
+
+
 # ---------- Páginas ----------
 def fuente():
     return (f'<footer class="norm-source"><p>Orientación general: el alcance de cada campaña se define en su propuesta y no reemplaza la revisión técnica ni legal de cada caso. '
@@ -420,7 +494,10 @@ def fuente():
             f'<a class="btn btn-quiet btn-small" href="./">{I["volver"]}<span>Volver al inicio</span></a></footer>')
 
 
-def pagina(base, slug, titulo, desc, ld_extra, faq, main, kind_ico):
+TEMA_DE = {'paso-a-paso': 'pasos', 'tamano-de-los-aparatos': 'tamano', 'autorizacion-sanitaria': 'autorizacion'}
+
+
+def pagina(base, slug, titulo, desc, ld_extra, faq, main, kind_ico, tema='general'):
     url = f'{DOMINIO}/{slug}.html'
     graph = N.ld_base(base) + [
         {'@type': 'WebPage', '@id': f'{url}#pagina', 'url': url, 'name': titulo, 'description': desc, 'inLanguage': 'es-CL',
@@ -435,7 +512,7 @@ def pagina(base, slug, titulo, desc, ld_extra, faq, main, kind_ico):
     s = re.sub(r'<main id="contenido">.*?</main>', lambda m: f'<main id="contenido">\n{main}\n</main>', s, count=1, flags=re.S)
     s = s.replace('<a href="preguntas.html" aria-current="page">Preguntas</a>', '<a href="preguntas.html">Preguntas</a>')
     s = s.replace('class="nav-docs" data-docs-open', 'class="nav-docs" aria-current="true" data-docs-open', 1)
-    return s
+    return N.con_tema(s, tema)
 
 
 def pagina_guia(g, base):
@@ -447,7 +524,7 @@ def pagina_guia(g, base):
             f'<h1 class="norm-title">{esc(g["titulo"])}</h1><p class="norm-lead">{esc(g["lead"])}</p>'
             f'<div class="norm-actions guia-actions">{acciones}</div></header>\n    {g["cuerpo"]}\n'
             + (f'    {N.faq_html(g["faq"])}\n' if g['faq'] else '') + f'    {fuente()}\n  </article>')
-    return pagina(base, g['slug'], g['titulo'], g['descripcion'], g['ld_extra'], g['faq'], main, g['icono'])
+    return pagina(base, g['slug'], g['titulo'], g['descripcion'], g['ld_extra'], g['faq'], main, g['icono'], TEMA_DE[g['slug']])
 
 
 def pagina_checklist(c, base):
@@ -494,7 +571,7 @@ def pagina_checklist(c, base):
         f'<div class="ckc-fin-acciones">{fin_btn}<button class="btn btn-quiet" type="button" data-dock-open="contacto">{I["ficha"]}<span>Organizar una campaña</span></button></div></section>\n'
         f'    {fuente()}\n  </article>')
     desc = f'Checklist de la etapa {c["etapa"]} de una campaña de recolección de RAEE ({c["nombre"].lower()}): {c["total"]} preguntas con Sí, No o No sé y qué hacer en cada caso, según el DS 29/2024.'
-    s = pagina(base, c['slug'], f'{c["titulo"]} de una campaña de RAEE', desc, None, None, main, 'lista')
+    s = pagina(base, c['slug'], f'{c["titulo"]} de una campaña de RAEE', desc, None, None, main, 'lista', 'checklists')
     # El checklist trae su propio script, al final, después de los del sitio
     return s.replace('</body>', f'<script src="assets/campanas/checklist.js?v={version(base)}" defer></script>\n</body>', 1)
 
@@ -531,10 +608,18 @@ def actualizar_llms():
     p.write_text(s, encoding='utf-8')
 
 
+def con_ficha(s, base):
+    """La ficha flotante (tarjeta del hero) de una página secundaria: la misma de preguntas.html."""
+    a, b = '<div class="hcard">', '<footer class="site-footer">'
+    return s[:s.index(a)] + base[base.index(a):base.index(b)] + s[s.index(b):]
+
+
 def main():
+    creditos = ROOT / 'creditos.html'
+    creditos.write_text(con_ficha(creditos.read_text(encoding='utf-8'), (ROOT / 'preguntas.html').read_text(encoding='utf-8')), encoding='utf-8')
     for nombre in ('index.html', 'preguntas.html', 'creditos.html'):
         p = ROOT / nombre
-        p.write_text(con_etapas(con_menu(p.read_text(encoding='utf-8'))), encoding='utf-8')
+        p.write_text(con_tamanos(con_etapas(con_menu(p.read_text(encoding='utf-8')))), encoding='utf-8')
         print('ok menú', nombre)
     base = N.plantilla()
     for g in GUIAS:

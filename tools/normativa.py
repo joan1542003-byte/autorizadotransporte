@@ -295,7 +295,12 @@ def con_cuerpo(base, main, actual):
     s = s.replace('<a href="preguntas.html" aria-current="page">Preguntas</a>', '<a href="preguntas.html">Preguntas</a>')
     s = s.replace(f'<a href="{actual}">Normativa</a>', f'<a href="{actual}" aria-current="page">Normativa</a>')
     s = s.replace('class="nav-docs" data-docs-open', 'class="nav-docs" aria-current="true" data-docs-open', 1)  # la normativa está en «Ayuda»
-    return s
+    return con_tema(s, 'normativa')
+
+
+def con_tema(s, tema):
+    """Color de la página: el de su categoría en «Ayuda» (campanas.css, [data-tema])."""
+    return re.sub(r'(<body[^>]*?data-tema=")[^"]*"', lambda m: f'{m.group(1)}{tema}"', s, count=1)
 
 
 def ld_base(base):
