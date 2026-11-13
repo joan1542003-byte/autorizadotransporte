@@ -94,11 +94,33 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     if (!resumen) return;
     const form = document.querySelector(`form[data-summary="${resumen.id}"]`);
     const debajo = [...resumen.children].filter((el) => el !== gracias);
+    /* Con fotos en la ficha (transporte-ui.js, [data-adjuntos]): WhatsApp no recibe adjuntos por enlace, así que el
+       agradecimiento recuerda enviarlas en el mismo chat y, donde el sistema lo permite, ofrece «Compartir fotos» */
+    const zona = form?.querySelector('[data-adjuntos]');
+    const texto = gracias.querySelector('.ficha-enviada-texto');
+    const base = texto.textContent;
+    const btnFotos = gracias.querySelector('[data-gracias-fotos]');
+    const fotos = () => zona?.fotos?.() || [];
     const muestra = (on) => {
+      if (on) {
+        const f = fotos();
+        const comparte = f.length > 0 && !!navigator.canShare?.({ files: f });
+        const una = f.length === 1;
+        texto.textContent = !f.length ? base
+          : comparte ? `Don Reco y Lola Lata dejaron tu ficha escrita en WhatsApp. Envíala y después comparte ${una ? 'tu foto' : 'tus fotos'} en ese mismo chat.`
+            : `Don Reco y Lola Lata dejaron tu ficha escrita en WhatsApp. Envíala y después adjunta ${una ? 'tu foto' : 'tus fotos'} en ese mismo chat: ${una ? 'está' : 'están'} en «Ver resumen».`;
+        if (btnFotos) {
+          btnFotos.hidden = !comparte;
+          btnFotos.querySelector('span').textContent = una ? 'Compartir foto' : 'Compartir fotos';
+        }
+      }
       gracias.hidden = !on;
       debajo.forEach((el) => { el.inert = on; });
       if (on) gracias.querySelector('.ficha-enviada-titulo').focus({ preventScroll: true });
     };
+    btnFotos?.addEventListener('click', async () => {
+      try { await navigator.share({ files: fotos() }); } catch (err) { if (err.name !== 'AbortError') window.SITE?.toast?.('No se pudo abrir el menú para compartir: adjunta las fotos en el chat.'); }
+    });
     resumen.querySelector('[data-send]')?.addEventListener('click', () => muestra(true));
     gracias.querySelector('[data-ver-resumen]').addEventListener('click', () => {
       muestra(false);

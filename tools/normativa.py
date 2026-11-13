@@ -294,6 +294,7 @@ def con_cuerpo(base, main, actual):
     s = re.sub(r'<main id="contenido">.*?</main>', lambda m: f'<main id="contenido">\n{main}\n</main>', base, count=1, flags=re.S)
     s = s.replace('<a href="preguntas.html" aria-current="page">Preguntas</a>', '<a href="preguntas.html">Preguntas</a>')
     s = s.replace(f'<a href="{actual}">Normativa</a>', f'<a href="{actual}" aria-current="page">Normativa</a>')
+    s = s.replace('class="nav-docs" data-docs-open', 'class="nav-docs" aria-current="true" data-docs-open', 1)  # la normativa está en «Ayuda»
     return s
 
 

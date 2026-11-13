@@ -72,9 +72,9 @@
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); paso(e.key === 'ArrowRight' ? 1 : -1); }
   });
 
-  /* WebGL disponible: si no, queda la lista de respaldo */
-  const gl = (() => { try { return !!canvas.getContext('webgl2'); } catch { return false; } })();
-  if (!gl) { g.classList.add('sin-3d'); return; }
+  /* WebGL disponible: si no, queda la lista de respaldo. Se pregunta recién cuando la galería se acerca a la pantalla:
+     crear el contexto ocupa el procesador un buen rato y no debe competir con la carga de la página (13-11-2026) */
+  const hayWebgl = () => { try { return !!canvas.getContext('webgl2'); } catch { return false; } };
 
   const cargar = async () => {
     const [THREE, { GLTFLoader }, { RoomEnvironment }, { MeshoptDecoder }] = await Promise.all([
@@ -403,6 +403,7 @@
     io.disconnect();
     await cargada;
     await libre();
+    if (!hayWebgl()) { g.classList.add('sin-3d'); return; }
     g.classList.add('is-cargando');
     /* «Cargando…» se ve hasta que entra el primer modelo (is-lista) */
     cargar().catch((err) => { console.warn('Galería 3D:', err); g.classList.add('sin-3d'); });

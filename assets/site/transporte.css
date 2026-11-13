@@ -246,23 +246,6 @@
 /* Días: varios meses seguidos, se recorren deslizando */
 .cal-months { display: grid; gap: 24px; }
 .cal-months .cal-head { justify-content: flex-start; margin-bottom: 10px; }
-/* Rango con deslizador de dos puntas (23-10-2026): las puntas se toman con el dedo; la pista muestra el rango elegido */
-.slider-valor { display: flex; justify-content: center; align-items: baseline; gap: 10px; margin: 2px 0 6px; color: var(--ink); font-size: 1.375rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-.slider-valor span { color: var(--muted); font-size: var(--fs-small); font-weight: 700; }
-.slider { --punta: 30px; position: relative; height: 48px; margin: 0 2px; }
-.slider-pista { position: absolute; left: calc(var(--punta) / 2); right: calc(var(--punta) / 2); top: 50%; height: 6px; margin-top: -3px; border-radius: 99px; background: var(--bg-sunk); }
-.slider-pista i { position: absolute; top: 0; bottom: 0; left: calc(var(--a, 0) * 100%); right: calc((1 - var(--b, 1)) * 100%); border-radius: inherit; background: var(--accent); }
-.slider input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
-.slider input.is-arriba { z-index: 1; }
-.slider input::-webkit-slider-runnable-track { height: 48px; background: none; }
-.slider input::-moz-range-track { background: none; }
-.slider input::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: var(--punta); height: var(--punta); margin-top: 9px; border: 2px solid var(--accent); border-radius: 50%; background: #fff; box-shadow: 0 3px 10px rgb(21 26 45 / .22); cursor: grab; transition: box-shadow .2s; }
-.slider input::-moz-range-thumb { pointer-events: auto; width: 26px; height: 26px; border: 2px solid var(--accent); border-radius: 50%; background: #fff; box-shadow: 0 3px 10px rgb(21 26 45 / .22); cursor: grab; }
-.slider input:active::-webkit-slider-thumb { cursor: grabbing; box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent), 0 3px 10px rgb(21 26 45 / .22); }
-.slider input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); }
-.slider input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); }
-.slider input:focus { outline: none; }
-.slider-marcas { display: flex; justify-content: space-between; margin: 0 2px; padding: 0 calc(var(--punta, 30px) / 2 - 14px); color: var(--muted); font-size: var(--fs-caption); font-weight: 700; font-variant-numeric: tabular-nums; }
 .pick[data-invalid] .pick-error { display: block; }
 .hcard-head .picks { margin-top: 14px; }
 .picks-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -449,6 +432,26 @@ button.text-link { padding: 0; border: 0; background: none; font: inherit; font-
 .opt[data-tone="express"]::before { background: var(--grad-express); }
 .opt[data-tone="flexible"]::before { background: var(--grad-flexible); }
 .opt-empty { padding: 18px 2px; color: var(--muted); font-size: .9375rem; }
+/* Secciones plegables de una lista larga (chooseEach, opciones con `section`): p. ej., las condiciones de acceso */
+.opt-section { border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.opt-section + .opt-section, .opt-section + .opts { margin-top: 6px; }
+.opt-section > summary {
+  display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 14px; border-radius: 13px;
+  color: var(--ink); font-size: .9375rem; font-weight: 700; line-height: 1.3; list-style: none; cursor: pointer;
+}
+.opt-section > summary::-webkit-details-marker { display: none; }
+.opt-section > summary::after {
+  content: ""; flex: none; width: 16px; height: 16px; background: var(--muted); rotate: 90deg; transition: rotate .2s var(--ease);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3.5L10.5 8 6 12.5'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3.5L10.5 8 6 12.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.opt-section[open] > summary::after { rotate: -90deg; }
+.opt-section > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (hover: hover) { .opt-section > summary:hover { background: var(--bg-alt); } }
+.opt-section-name { flex: 1; min-width: 0; }
+.opt-section-count { flex: none; color: var(--accent-strong); font-size: var(--fs-caption); font-weight: 800; }
+.opt-section > .opts { padding: 2px 8px 8px; }
+.opt-section .opt { min-height: 46px; padding: 9px 12px; }
 @media (max-width: 560px) { .opts.is-modes { grid-template-columns: minmax(0, 1fr); } .opts.is-tiles { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); } }
 
 /* Fecha y horario */
@@ -492,7 +495,10 @@ button.text-link { padding: 0; border: 0; background: none; font: inherit; font-
 .result-meta .pill::before { content: ""; width: 6px; height: 6px; border-radius: 99px; background: var(--safe); }
 .result-meta .pill.is-hazard::before { background: var(--hazard); }
 .result-waste { grid-column: 1; color: var(--ink-2); font-size: var(--fs-caption); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.result .btn { grid-column: 2; grid-row: 1 / span 2; justify-self: end; }
+.result > .result-actions { grid-column: 2; grid-row: 1 / span 2; display: grid; justify-items: end; gap: 4px; }
+.result-alt { color: var(--muted); font-size: var(--fs-caption); white-space: nowrap; }
+.result-alt a { color: var(--ink-2); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.result-alt a:hover { color: var(--accent-strong); }
 @media (prefers-reduced-motion: no-preference) {
   @keyframes result-in { from { opacity: 0; transform: translateY(4px); } }
   .result.is-new { animation: result-in .5s var(--ease) both; animation-delay: calc(var(--i, 0) * 45ms); }
@@ -532,7 +538,7 @@ button.text-link { padding: 0; border: 0; background: none; font: inherit; font-
   .hcard-foot { padding-inline: 14px; }
   .picks-row { grid-template-columns: minmax(0, 1fr); }
   .result { grid-template-columns: minmax(0, 1fr); }
-  .result .btn { grid-column: 1; grid-row: auto; justify-self: start; margin-top: 4px; }
+  .result > .result-actions { grid-column: 1; grid-row: auto; justify-items: start; margin-top: 4px; }
   .result.is-skeleton { grid-template-columns: 1fr; }
   .result.is-skeleton i:last-child { grid-column: auto; width: 110px; }
 }
@@ -556,7 +562,15 @@ button.text-link { padding: 0; border: 0; background: none; font: inherit; font-
 .service-body { padding: clamp(18px, 2.6vw, 24px); }
 .service h3 { font-size: var(--fs-card); letter-spacing: -.012em; }
 .service-body > p { margin-top: 6px; color: var(--ink-2); font-size: .9375rem; }
-.service-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 18px; }
+/* Tarjetas de servicio (12-11-2026, pedido del cliente): la tarjeta lleva solo la foto y el texto; el botón y «Qué
+   necesitamos» van debajo, fuera de ella. Con subgrid, las tarjetas de una fila miden lo mismo y abrir «Qué necesitamos»
+   no agranda ninguna: solo crece el espacio bajo los botones. */
+.services { row-gap: 0; }
+.service-item { display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 0; min-width: 0; }
+.service-cta { padding-top: 14px; }
+.service-cta .btn { width: 100%; }
+.service-extra { padding: 6px 0 clamp(24px, 3vw, 32px); }
+.service-extra .service-more { margin-top: 6px; }
 .more-toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 2px; border: 0; background: none; color: var(--ink-2); font: 800 .875rem/1 var(--font); cursor: pointer; }
 .more-toggle:hover { color: var(--ink); }
 .more-toggle .pm { background-color: transparent; }
@@ -914,7 +928,7 @@ number-flow { font-variant-numeric: tabular-nums; --number-flow-mask-height: .15
   .hero-sheet.is-float .hcard-title .hcard-close { grid-column: 2; grid-row: 1; }
   .hero-sheet.is-float .picks-row { grid-template-columns: minmax(0, 1fr); }
   .hero-sheet.is-float .result { grid-template-columns: minmax(0, 1fr); }
-  .hero-sheet.is-float .result .btn { grid-column: 1; grid-row: auto; justify-self: start; margin-top: 4px; }
+  .hero-sheet.is-float .result > .result-actions { grid-column: 1; grid-row: auto; justify-items: start; margin-top: 4px; }
   @media (prefers-reduced-motion: no-preference) {
     @keyframes float-in { from { clip-path: inset(calc(100% - 56px) 0 0 calc(100% - 56px) round 28px); } to { clip-path: inset(0 round 26px); } }
     @keyframes float-out { to { clip-path: inset(calc(100% - 56px) 0 0 calc(100% - 56px) round 28px); opacity: 0; } }
@@ -1315,6 +1329,10 @@ html:has(.toc-sheet[open]) { overflow: hidden; }
 .docs-panel { flex: 0 0 100%; display: grid; grid-template-rows: 0fr; transition: grid-template-rows .5s cubic-bezier(.32, .72, 0, 1); }
 .docs-open .docs-panel { grid-template-rows: 1fr; }
 .docs-inner { min-height: 0; overflow: hidden; }
+/* Cerrado, el panel no se calcula ni se dibuja (12-11-2026): son la mitad de los elementos de la página y alargaban la
+   carga en el teléfono. Ya es inert cerrado (ayuda.js). Al cerrar, sigue visible hasta que termina la animación. */
+.site-header:not(.docs-open) .docs-inner { content-visibility: hidden; }
+.docs-inner { transition: content-visibility .5s allow-discrete; }
 .docs-scroll { max-height: calc(100dvh - 120px); overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 /* Simplificada el 22-10-2026: primero los temas; al elegir uno, su ayuda se despliega debajo de su fila (en el teléfono,
    debajo del tema): sus guías con su checklist y su Excel, o la normativa con su buscador */
@@ -1510,8 +1528,8 @@ html:has(.toc-sheet[open]) { overflow: hidden; }
 /* Servicios: tres tarjetas, cada una con su color: verde (no peligrosos), rojo (peligrosos) y el lila de la marca
    (arriendo de contenedores). El color va en una línea bajo la foto y en el botón. */
 .services.is-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.service.is-safe { --accent: var(--safe); --accent-strong: #03662A; --accent-soft: var(--safe-soft); --linea: var(--verde); }
-.service.is-hazard { --accent: var(--hazard); --accent-strong: #C00A25; --accent-soft: var(--hazard-soft); --linea: var(--rojo); }
+.service-item.is-safe { --accent: var(--safe); --accent-strong: #03662A; --accent-soft: var(--safe-soft); --linea: var(--verde); }
+.service-item.is-hazard { --accent: var(--hazard); --accent-strong: #C00A25; --accent-soft: var(--hazard-soft); --linea: var(--rojo); }
 .service-media { border-bottom: 3px solid var(--linea, var(--accent)); }
 @media (max-width: 1000px) { .services.is-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .services.is-3 { grid-template-columns: minmax(0, 1fr); } }
@@ -1659,6 +1677,35 @@ a.route { text-decoration: none; }
 }
 @media (max-width: 599px) and (max-height: 600px) {
   body[data-site="transporte"] .stage-media img { height: 84px; }
+}
+/* Fotos de más abajo (12-11-2026): con JavaScript empiezan a bajar después del primer dibujo (site.js les quita
+   data-tarde-img), así no compiten con la foto del hero en el teléfono. Sus cajas ya tienen el tamaño final y están lejos
+   de la primera pantalla: nada se mueve a la vista. Sin JavaScript se cargan como siempre. Se marca cada foto y no la
+   página entera: una clase en <html> obligaba a recalcular los estilos de todo. */
+html.js img[data-tarde-img] { display: none; }
+/* Secciones bajo la primera pantalla y pie (12-11-2026): no se calculan ni se dibujan hasta que se acercan a la vista, así
+   la carga en el teléfono hace menos trabajo antes de mostrar el hero. El alto estimado se reemplaza por el real («auto»)
+   la primera vez que se dibujan. Los diálogos y la burbuja están fuera de ellas (en <body>). */
+body[data-site="transporte"] main > .section, body[data-site="transporte"] .site-footer { content-visibility: auto; contain-intrinsic-size: auto 760px; }
+/* Hero sin la viñeta oscura (pedido del cliente, 12-11-2026): la foto sigue llenando el hero, pero sin el oscurecido de
+   abajo ni el fundido negro del teléfono. Solo queda el tono lila a la izquierda, bajo el título y las opciones (contraste
+   AA del texto blanco), y se desvanece antes de la flota. */
+body[data-site="transporte"] .stage::before {
+  background: linear-gradient(90deg, rgb(var(--stage) / .92) 0%, rgb(var(--stage) / .8) 34%, rgb(var(--stage) / 0) 60%);
+}
+/* Teléfono y tablet: la foto termina limpia y el título va debajo, sobre el tono (antes se montaba sobre la foto
+   oscurecida). La foto cede ese alto, para que título, campo y las cuatro opciones sigan en la primera pantalla; en los
+   teléfonos muy bajos (iPhone SE con las barras abiertas) no hay foto. */
+@media (max-width: 860px) {
+  body[data-site="transporte"] .stage-media::after { display: none; }
+  body[data-site="transporte"] .stage-side { margin-top: 0; padding-top: 18px; }
+}
+@media (max-width: 599px) {
+  body[data-site="transporte"] .stage-media img { height: clamp(60px, calc(100vh - 618px), 190px); height: clamp(60px, calc(100svh - 618px), 190px); }
+}
+@media (max-width: 599px) and (max-height: 600px) {
+  body[data-site="transporte"] .stage-media { display: none; }
+  body[data-site="transporte"] .stage-side { padding-top: 20px; }
 }
 
 /* =====================================================================================

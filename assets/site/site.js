@@ -1,7 +1,63 @@
 /* Comportamiento compartido de los tres sitios. */
 (() => {
   const d = document;
+  /* El resto de los scripts de la página (formulario, hero, ayuda, mapa, asistente guiado, biblioteca y chat) se piden
+     después del primer dibujo y se ejecutan en el orden del HTML (async = false), para que no compitan con la foto del
+     hero ni con los estilos en el teléfono (12-11-2026). Quien usa los de más abajo revisa que estén. */
+  const tardios = [...d.querySelectorAll('script[data-tarde-src]')];
+  /* Empiezan cuando ya se pintó la foto principal (su «Largest Contentful Paint»), al terminar la carga, con el primer
+     gesto de la persona o a los 3 s, lo que ocurra primero. Las fotos de más abajo (img[data-tarde-img]) bajan desde ahí. */
+  let hecho = false;
+  /* Un toque que llega antes que esos scripts (p. ej., una opción del hero o «Ayuda») no se pierde: se recuerda y se
+     repite cuando terminan de cargar. Solo lo que manejan ellos, para no repetir lo que ya respondió este archivo. */
+  const TARDIO = '[data-route], [data-dock-open], [data-docs-open], [data-ayu-tema], .pick-btn';
+  let pendiente = null;
+  const anota = (e) => {
+    const el = e.target.closest?.(TARDIO);
+    if (!el) return;
+    pendiente = el;
+    if (el.matches('a[href^="#"]')) e.preventDefault();  // «Ayuda» no salta a su ancla mientras tanto
+  };
+  if (tardios.length) addEventListener('click', anota, true);
+  const repite = () => {
+    removeEventListener('click', anota, true);
+    const el = pendiente;
+    pendiente = null;
+    if (el?.isConnected) el.click();
+  };
+  const despues = () => {
+    if (hecho) return;
+    hecho = true;
+    /* Estilos que no se ven al cargar (el chat, cerrado): se piden desde aquí, después de la foto del hero (12-11-2026) */
+    d.querySelectorAll('script[data-tarde-css]').forEach((t) => {
+      const l = d.createElement('link');
+      l.rel = 'stylesheet';
+      l.href = t.dataset.tardeCss;
+      d.head.append(l);
+    });
+    d.querySelectorAll('img[data-tarde-img]').forEach((i) => i.removeAttribute('data-tarde-img'));
+    let ultimo = null;
+    tardios.forEach((t) => { const s = d.createElement('script'); s.src = t.dataset.tardeSrc; s.async = false; d.body.append(s); ultimo = s; });
+    /* Se ejecutan en orden: cuando corre el último, ya están todos */
+    ultimo?.addEventListener('load', () => setTimeout(repite, 0), { once: true });
+    ultimo?.addEventListener('error', () => setTimeout(repite, 0), { once: true });
+  };
+  const pronto = () => setTimeout(despues, 0);
+  /* En la portada (la que carga lo demás después), el arranque de abajo va en tramos cortos, cada uno en su propia tarea,
+     para no ocupar el procesador de una vez en el teléfono; en las demás páginas corre de inmediato, como siempre */
+  const enSeguida = tardios.length ? (f) => setTimeout(f, 0) : (f) => f();
+  if (window.PerformanceObserver && PerformanceObserver.supportedEntryTypes?.includes('largest-contentful-paint')) {
+    const po = new PerformanceObserver((lista) => {
+      if (lista.getEntries().some((e) => e.element?.tagName === 'IMG')) { po.disconnect(); pronto(); }
+    });
+    po.observe({ type: 'largest-contentful-paint', buffered: true });
+  } else if (d.readyState === 'complete') requestAnimationFrame(pronto);  // sin esa medida (Safari): al terminar la carga
+  else addEventListener('load', () => requestAnimationFrame(pronto), { once: true });
+  ['pointerdown', 'keydown', 'touchstart'].forEach((g) => addEventListener(g, despues, { once: true, capture: true, passive: true }));
+  setTimeout(despues, 3000);
   const WHATSAPP = '56986067930';
+  /* El correo del equipo (cliente, 26-10-2026): el mismo de las condiciones del servicio y del asistente */
+  const CORREO = 'contacto@transporteautorizado.cl';
   const motion = matchMedia('(prefers-reduced-motion: no-preference)');
   const smooth = () => (motion.matches ? 'smooth' : 'auto');
   window.SITE = {
@@ -10,6 +66,7 @@
       wa: '<svg class="wa-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>',
       mail: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>'
     },
+    correo: CORREO,
     whatsapp: (text) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`,
     /* Correo con el mismo texto (sin los asteriscos de WhatsApp). La primera línea es el asunto. */
     mailto: (to, text) => {
@@ -258,14 +315,17 @@
   if (vv) {
     const root = d.documentElement.style;
     const typing = () => d.activeElement?.matches?.('input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="button"]):not([type="submit"]), textarea');
+    /* Solo se escribe si cambia: un valor nuevo en :root obliga a recalcular los estilos de toda la página (al cargar,
+       el CSS ya usa 0 px por omisión) */
+    let antes = '0px 0px';
     const sync = () => {
-      if (!typing() || vv.scale > 1.01) {
-        root.setProperty('--vv-top', '0px');
-        root.setProperty('--vv-bottom', '0px');
-        return;
-      }
-      root.setProperty('--vv-top', `${Math.max(0, Math.round(vv.offsetTop))}px`);
-      root.setProperty('--vv-bottom', `${Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop))}px`);
+      const quieto = !typing() || vv.scale > 1.01;
+      const top = quieto ? '0px' : `${Math.max(0, Math.round(vv.offsetTop))}px`;
+      const bottom = quieto ? '0px' : `${Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop))}px`;
+      if (`${top} ${bottom}` === antes) return;
+      antes = `${top} ${bottom}`;
+      root.setProperty('--vv-top', top);
+      root.setProperty('--vv-bottom', bottom);
     };
     vv.addEventListener('resize', sync);
     vv.addEventListener('scroll', sync);
@@ -297,7 +357,7 @@
   const header = d.querySelector('.site-header');
   const onScroll = () => header?.classList.toggle('is-scrolled', scrollY > 4);
   addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
+  requestAnimationFrame(onScroll);  // en el cuadro siguiente: leer scrollY al iniciar obligaba a calcular toda la página
 
   /* Menú móvil */
   const toggle = d.querySelector('.menu-toggle');
@@ -314,6 +374,7 @@
     matchMedia('(min-width: 861px)').addEventListener('change', () => setOpen(false));
   }
 
+  enSeguida(() => {  // tramo 1: navegación, animaciones de entrada, acordeones, pestañas y campos (hasta «Formularios»)
   /* Sección activa en la navegación */
   const navLinks = [...d.querySelectorAll('#nav a[href^="#"]:not(.btn)')];
   if ('IntersectionObserver' in window && navLinks.length) {
@@ -327,16 +388,20 @@
   }
 
   /* Animación al entrar en pantalla. Lo que ya se ve al cargar queda quieto y visible. */
-  d.querySelectorAll('.reveal-group').forEach((g) => [...g.children].forEach((c, i) => c.style.setProperty('--i', Math.min(i, 6))));
-  if ('IntersectionObserver' in window && motion.matches) {
+  /* El desfase de cada elemento de un grupo (--i) lo pone site.css con :nth-child; se mide en el cuadro siguiente, con la
+     página ya calculada (antes se medía al iniciar y obligaba a calcularla dos veces) */
+  if ('IntersectionObserver' in window && motion.matches) requestAnimationFrame(() => {
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } });
     }, { rootMargin: '0px 0px 40px 0px' });
     d.querySelectorAll('.reveal, .reveal-group').forEach((el) => {
-      if (el.getBoundingClientRect().top < innerHeight) return;
+      /* Primero la sección: las que están bajo la primera pantalla no se calculan hasta acercarse (content-visibility en
+         transporte.css) y medir algo dentro de ellas obligaría a calcularlas al cargar */
+      const caja = el.closest('main > section, footer');
+      if ((!caja || caja.getBoundingClientRect().top < innerHeight) && el.getBoundingClientRect().top < innerHeight) return;
       io.observe(el);
     });
-  }
+  });
 
   /* Acordeones con altura animada */
   d.querySelectorAll('.accordion details').forEach((det) => {
@@ -443,6 +508,7 @@
     link.href = window.SITE.whatsapp(text);
   });
 
+  enSeguida(() => {  // tramo 2: formularios con resumen (hasta «Burbuja de ayuda»)
   /* Formularios que preparan un resumen para WhatsApp (con pasos opcionales: data-steps) */
   const labelFor = (field) => {
     if (field.dataset.label) return field.dataset.label;
@@ -735,6 +801,9 @@
     });
   });
 
+  });  // fin del tramo 2
+  });  // fin del tramo 1
+
   /* Burbuja de ayuda: aparece al pasar el hero y se oculta sobre el pie de página. Al abrirla se expande
      (CSS: vidrio líquido) y muestra las acciones; se cierra al elegir una, al tocar fuera o con Escape. */
   const dock = d.querySelector('[data-dock]');
@@ -791,7 +860,7 @@
     if (escenaHero) new MutationObserver(refresh).observe(escenaHero, { attributes: true, attributeFilter: ['data-view'] });
     dock.addEventListener('dock:abrir', () => { refresh(); setOpen(true); });  // «Volver» del chat: de vuelta a las opciones
     toggle?.addEventListener('click', () => setTimeout(refresh));
-    refresh();
+    requestAnimationFrame(refresh);
     const entrar = () => setTimeout(() => { entro = true; refresh(); }, 650);
     if (d.readyState === 'complete') entrar(); else addEventListener('load', entrar, { once: true });
   }

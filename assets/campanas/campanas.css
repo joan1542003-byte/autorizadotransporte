@@ -32,7 +32,7 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
 .guia-after { margin: 16px 0 0; }
 .guia-steps .law-refs { margin-top: 2px; }
 .guia-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
-.guia-chips li { padding: 8px 14px; border-radius: 999px; background: var(--tc-soft); color: var(--ink); font-size: var(--fs-small); font-weight: 700; }
+.guia-chips li { padding: 8px 14px; border-radius: 999px; background: var(--tc-soft, var(--bg-alt)); color: var(--ink); font-size: var(--fs-small); font-weight: 700; }
 .guia-sec > .accordion { margin-top: -4px; }
 
 /* Preguntas.html: los requisitos del DS 29/2024 como segunda parte de la página */
@@ -272,3 +272,138 @@ body[data-site="campanas"] main > .section:last-child { padding-bottom: clamp(48
   .norm .norm-facts li:first-child { grid-column: 1 / -1; }
   .norm .norm-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* =====================================================================================
+   Ayuda (13-11-2026): guías y un checklist por etapa (tools/ayuda.py, assets/campanas/checklist.js). El panel «Ayuda»
+   de la cabecera usa el diseño de Transporte (transporte.css); aquí va lo propio de las páginas.
+   ===================================================================================== */
+.guia-texto { color: var(--ink); font-size: 1.0625rem; line-height: 1.65; }
+.guia-texto + .guia-texto, .guia-texto + .guia-points, .guia-points + .guia-texto { margin-top: 14px; }
+.guia-texto .law-refs, .guia-points .law-refs { margin-top: 4px; }
+.guia-chips { margin: 4px 0 18px; }
+.guia-chips li strong { font-weight: 800; }
+.guia-resultado { margin-top: 18px; padding: 12px 16px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 12px 12px 0; color: var(--ink); font-size: .9375rem; line-height: 1.55; }
+.guia-sec .download-strip { margin-top: 18px; }
+.guia-actions-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.guia-actions-row .btn svg { width: 16px; height: 16px; }
+
+/* Tamaño de los aparatos: tres tipos con su criterio y ejemplos */
+.tamano-tipos { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 18px 0 14px; }
+.tamano-tipos li { display: grid; align-content: start; gap: 4px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+.tamano-tipos strong { font-size: 1.0625rem; }
+.tamano-tipos small { width: fit-content; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); font-size: var(--fs-caption); font-weight: 800; }
+.tamano-tipos p { margin-top: 6px; color: var(--ink-2); font-size: .9375rem; line-height: 1.55; }
+@media (max-width: 760px) { .tamano-tipos { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Checklists por etapa ---------- */
+.ckc-etapas ol { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 26px; }
+.ckc-etapas a { position: relative; display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 16px; background: #fff; color: var(--ink); text-decoration: none; transition: border-color .2s, background-color .2s; }
+.ckc-etapas a:hover { border-color: var(--line-strong); }
+.ckc-etapas a[aria-current="page"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.ckc-etapa-n { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 99px; background: var(--bg-alt); color: var(--ink-2); font-weight: 800; font-variant-numeric: tabular-nums; }
+.ckc-etapas a[aria-current="page"] .ckc-etapa-n { background: var(--accent); color: #fff; }
+.ckc-etapas a.is-lista .ckc-etapa-n { background: var(--accent-soft); color: var(--accent-strong); }
+.ckc-etapa-t { display: grid; gap: 2px; min-width: 0; }
+.ckc-etapa-t strong { font-size: .9375rem; line-height: 1.25; }
+.ckc-etapa-t small { color: var(--muted); font-size: var(--fs-caption); font-weight: 700; }
+.ckc-etapas a.is-avance .ckc-etapa-t small { color: var(--accent-strong); }
+@media (max-width: 760px) { .ckc-etapas ol { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.ckc-datos { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+.ckc-datos li { display: grid; gap: 2px; padding: 12px 14px; border-radius: 14px; background: var(--bg-alt); }
+.ckc-datos strong { font-size: .9375rem; }
+.ckc-datos span { color: var(--muted); font-size: var(--fs-caption); font-weight: 700; }
+@media (max-width: 599px) {
+  /* En el teléfono, una sola tarjeta con una línea por dato: ocupa la mitad del alto */
+  .ckc-datos { grid-template-columns: minmax(0, 1fr); gap: 0; border-radius: 14px; background: var(--bg-alt); }
+  .ckc-datos li { grid-template-columns: auto minmax(0, 1fr); align-items: baseline; column-gap: 10px; padding: 10px 14px; border-radius: 0; background: none; }
+  .ckc-datos li + li { border-top: 1px solid var(--line); }
+}
+
+.ckc-barra { position: sticky; top: 84px; z-index: 5; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px 16px; margin-top: 22px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: rgb(255 255 255 / .94); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.ckc-barra p { color: var(--ink-2); font-size: .9375rem; font-weight: 700; }
+.ckc-barra strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.ckc-progreso { grid-column: 1 / -1; height: 6px; border-radius: 99px; background: var(--bg-sunk); overflow: hidden; }
+.ckc-progreso i { display: block; width: var(--p, 0%); height: 100%; border-radius: inherit; background: var(--accent); transition: width .45s var(--ease); }
+.ckc-borrar, .ckc-quitar { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border: 0; border-radius: 10px; background: none; color: var(--ink-2); font: 700 var(--fs-small)/1 var(--font); cursor: pointer; }
+.ckc-borrar:hover, .ckc-quitar:hover { background: var(--bg-alt); color: var(--ink); }
+.ckc-borrar.is-armado { background: #fdecea; color: #a8201a; }
+.ckc-borrar[hidden], .ckc-quitar[hidden] { display: none; }
+.ckc-ayuda { margin-top: 14px; color: var(--muted); font-size: var(--fs-small); line-height: 1.55; }
+
+.ckc-lista { list-style: none; margin-top: 10px; border-top: 1px solid var(--line); }
+.ckc-item { display: grid; gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--line); scroll-margin-top: 170px; }
+.ckc-q { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; }
+.ckc-num { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 99px; border: 1.5px solid var(--line-strong); color: var(--ink-2); font-weight: 800; font-size: .9375rem; font-variant-numeric: tabular-nums; transition: background-color .25s, border-color .25s, color .25s; }
+.ckc-item[data-resp="si"] .ckc-num { border-color: var(--accent); background: var(--accent); color: #fff; }
+.ckc-item[data-resp="no"] .ckc-num { border-color: #b42318; color: #b42318; }
+.ckc-item[data-resp="nose"] .ckc-num { border-color: #8a5a00; color: #8a5a00; }
+.ckc-texto { color: var(--ink); font-size: 1.0625rem; font-weight: 700; line-height: 1.45; }
+.ckc-resp { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-left: 44px; }
+.ckc-ops { display: inline-flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg-alt); }
+.ckc-ops button { min-width: 72px; min-height: 40px; padding: 0 14px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-2); font: 800 .9375rem/1 var(--font); cursor: pointer; transition: background-color .2s, color .2s, box-shadow .2s, transform .15s var(--ease); }
+.ckc-ops button:hover { background: rgb(255 255 255 / .8); color: var(--ink); }
+.ckc-ops button:active { transform: scale(.97); }
+.ckc-ops button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ckc-ops button[aria-pressed="true"] { color: #fff; box-shadow: 0 4px 12px -6px rgb(0 0 0 / .4); }
+.ckc-ops button[data-ckc-op="si"][aria-pressed="true"] { background: var(--accent-strong); }
+.ckc-ops button[data-ckc-op="no"][aria-pressed="true"] { background: #b42318; }
+.ckc-ops button[data-ckc-op="nose"][aria-pressed="true"] { background: #8a5a00; }
+.ckc-reco { margin-left: 44px; padding: 14px 16px; border-left: 3px solid var(--accent); border-radius: 0 14px 14px 0; background: var(--accent-soft); }
+.ckc-item[data-resp="no"] .ckc-reco { border-left-color: #b42318; background: #fdf1ef; }
+.ckc-item[data-resp="nose"] .ckc-reco { border-left-color: #8a5a00; background: #fdf6e7; }
+.ckc-reco[hidden] { display: none; }
+.ckc-reco-t { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; color: var(--ink); font-size: var(--fs-small); font-weight: 800; }
+.ckc-reco p { color: var(--ink); font-size: .9375rem; line-height: 1.6; }
+.ckc-links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; }
+.ckc-link { padding: 0; border: 0; background: none; color: var(--accent-strong); font: 800 var(--fs-small)/1.6 var(--font); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+@media (max-width: 599px) {
+  .ckc-resp, .ckc-reco { padding-left: 0; margin-left: 0; }
+  .ckc-ops { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+  .ckc-ops button { min-width: 0; }
+  .ckc-barra { top: 76px; }
+}
+
+.ckc-fin { display: grid; gap: 14px; margin-top: 36px; }
+.ckc-fin h2 { font-size: clamp(1.25rem, 1.15rem + .5vw, 1.5rem); }
+.ckc-pend { list-style: none; display: grid; gap: 6px; }
+.ckc-pend a { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); text-decoration: none; font-size: .9375rem; line-height: 1.4; transition: border-color .2s; }
+.ckc-pend a:hover { border-color: var(--line-strong); }
+.ckc-pend-n { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 99px; background: var(--bg-alt); font-weight: 800; font-size: var(--fs-small); }
+.ckc-pend em { font-style: normal; font-weight: 800; font-size: var(--fs-caption); color: var(--ink-2); }
+.ckc-vacio { color: var(--muted); font-size: .9375rem; }
+.ckc-fin-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.ckc-fin-acciones .btn svg { width: 18px; height: 18px; }
+
+@media print {
+  .ckc-etapas, .ckc-borrar, .ckc-quitar, .ckc-fin-acciones, .ckc-ayuda, .ckc-links { display: none !important; }
+  .ckc-barra { position: static; border: 0; padding: 0; }
+  .ckc-ops { background: none; padding: 0; }
+  .ckc-ops button[aria-pressed="false"] { display: none; }
+  .ckc-ops button[aria-pressed="true"] { color: #000; background: none !important; box-shadow: none; border: 1px solid #000; }
+  .ckc-item { break-inside: avoid; }
+}
+
+/* ---------- Cómo funciona: cada etapa es un título que se despliega (pedido del cliente, 13-11-2026) ---------- */
+.etapas-lista { display: grid; gap: 10px; }
+.accordion.etapas-lista { border-top: 0; }
+.etapas-lista details { border: 1px solid var(--line); border-radius: 18px; background: #fff; transition: border-color .25s, box-shadow .25s; }
+.etapas-lista details[open] { border-color: var(--line-strong); box-shadow: 0 18px 40px -30px rgb(14 43 29 / .35); }
+.etapas-lista summary { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px 18px; cursor: pointer; list-style: none; }
+.etapas-lista summary::-webkit-details-marker { display: none; }
+.etapas-lista summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 18px; }
+.etapa-n { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--accent-strong); font-weight: 800; font-variant-numeric: tabular-nums; }
+.etapa-titulo { display: grid; gap: 2px; }
+.etapa-titulo strong { font-size: 1.125rem; letter-spacing: -.01em; }
+.etapa-titulo small { color: var(--muted); font-size: var(--fs-small); }
+.etapas-lista .answer { padding: 0 18px 18px 72px; }
+.etapas-lista .answer p { color: var(--ink-2); font-size: .9375rem; line-height: 1.6; }
+.etapas-lista .guia-chips { margin: 12px 0 0; }
+.etapa-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.etapa-acciones .btn svg { width: 16px; height: 16px; }
+@media (max-width: 599px) { .etapas-lista .answer { padding: 0 16px 16px; } .etapas-lista summary { padding: 14px 16px; } }
+
+/* Secciones bajo la primera pantalla y pie (13-11-2026, como en Transporte): no se calculan ni se dibujan hasta que se
+   acercan a la vista, así el teléfono hace menos trabajo antes de mostrar el hero. El alto estimado se reemplaza por el
+   real («auto») la primera vez que se dibujan. */
+body[data-site="campanas"] main > .section:not(.hero), body[data-site="campanas"] .site-footer { content-visibility: auto; contain-intrinsic-size: auto 760px; }
