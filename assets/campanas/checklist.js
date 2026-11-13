@@ -1,8 +1,9 @@
 /* Checklists por etapa de la campaña (checklist-*.html, los genera tools/ayuda.py). Cada pregunta se responde Sí, No
    o No sé; con No o No sé aparece qué hacer. Para dejar una pregunta en blanco: tocar otra vez la respuesta marcada o
    «Quitar respuesta». Arriba van las cuatro etapas con su avance y, al final, «Tus pendientes».
-   Las respuestas quedan en este dispositivo (localStorage, una clave por etapa): si no se pueden guardar, el checklist
-   funciona igual mientras la página esté abierta. «Imprimir o guardar en PDF» usa la impresión del navegador. */
+   Las respuestas quedan en este dispositivo (localStorage, una clave por etapa, y su resumen en cr-res-<etapa>, que la
+   ficha ofrece incluir al cotizar): si no se pueden guardar, el checklist funciona igual mientras la página esté
+   abierta. «Imprimir o guardar en PDF» y «Guardar en PDF» usan la impresión del navegador. */
 (() => {
   const d = document;
   const root = d.querySelector('[data-ck-campana]');
@@ -80,6 +81,14 @@
       host.append(p);
     }
     etapas();
+    /* Resumen de la etapa para la ficha (campanas.js ofrece incluirlo al cotizar): respondidas y preguntas con No o No sé */
+    try {
+      const k = `cr-res-${CLAVE.slice(3)}`;
+      if (!hechas) localStorage.removeItem(k);
+      else localStorage.setItem(k, JSON.stringify({ nombre: root.dataset.nombre, total: items.length, hechas,
+        pend: pend.map((li) => ({ n: Number(li.dataset.n), resp: li.dataset.resp, texto: li.querySelector('.ckc-texto').textContent })) }));
+    } catch { /* sin almacenamiento: no hay resumen para la ficha */ }
+    d.dispatchEvent(new CustomEvent('ckc:cambio'));  // la ficha flotante de esta misma página se pone al día
   };
 
   const fija = (li, v) => {

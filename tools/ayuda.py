@@ -480,6 +480,21 @@ def tamanos_html():
             '<p><a class="link" href="tamano-de-los-aparatos.html" target="_blank" rel="noopener">Ver la guía completa<span class="sr-only"> (se abre en otra pestaña)</span></a></p></div>')
 
 
+def ck_ficha_html():
+    campos = ''.join(f'<input type="hidden" name="{c["slug"]}" data-label="{esc(c["titulo"])}" data-ck="{c["slug"]}">' for c in CHECKLISTS)
+    return ('<div class="ck-adjunto" data-ck-adjunto hidden><label class="ck-adjunto-fila"><input type="checkbox" data-ck-adjunto-incluir checked>'
+            f'<span class="ck-adjunto-icono" aria-hidden="true">{I["lista"]}</span>'
+            '<span class="ck-adjunto-t"><strong>Incluir mis checklists</strong><small data-ck-adjunto-detalle></small></span></label>'
+            f'{campos}</div>')
+
+
+def con_ck_ficha(s):
+    a, b = '<!-- ayuda:ck-ficha:inicio -->', '<!-- ayuda:ck-ficha:fin -->'
+    if a not in s:
+        return s
+    return s[:s.index(a) + len(a)] + '\n' + ck_ficha_html() + '\n' + s[s.index(b):]
+
+
 def con_tamanos(s):
     a, b = '<!-- ayuda:tamanos:inicio -->', '<!-- ayuda:tamanos:fin -->'
     if a not in s:
@@ -547,11 +562,9 @@ def pagina_checklist(c, base):
             f'<button type="button" data-ckc-op="nose" aria-pressed="false">No sé</button></div>'
             f'<button class="ckc-quitar" type="button" data-ckc-quitar hidden>{I["borrar"]}<span>Quitar respuesta</span></button></div>{reco}</li>')
     sig = next((x for x in CHECKLISTS if x['etapa'] == c['etapa'] + 1), None)
-    fin_btn = (f'<a class="btn btn-primary" href="{sig["slug"]}.html">Seguir con la etapa {sig["etapa"]}: {esc(sig["nombre"])}{I["flecha"]}</a>' if sig
-               else f'<button class="btn btn-primary" type="button" data-dock-open="contacto">{I["ficha"]}<span>Organizar una campaña</span></button>')
     datos = ''.join(f'<li><strong>{esc(a)}</strong><span>{esc(b)}</span></li>' for a, b in c['datos'])
     main = (
-        f'  <article class="container guia ckc" data-ck-campana data-clave="cr-{c["slug"]}" data-total="{c["total"]}">\n'
+        f'  <article class="container guia ckc" data-ck-campana data-clave="cr-{c["slug"]}" data-total="{c["total"]}" data-nombre="{esc(c["nombre"])}">\n'
         f'    {N.crumbs([("Inicio", "./"), ("Paso a paso", "paso-a-paso.html"), (c["titulo"], "")])}\n'
         f'    <header class="guia-head"><p class="norm-kind"><span class="doc-icon">{I["lista"]}</span>Checklist · Etapa {c["etapa"]} de 4 · {c["total"]} preguntas</p>'
         f'<h1 class="norm-title">{esc(c["nombre"])}: {esc(c["lema"][0].lower() + c["lema"][1:])}</h1>'
@@ -568,7 +581,11 @@ def pagina_checklist(c, base):
         f'    <section class="ckc-fin" aria-labelledby="h-pendientes"><h2 id="h-pendientes">Tus pendientes</h2>'
         f'<div data-ckc-pendientes><p class="ckc-vacio">Aún no marcas «No» ni «No sé» en esta etapa.</p></div>'
         f'<p class="guia-resultado"><strong>Al terminar esta etapa:</strong> {esc(c["resultado"])}</p>'
-        f'<div class="ckc-fin-acciones">{fin_btn}<button class="btn btn-quiet" type="button" data-dock-open="contacto">{I["ficha"]}<span>Organizar una campaña</span></button></div></section>\n'
+        f'<div class="ckc-fin-acciones"><button class="btn btn-quiet" type="button" data-ckc-imprimir>{I["imprimir"]}<span>Guardar en PDF</span></button>'
+        f'<button class="btn btn-primary" type="button" data-dock-open="contacto">{I["ficha"]}<span>Cotizar mi campaña</span></button></div>'
+        f'<p class="ckc-fin-nota">Al cotizar desde este dispositivo, la ficha te ofrece incluir tus respuestas de los checklists.</p>'
+        + (f'<p class="ckc-siguiente"><a href="{sig["slug"]}.html">Seguir con la etapa {sig["etapa"]}: {esc(sig["nombre"])}{I["flecha"]}</a></p>' if sig else '')
+        + '</section>\n'
         f'    {fuente()}\n  </article>')
     desc = f'Checklist de la etapa {c["etapa"]} de una campaña de recolección de RAEE ({c["nombre"].lower()}): {c["total"]} preguntas con Sí, No o No sé y qué hacer en cada caso, según el DS 29/2024.'
     s = pagina(base, c['slug'], f'{c["titulo"]} de una campaña de RAEE', desc, None, None, main, 'lista', 'checklists')
@@ -615,11 +632,12 @@ def con_ficha(s, base):
 
 
 def main():
-    creditos = ROOT / 'creditos.html'
-    creditos.write_text(con_ficha(creditos.read_text(encoding='utf-8'), (ROOT / 'preguntas.html').read_text(encoding='utf-8')), encoding='utf-8')
     for nombre in ('index.html', 'preguntas.html', 'creditos.html'):
         p = ROOT / nombre
-        p.write_text(con_tamanos(con_etapas(con_menu(p.read_text(encoding='utf-8')))), encoding='utf-8')
+        s = p.read_text(encoding='utf-8')
+        if nombre == 'creditos.html':  # la ficha flotante es la de preguntas.html, ya al día
+            s = con_ficha(s, (ROOT / 'preguntas.html').read_text(encoding='utf-8'))
+        p.write_text(con_ck_ficha(con_tamanos(con_etapas(con_menu(s)))), encoding='utf-8')
         print('ok menú', nombre)
     base = N.plantilla()
     for g in GUIAS:

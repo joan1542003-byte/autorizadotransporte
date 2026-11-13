@@ -37,6 +37,35 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   });
 })();
 
+/* Checklists en la ficha: si en este dispositivo se respondió alguno (checklist.js deja un resumen por etapa en
+   cr-res-<etapa>), el paso «Campaña» ofrece «Incluir mis checklists», marcado. Cada etapa va en su campo oculto y así
+   llega al resumen y a WhatsApp: cuántas respondió y, textuales, las preguntas que quedaron en No o No sé. */
+(() => {
+  document.querySelectorAll('[data-ck-adjunto]').forEach((box) => {
+    const incluir = box.querySelector('[data-ck-adjunto-incluir]');
+    const detalle = box.querySelector('[data-ck-adjunto-detalle]');
+    const campos = [...box.querySelectorAll('input[data-ck]')];
+    const NOMBRE = { no: 'No', nose: 'No sé' };
+    const leer = (k) => { try { return JSON.parse(localStorage.getItem(`cr-res-${k}`) || 'null'); } catch { return null; } };
+    const texto = (r) => (r.pend.length
+      ? `${r.hechas} de ${r.total} respondidas; pendientes: ${r.pend.map((x) => `${x.texto} (${NOMBRE[x.resp] || x.resp})`).join('; ')}`
+      : `${r.hechas} de ${r.total} respondidas, todas en Sí`);
+    const pinta = () => {
+      const hay = campos.map((c) => [c, leer(c.dataset.ck)]).filter(([, r]) => r?.hechas);
+      box.hidden = !hay.length;
+      detalle.textContent = hay.map(([, r]) => `${r.nombre}: ${r.hechas} de ${r.total}`).join(' · ');
+      campos.forEach((c) => { const r = hay.find(([x]) => x === c)?.[1]; c.value = incluir.checked && r ? texto(r) : ''; });
+    };
+    pinta();
+    incluir.addEventListener('change', pinta);
+    addEventListener('storage', (e) => { if (e.key?.startsWith('cr-res-')) pinta(); });
+    addEventListener('pageshow', pinta);  // al volver desde un checklist con «Atrás»
+    document.addEventListener('ckc:cambio', pinta);  // en la página del checklist, mientras se responde
+    /* Antes de armar el resumen (site.js lo arma en el «submit» del formulario) */
+    document.addEventListener('submit', (e) => { if (e.target === box.closest('form')) pinta(); }, true);
+  });
+})();
+
 /* Resumen de la ficha: al presionar «Enviar» (abre WhatsApp con el texto), Don Reco y Lola Lata agradecen en grande,
    cubriendo el panel, con «Ver resumen» (vuelve al resumen) y «Volver» (cierra el panel; data-hero-close, como la X).
    Mientras se ven, lo de abajo queda inerte para el teclado. Se esconden al editar o al preparar otra ficha. */

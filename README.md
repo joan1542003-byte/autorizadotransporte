@@ -82,3 +82,8 @@ La ficha no envía datos a ningún servidor: arma un resumen y abre WhatsApp (`5
 - Ficha: «Peso total estimado» es una fila opcional con tramos (antes, un deslizador); «Aparatos» muestra bajo cada tipo su tamaño y ejemplos, la ventana trae plegada «¿Qué tamaño tiene cada tipo?» y la fila tiene un «?» con la misma tabla de medidas aproximadas (`tools/ayuda.py`, entre `<!-- ayuda:tamanos:inicio -->` y `<!-- ayuda:tamanos:fin -->`). La galería 3D pone el microondas en «Pequeños aparatos».
 - Mapa: una calle con número en el nombre («Ruta 68») ya no repite el número al mover el punto (`geo.js`, `seleccion.js`; también en Transporte).
 - `creditos.html` toma la ficha flotante de `preguntas.html` al correr `tools/ayuda.py` (tenía una versión antigua).
+
+## Cambios del 13-11-2026 (3)
+
+- Cierre de cada checklist: «Guardar en PDF» y «Cotizar mi campaña», uno al lado del otro, y la etapa siguiente como enlace (en la etapa 4 había dos «Organizar una campaña»).
+- Checklists en la ficha: cada checklist deja su resumen en el navegador (`cr-res-<etapa>`, `checklist.js`); si hay alguno, el paso «Campaña» de la ficha muestra «Incluir mis checklists» (marcado) y cada etapa va al resumen y a WhatsApp con cuántas se respondieron y, textuales, las preguntas que quedaron en No o No sé. Lo arma `tools/ayuda.py` entre `<!-- ayuda:ck-ficha:inicio -->` y `<!-- ayuda:ck-ficha:fin -->`.
