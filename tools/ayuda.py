@@ -34,6 +34,7 @@ def ico(paths, size=20, width=2):
 
 # Íconos de Lucide (ISC, assets/site/LICENCIA-LUCIDE.txt)
 I = {
+    'buscar': ico('<path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/>', 18),
     'pasos': ico('<path d="M10 2v8l3-3 3 3V2"/><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/>'),
     'tamano': ico('<path d="M21 3 9 15"/><path d="M12 3H3v18h18v-9"/><path d="M16 3h5v5"/><path d="M14 15H9v-5"/>'),
     'autorizacion': ico('<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>'),
@@ -417,7 +418,9 @@ def menu_html():
     grupos = ''.join(f'<p class="ayu-titulo">{esc(nombre)}</p><div class="ayu-temas">{"".join(partes[k] for k in claves)}</div>' for nombre, claves in GRUPOS)
     pie = (f'<div class="docs-pie"><p>¿No encuentras lo que buscas?</p><button class="docs-pie-btn" type="button" data-dock-open="conversar">{I["conversar"]}<span>Conversar por WhatsApp</span></button></div>')
     return (f'<div class="docs-panel" id="docs-panel" data-docs-panel inert><div class="docs-inner"><div class="docs-scroll"><div class="docs-wrap">'
-            f'<button class="ayu-volver" type="button" data-ayu-volver hidden>{I["volver"]}<span>Todos los temas</span></button>{grupos}{pie}</div></div></div></div>')
+            f'<button class="ayu-volver" type="button" data-ayu-volver hidden>{I["volver"]}<span>Todos los temas</span></button>'
+            f'<button class="ayu-busca" type="button" data-busca-abrir>{I["buscar"]}<span>Buscar en guías, checklists, preguntas y normas…</span><kbd aria-hidden="true">⌘K</kbd></button>'
+            f'{grupos}{pie}</div></div></div></div>')
 
 
 BOTON = (f'<a href="#ayuda" class="nav-docs" data-docs-open aria-controls="docs-panel" aria-expanded="false">Ayuda<span class="nav-docs-chev">{I["abajo"]}</span></a>')
@@ -470,7 +473,7 @@ def etapas_html():
         pasos = ''.join(f'<li>{entrada(t)}</li>' for t in e['pasos'])
         datos = ''.join(f'<div><dt>{a}</dt><dd>{esc(b)}</dd></div>' for a, b in (('Quién', e['quien']), ('Cuándo', e['cuando']), ('Resultado', c['resultado'][0].upper() + c['resultado'][1:])))
         filas.append(
-            f'<details><summary><span class="etapa-n">{c["etapa"]}</span><span class="etapa-titulo"><strong>{esc(c["nombre"])}</strong></span>'
+            f'<details id="como-funciona-{c["etapa"]}"><summary><span class="etapa-n">{c["etapa"]}</span><span class="etapa-titulo"><strong>{esc(c["nombre"])}</strong></span>'
             f'<span class="plus" aria-hidden="true"></span></summary><div class="answer"><p>{esc(c["intro"])}</p>'
             f'<ul class="etapa-pasos">{pasos}</ul><dl class="etapa-datos">{datos}</dl>'
             f'<p class="etapa-acciones"><a href="{c["slug"]}.html">Checklist de {c["total"]} preguntas{I["flecha"]}</a>'
@@ -646,6 +649,65 @@ def con_ficha(s, base):
     return s[:s.index(a)] + base[base.index(a):base.index(b)] + s[s.index(b):]
 
 
+# ---------- Preguntas con dirección propia y el índice del buscador ----------
+def slug(texto, n=60):
+    import unicodedata
+    t = unicodedata.normalize('NFD', re.sub(r'<[^>]+>', '', texto)).encode('ascii', 'ignore').decode().lower()
+    return re.sub(r'[^a-z0-9]+', '-', t).strip('-')[:n].strip('-')
+
+
+def con_ids(s):
+    """Cada pregunta desplegable (<details> sin atributos) recibe un id a partir de su texto: #p-que-es-una-campana…"""
+    usados = set(re.findall(r'\bid="([^"]+)"', s))
+    def poner(m):
+        base = 'p-' + slug(m.group(2))
+        k, i = base, 2
+        while k in usados:
+            k, i = f'{base}-{i}', i + 1
+        usados.add(k)
+        return f'<details id="{k}">{m.group(1)}{m.group(2)}'
+    return re.sub(r'<details>(<summary>)(.*?)(?=<span class="plus")', poner, s)
+
+
+def texto_plano(h):
+    import html as H
+    return re.sub(r'\s+', ' ', H.unescape(re.sub(r'<[^>]+>', ' ', h))).strip()
+
+
+def indice_busqueda():
+    items = [{'g': 'Acciones', 't': 'Organizar una campaña', 's': 'Abre la ficha preliminar para cotizar la campaña', 'a': 'contacto'}]
+    for t, sub, u in (('Para quién es cada campaña', 'Municipalidades, empresas y sistemas de gestión', './#publicos'),
+                      ('Servicios adicionales para municipalidades', 'Retiro domiciliario asistido y área de equipos reutilizables', './#adicionales'),
+                      ('Cómo funciona una campaña', 'Las cuatro etapas, de la planificación al reporte', './#proceso'),
+                      ('¿Hasta cuándo pedir la autorización?', 'Calcula el plazo y la fecha límite para presentar la solicitud', './#plazo'),
+                      ('Aparatos que se reciben', 'Galería de aparatos por tipo', './#aparatos')):
+        items.append({'g': 'Portada', 't': t, 's': sub, 'u': u})
+    for g in GUIAS:
+        items.append({'g': 'Guías', 't': g['titulo'], 's': g['resumen'], 'u': f'{g["slug"]}.html'})
+        for hid, h in re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', g['cuerpo']):
+            items.append({'g': 'Guías', 't': texto_plano(h), 's': g['menu'], 'u': f'{g["slug"]}.html#{hid}'})
+    for c in CHECKLISTS:
+        items.append({'g': 'Checklists', 't': c['titulo'], 's': f'Etapa {c["etapa"]} de 4 · {c["lema"]}', 'u': f'{c["slug"]}.html'})
+        for i, q in enumerate(c['preguntas'], 1):
+            items.append({'g': 'Checklists', 't': q[0], 's': f'{c["titulo"]}, pregunta {i}', 'u': f'{c["slug"]}.html#p{i}'})
+    paginas = ['preguntas.html'] + sorted(f.name for f in ROOT.glob('*.html') if f.name not in ('preguntas.html', 'index.html', 'creditos.html')) + ['index.html']
+    for pagina in paginas:
+        archivo = './' if pagina == 'index.html' else pagina
+        s = (ROOT / pagina).read_text(encoding='utf-8')
+        for pid, q, a in re.findall(r'<details id="(p-[^"]+)"><summary>(.*?)<span class="plus".*?<div class="answer">(.*?)</div></details>', s, re.S):
+            if any(x['t'] == texto_plano(q) and x['g'] == 'Preguntas' for x in items):
+                continue
+            items.append({'g': 'Preguntas', 't': texto_plano(q), 's': texto_plano(a)[:150], 'u': f'{archivo}#{pid}'})
+    for n in N.NORMAS:
+        items.append({'g': 'Normativa', 't': f'{n["corto"]}: {n["nombre"]}', 's': n.get('oficial', ''), 'u': f'{n["slug"]}.html'})
+        for num, nota in n.get('articulos', []):
+            items.append({'g': 'Normativa', 't': f'{n["corto"]}, art. {num}: {nota}', 'u': f'{n["slug"]}.html#art-{num}'})
+    for a, b, c in MEDIDAS:
+        items.append({'g': 'Tamaños', 't': a, 's': f'{b} · {c}', 'u': 'tamano-de-los-aparatos.html#h-medidas'})
+    (ROOT / 'assets/campanas/ayuda-indice.json').write_text(json.dumps(items, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+    return len(items)
+
+
 def main():
     for nombre in ('index.html', 'preguntas.html', 'creditos.html'):
         p = ROOT / nombre
@@ -665,6 +727,12 @@ def main():
     actualizar_llms()
     print('ok sitemap.xml y llms.txt')
     N.main()  # las normas copian la cabecera de preguntas.html, ya con el panel
+    for f in sorted(ROOT.glob('*.html')):
+        t = f.read_text(encoding='utf-8')
+        u = con_ids(t)
+        if u != t:
+            f.write_text(u, encoding='utf-8')
+    print('ok buscador:', indice_busqueda(), 'entradas')
 
 
 if __name__ == '__main__':

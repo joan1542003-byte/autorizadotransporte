@@ -98,3 +98,11 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 - Movimiento: sin entradas al hacer scroll (todas las secciones entraban igual); transiciones de paneles, pasos y ventanas más cortas y sin desenfoque; acercamiento de las fotos al pasar el puntero de 1,05 a 1,03 y solo con puntero.
 - Tacto: enlaces sueltos de al menos 24 px de alto; campos a 16 px en pantallas táctiles (el iPhone ya no acerca la página al escribir); en el teléfono, el hero deja libre el espacio del botón de ayuda flotante (tapaba «¿Prefieres conversar?»).
 - Enlaces: 919 internos revisados; la guía de tamaños citaba el art. 2 del DS 22/2025, que faltaba en su página y se agregó desde el texto oficial. Externos, todos responden salvo yoreciclo.cl, que no tiene DNS configurado (el dominio está registrado).
+
+## Componentes e interacciones nuevos (26-11-2026)
+
+- Buscador de la ayuda, como cmdk (`campanas.js`): ⌘K o Ctrl+K, o «Buscar…» arriba del panel «Ayuda». Busca en guías (y sus secciones), cada pregunta de los checklists, las preguntas frecuentes de todas las páginas, los artículos de las normas y las medidas de aparatos; agrupa, marca lo buscado y se maneja con flechas, Enter y Esc. El índice (`assets/campanas/ayuda-indice.json`) lo arma `tools/ayuda.py` y se descarga al abrir el buscador.
+- «¿Hasta cuándo pedir la autorización?» (#plazo, en «Cómo funciona»): se elige el primer día de la campaña y una línea de tiempo muestra el último día para presentar la solicitud (40 días hábiles antes, de lunes a viernes; dice que es aproximado por los feriados), la revisión de la SEREMI y el inicio. «Organizar esta campaña» abre la ficha con ese mes.
+- Avisos como Sonner: se apilan, se despliegan al pasar el puntero, duran 4 s (se pausan con el puntero, el foco o la pestaña oculta) y se cierran con su botón o deslizándolos. Reemplazan `window.SITE.toast` solo en Campañas.
+- Preguntas con dirección propia: cada pregunta desplegable tiene id (`#p-…`, y `#como-funciona-N` en la portada); al abrirla, la URL la lleva y se puede compartir; al llegar con ese enlace, se abre.
+- Portadas de «Una campaña para cada organización»: la foto real con una sombra abajo (antes, teñida de verde) y el texto alineado a la izquierda.

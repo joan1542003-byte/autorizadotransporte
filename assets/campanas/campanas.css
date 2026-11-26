@@ -493,3 +493,105 @@ body[data-site="campanas"] .service-media { border-bottom: 0; }
 body[data-site="campanas"] :is(h1, h2, h3) { font-weight: 700; }
 /* Pie: enlaces con al menos 24 px de alto para tocarlos */
 body[data-site="campanas"] .site-footer li a { display: inline-block; padding-block: 3px; }
+
+/* =====================================================================================
+   Componentes nuevos (26-11-2026): buscador de la ayuda (como cmdk), avisos (como Sonner), plazo de la autorización
+   (línea de tiempo) y portadas de «para quién» con la foto real.
+   ===================================================================================== */
+/* Una sola curva de salida para lo que entra o se mueve (Emil Kowalski) */
+body[data-site="campanas"] { --ease-salida: cubic-bezier(.23, 1, .32, 1); }
+
+/* ---------- Buscador de la ayuda ---------- */
+.ayu-busca { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 46px; margin-bottom: 16px; padding: 0 10px 0 14px; border: 1px solid var(--line-strong); border-radius: 12px; background: #fff; color: var(--muted); font: 600 .9375rem/1.2 var(--font); text-align: left; cursor: text; transition: border-color .15s ease, box-shadow .15s ease; }
+.ayu-busca span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ayu-busca svg { flex: none; color: var(--ink-2); }
+@media (hover: hover) { .ayu-busca:hover { border-color: var(--ink-2); } }
+.ayu-busca:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.docs-wrap.is-tema .ayu-busca { display: none; }
+:is(.ayu-busca, .busca-pie) kbd { padding: 2px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-alt); color: var(--ink-2); font: 700 .75rem/1.4 var(--font); }
+@media (pointer: coarse) { .ayu-busca kbd { display: none; } }
+
+.busca { width: min(640px, calc(100vw - 24px)); max-height: min(580px, calc(100svh - 48px)); margin: 10vh auto auto; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #fff; color: var(--ink); box-shadow: 0 28px 70px -28px rgb(21 26 45 / .5); }
+.busca[open] { display: flex; flex-direction: column; }
+.busca::backdrop { background: rgb(21 26 45 / .34); }
+@media (max-width: 640px) { .busca { margin: 12px auto auto; max-height: calc(100svh - 24px); } }
+.busca-caja { display: flex; align-items: center; gap: 10px; padding: 0 12px 0 16px; border-bottom: 1px solid var(--line); }
+.busca-caja > svg { flex: none; color: var(--muted); }
+.busca-caja input { flex: 1; min-width: 0; height: 58px; border: 0; background: none; color: var(--ink); font: 600 1rem/1 var(--font); outline: none; }
+.busca-caja input::placeholder { color: var(--muted); }
+.busca-cerrar { flex: none; min-height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink-2); font: 700 .8125rem/1 var(--font); cursor: pointer; }
+.busca-cerrar:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.busca-lista { flex: 1; min-height: 0; padding: 6px; overflow-y: auto; overscroll-behavior: contain; scroll-padding: 8px; }
+.busca-grupo-t { padding: 12px 10px 4px; color: var(--muted); font-size: var(--fs-caption); font-weight: 700; }
+.busca-op { display: grid; gap: 2px; width: 100%; min-height: 44px; padding: 9px 10px; border: 0; border-radius: 10px; background: none; color: var(--ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.busca-op[aria-selected="true"] { background: var(--bg-alt); box-shadow: inset 2px 0 0 var(--ink); }
+.busca-op-t { font-size: .9375rem; font-weight: 700; line-height: 1.35; }
+.busca-op small { display: -webkit-box; overflow: hidden; color: var(--muted); font-size: var(--fs-caption); line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.busca-op mark { background: none; color: inherit; text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.busca-vacio { padding: 28px 16px; color: var(--ink-2); font-size: .9375rem; line-height: 1.55; text-align: center; }
+.busca-enlace { padding: 0; border: 0; background: none; color: var(--accent-strong); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.busca-pie { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 10px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: var(--fs-caption); }
+.busca-pie span { display: inline-flex; align-items: center; gap: 4px; }
+@media (pointer: coarse) { .busca-pie { display: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .busca[open] { animation: busca-in .2s var(--ease-salida, ease-out) both; }
+  .busca[open]::backdrop { animation: busca-velo .2s ease both; }
+  @keyframes busca-in { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+  @keyframes busca-velo { from { opacity: 0; } }
+}
+
+/* ---------- Avisos ---------- */
+body[data-site="campanas"] .toast { display: none; }
+.avisos { position: fixed; z-index: 90; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: min(380px, calc(100vw - 32px)); translate: -50% 0; pointer-events: none; }
+@media (max-width: 760px) { .avisos { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); } }
+.avisos ol { position: relative; margin: 0; padding: 0; list-style: none; }
+.aviso { position: absolute; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 12px 10px 12px 16px; border-radius: 14px; background: var(--ink); color: #fff; font-size: .875rem; font-weight: 700; line-height: 1.4; box-shadow: 0 14px 34px -14px rgb(21 26 45 / .55); pointer-events: auto; touch-action: none; user-select: none; opacity: 0; transform: translate(var(--dx, 0px), calc(100% + var(--dy, 0px))); transition: transform .4s var(--ease-salida, ease-out), opacity .4s ease; }
+.aviso::after { content: ""; position: absolute; right: 0; bottom: 100%; left: 0; height: 8px; }  /* sin huecos entre avisos desplegados */
+.aviso[data-dentro] { opacity: 1; transform: translate(var(--dx, 0px), calc(var(--k, 0) * -10px + var(--dy, 0px))) scale(calc(1 - var(--k, 0) * .05)); }
+.avisos:is(:hover, :focus-within) .aviso[data-dentro] { transform: translate(var(--dx, 0px), calc(var(--y, 0px) * -1 + var(--dy, 0px))); }
+.avisos:not(:hover, :focus-within) .aviso:not(:last-child) > * { opacity: 0; transition: opacity .2s ease; }
+.aviso[data-oculto] { opacity: 0; pointer-events: none; }
+.aviso[data-arrastre] { transition: none; cursor: grabbing; }
+.aviso[data-sale] { opacity: 0; transition-duration: .2s; }
+.aviso[data-sale=""], .aviso[data-sale="abajo"] { transform: translate(0, calc(100% + 24px)); }
+.aviso[data-sale="derecha"] { transform: translateX(110%); }
+.aviso[data-sale="izquierda"] { transform: translateX(-110%); }
+.aviso p { min-width: 0; }
+.aviso-cerrar { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 99px; background: rgb(255 255 255 / .12); color: #fff; cursor: pointer; }
+.aviso-cerrar:hover { background: rgb(255 255 255 / .22); }
+.aviso-cerrar:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .aviso { transition: opacity .2s ease; } }
+@media print { .avisos { display: none !important; } }
+
+/* ---------- ¿Hasta cuándo pedir la autorización? ---------- */
+.plazo { margin-top: 20px; padding: clamp(18px, 3vw, 26px); border: 1px solid var(--line); border-radius: 18px; background: #fff; scroll-margin-top: 96px; }
+.plazo-cabeza { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; }
+.plazo-titulo { font-size: 1.125rem; letter-spacing: -.012em; }
+.plazo-texto { max-width: 56ch; margin-top: 4px; color: var(--ink-2); font-size: .9375rem; line-height: 1.55; }
+.plazo-cabeza .btn svg { width: 18px; height: 18px; }
+.plazo-resultado { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--line); }
+.plazo-linea { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; list-style: none; }
+.plazo-linea::before { content: ""; position: absolute; top: 7px; right: 8px; left: 8px; height: 2px; border-radius: 2px; background: var(--line); }
+.plazo-linea li { position: relative; display: grid; align-content: start; gap: 3px; padding-top: 28px; }
+.plazo-punto { position: absolute; top: 0; left: 0; width: 16px; height: 16px; border: 2px solid var(--line-strong); border-radius: 50%; background: #fff; }
+.plazo-linea li.is-clave .plazo-punto { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.plazo-linea strong { font-size: .9375rem; }
+.plazo-linea small { color: var(--ink-2); font-size: var(--fs-small); line-height: 1.45; }
+.plazo-linea li.is-clave small { color: var(--ink); font-weight: 700; }
+.plazo-nota { max-width: 72ch; margin-top: 16px; color: var(--muted); font-size: var(--fs-small); line-height: 1.55; }
+.plazo-resultado .btn { margin-top: 14px; }
+@media (max-width: 640px) {
+  .plazo-linea { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .plazo-linea::before { top: 8px; right: auto; bottom: 8px; left: 7px; width: 2px; height: auto; }
+  .plazo-linea li { padding: 0 0 0 30px; }
+}
+
+/* ---------- Portadas de «Una campaña para cada organización»: la foto real (antes, teñida de verde), con una sombra
+   abajo para leer el título; texto alineado a la izquierda, como el resto de las tarjetas ---------- */
+body[data-site="campanas"] .plan-cover.has-foto { justify-items: start; align-content: end; gap: 2px; min-height: 230px; padding: 22px 22px 20px; text-align: left; }
+body[data-site="campanas"] .plan-cover.has-foto::before { background: linear-gradient(0deg, rgb(8 22 14 / .84) 0%, rgb(8 22 14 / .46) 42%, rgb(8 22 14 / 0) 74%); opacity: 1; }
+body[data-site="campanas"] .plan-cover h3 { font-size: clamp(1.375rem, 1.28rem + .4vw, 1.5rem); }
+body[data-site="campanas"] .plan-cover p { color: rgb(255 255 255 / .86); }
+body[data-site="campanas"] .plan-body { text-align: left; }
+body[data-site="campanas"] .plan-foto { transition: transform .6s var(--ease-salida, ease-out); }
+@media (max-width: 900px) { body[data-site="campanas"] .plan-cover.has-foto { min-height: 200px; } }
