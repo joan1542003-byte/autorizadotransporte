@@ -571,7 +571,11 @@ def medida_de(foto):
     return MEDIDAS[MEDIDA_FOTO.index(foto)][1] if foto in MEDIDA_FOTO else ''
 
 
+GIRAR = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>'
+
+
 def carrusel_html():
+    """Cada tarjeta tiene frente (foto, nombre y grupo) y dorso (su información); al tocar la del centro se voltea."""
     ap = 'assets/campanas/aparatos'
     n = len(APARATOS)
     items = []
@@ -580,16 +584,18 @@ def carrusel_html():
         med = medida_de(f)
         items.append(
             f'<div class="carrusel-item" role="group" aria-roledescription="diapositiva" aria-label="{i + 1} de {n}: {nombre}" '
-            f'data-nombre="{esc(nombre)}" data-grupo="{esc(grupo)}" data-texto="{esc(texto)}" data-nota="{esc(nota)}" data-medida="{esc(med)}">'
-            f'<figure class="carrusel-tarjeta"><img src="{ap}/aparato-{f}-400.webp" srcset="{ap}/aparato-{f}-400.webp 400w, {ap}/aparato-{f}-800.webp 800w" '
-            f'sizes="(max-width: 640px) 60vw, 340px" width="800" height="800" alt="" loading="lazy" decoding="async" draggable="false">'
-            f'<figcaption><strong>{esc(nombre)}</strong><small>{esc(grupo)}</small></figcaption></figure></div>')
+            f'data-nombre="{esc(nombre)}" data-grupo="{esc(grupo)}"><div class="carrusel-volteo">'
+            f'<figure class="carrusel-tarjeta is-frente"><img src="{ap}/aparato-{f}-400.webp" srcset="{ap}/aparato-{f}-400.webp 400w, {ap}/aparato-{f}-800.webp 800w" '
+            f'sizes="(max-width: 640px) 60vw, 400px" width="800" height="800" alt="" loading="lazy" decoding="async" draggable="false">'
+            f'<figcaption><span><strong>{esc(nombre)}</strong><small>{esc(grupo)}</small></span><span class="carrusel-girar">{GIRAR}</span></figcaption></figure>'
+            f'<div class="carrusel-tarjeta is-dorso"><p class="carrusel-grupo">{esc(grupo)}</p><p class="carrusel-dorso-t">{esc(nombre)}</p>'
+            + (f'<p class="carrusel-medida">Medida típica: {esc(med)}</p>' if med else '')
+            + f'<p class="carrusel-dorso-texto">{esc(texto)}</p><p class="carrusel-dorso-nota">{esc(nota)}</p>'
+            f'<p class="carrusel-dorso-volver">{GIRAR}Toca para volver</p></div></div></div>')
     f, nombre, grupo = APARATOS[0]
-    texto, nota = GRUPO_TXT[grupo]
-    med = medida_de(f)
     return (
         '<div class="carrusel reveal" data-carrusel>\n'
-        '        <div class="carrusel-escena" tabindex="0" role="region" aria-roledescription="carrusel" aria-label="Aparatos que se reciben. Usa las flechas izquierda y derecha para cambiar.">\n'
+        '        <div class="carrusel-escena" tabindex="0" role="region" aria-roledescription="carrusel" aria-label="Aparatos que se reciben. Flechas izquierda y derecha para cambiar; Enter para ver la información de la tarjeta del centro.">\n'
         f'          <div class="carrusel-pista">{"".join(items)}</div>\n'
         '        </div>\n'
         '        <div class="carrusel-controles">'
@@ -598,10 +604,7 @@ def carrusel_html():
         f'<button class="carrusel-boton" type="button" data-carrusel-pausa aria-pressed="false" aria-label="Pausar el carrusel" hidden>{PAUSA}</button>'
         f'<button class="carrusel-boton" type="button" data-carrusel-next aria-label="Aparato siguiente">{FLECHA_DER}</button></div>\n'
         '        <div class="carrusel-info" data-carrusel-info aria-live="polite">'
-        f'<p class="carrusel-grupo" data-carrusel-grupo>{esc(grupo)}</p><h3 data-carrusel-nombre>{esc(nombre)}</h3>'
-        f'<p data-carrusel-texto>{esc(texto)}</p>'
-        f'<p class="carrusel-medida" data-carrusel-medida{"" if med else " hidden"}>Medida típica: {esc(med)}</p>'
-        f'<p class="carrusel-nota" data-carrusel-nota>{esc(nota)}</p>'
+        f'<h3 data-carrusel-nombre>{esc(nombre)}</h3><p class="carrusel-pista-txt">Toca la tarjeta del centro para ver su información.</p>'
         f'<a class="btn btn-primary btn-small" href="#contacto" data-add="aparatos={esc(grupo)}" data-carrusel-add>Incluir «{esc(grupo)}» en la ficha</a></div>\n'
         '      </div>')
 

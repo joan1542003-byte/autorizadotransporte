@@ -40,29 +40,55 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
 .guia-parte-titulo { font-size: clamp(1.375rem, 1.2rem + .8vw, 1.75rem); }
 
 /* ---------- Aparatos: carrusel infinito con perspectiva (carrusel.js, 26-11-2026) ----------
-   Sin JavaScript es una fila con desplazamiento horizontal; con él (is-3d), las tarjetas van por dentro de un cilindro.
+   Sin JavaScript es una fila con desplazamiento horizontal (solo el frente de cada tarjeta). Con él (is-3d), cada
+   tarjeta se dibuja en franjas sobre un cilindro (las de los lados se curvan) y la del centro se voltea al tocarla.
    Todas las tarjetas miden lo mismo: foto cuadrada y una franja con el nombre y el grupo. */
 #aparatos { overflow-x: clip; }
 .carrusel { --w: clamp(220px, 58vw, 340px); --h: calc(var(--w) * 1.25); position: relative; margin-top: 4px; }
-@media (min-width: 900px) { .carrusel { --w: clamp(340px, 30vw, 400px); } }
-.carrusel-escena { position: relative; margin-inline: calc(50% - 50vw); padding: 26px 0 30px; outline: none; }
-/* Con el teclado, el foco se ve en la tarjeta del centro (no como un marco de lado a lado) */
-.carrusel-escena:focus-visible .is-centro .carrusel-tarjeta, .carrusel:not(.is-3d) .carrusel-escena:focus-visible .carrusel-pista { outline: 2px solid var(--ink); outline-offset: 4px; }
+@media (min-width: 900px) { .carrusel { --w: clamp(320px, 28vw, 380px); } }
+.carrusel-escena { --extra: 0px; position: relative; margin-inline: calc(50% - 50vw); padding: calc(18px + var(--extra)) 0 calc(22px + var(--extra)); outline: none; }
 .carrusel-pista { list-style: none; display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-inline: max(var(--gutter, 20px), calc(50vw - var(--w) / 2)); }
 .carrusel-pista::-webkit-scrollbar { display: none; }
 .carrusel-item { flex: 0 0 var(--w); height: var(--h); scroll-snap-align: center; }
-.carrusel-tarjeta { display: grid; grid-template-rows: auto 1fr; height: 100%; margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 22px; background: #fff; box-shadow: 0 22px 44px -30px rgb(21 26 45 / .45); }
+.carrusel-volteo { position: relative; height: 100%; }
+.carrusel-tarjeta { display: grid; grid-template-rows: auto 1fr; height: 100%; margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 22px; background: #fff; }
 .carrusel-tarjeta img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; background: #eceeed; pointer-events: none; -webkit-user-drag: none; }
-.carrusel-tarjeta figcaption { display: grid; align-content: center; gap: 2px; min-width: 0; padding: 0 18px; }
+.carrusel-tarjeta figcaption { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; padding: 0 16px 0 18px; }
+.carrusel-tarjeta figcaption > span:first-child { display: grid; gap: 2px; min-width: 0; }
 .carrusel-tarjeta strong { overflow: hidden; color: var(--ink); font-size: 1.0625rem; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
 .carrusel-tarjeta small { overflow: hidden; color: var(--muted); font-size: var(--fs-caption); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-/* Con JavaScript: perspectiva y cilindro */
-.carrusel.is-3d .carrusel-escena { overflow: clip; perspective: calc(var(--w) * 3.3); perspective-origin: 50% 50%; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+.carrusel-girar { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 99px; background: var(--bg-alt); color: var(--ink-2); }
+.carrusel-tarjeta.is-dorso { display: none; }
+/* Con JavaScript: franjas sobre el cilindro; la tarjeta entera (plana) solo se ve volteada */
+.carrusel.is-3d .carrusel-escena { overflow: clip; perspective-origin: 50% 50%; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
 .carrusel.is-arrastrando .carrusel-escena { cursor: grabbing; }
 .carrusel.is-3d .carrusel-pista { display: block; position: relative; height: var(--h); padding: 0; overflow: visible; transform-style: preserve-3d; }
-.carrusel.is-3d .carrusel-item { position: absolute; top: 0; left: 50%; width: var(--w); margin-left: calc(var(--w) / -2); backface-visibility: hidden; will-change: transform; }
-.carrusel.is-3d .carrusel-item:not(.is-centro) { cursor: pointer; }
-.carrusel.is-3d .carrusel-item:not(.is-centro) .carrusel-tarjeta { box-shadow: 0 14px 30px -26px rgb(21 26 45 / .5); }
+.carrusel.is-3d .carrusel-item { position: absolute; top: 0; left: 50%; width: var(--w); margin-left: calc(var(--w) / -2); transform-style: preserve-3d; opacity: 0; pointer-events: none; }
+.carrusel.is-3d .carrusel-item.is-plana { opacity: 1; pointer-events: auto; cursor: pointer; }
+.carrusel.is-3d .carrusel-volteo { transform-style: preserve-3d; transition: transform .52s cubic-bezier(.3, .7, .2, 1); }
+.carrusel.is-3d .carrusel-item.is-volteada .carrusel-volteo { transform: rotateY(180deg); }
+.carrusel.is-3d .carrusel-volteo > .carrusel-tarjeta { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 22px 44px -30px rgb(21 26 45 / .45); }
+.carrusel.is-3d .carrusel-tarjeta.is-dorso { display: grid; grid-template-rows: none; align-content: safe center; justify-items: start; gap: 10px; padding: 26px 24px; transform: rotateY(180deg); }
+.carrusel-dorso-t { color: var(--ink); font-size: 1.375rem; font-weight: 700; letter-spacing: -.015em; line-height: 1.2; }
+.carrusel-tarjeta .carrusel-medida { color: var(--ink); font-size: .9375rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.carrusel-dorso-texto { color: var(--ink-2); font-size: .9375rem; line-height: 1.5; text-wrap: pretty; }
+.carrusel-dorso-nota { color: var(--muted); font-size: var(--fs-small); line-height: 1.5; text-wrap: pretty; }
+.carrusel-dorso-volver { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; color: var(--ink-2); font-size: var(--fs-caption); font-weight: 700; }
+/* En el teléfono el dorso es más compacto (el grupo ya está en el frente) */
+@media (max-width: 640px) {
+  .carrusel.is-3d .carrusel-tarjeta.is-dorso { gap: 6px; padding: 16px; }
+  .carrusel-tarjeta.is-dorso .carrusel-grupo, .carrusel-dorso-volver { display: none; }
+  .carrusel-dorso-t { font-size: 1.125rem; }
+  .carrusel-tarjeta .carrusel-medida, .carrusel-dorso-texto { font-size: .8125rem; line-height: 1.4; }
+  .carrusel-dorso-nota { font-size: .75rem; line-height: 1.4; }
+}
+.carrusel-tiras { position: absolute; inset: 0; transform-style: preserve-3d; pointer-events: none; }
+.carrusel-tira { pointer-events: auto; }
+.carrusel-tira { position: absolute; top: 0; left: 50%; width: calc(var(--w) / 16 + 2px); height: var(--h); margin-left: calc(var(--w) / -32 - 1px); overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; cursor: pointer; will-change: transform; }
+.carrusel-tira-in { position: absolute; top: 0; left: calc(var(--w) / -16 * var(--k) + 1px); width: var(--w); height: 100%; }
+/* Con el teclado, el foco se ve alrededor de la tarjeta del centro (no como un marco de lado a lado) */
+.carrusel.is-3d .carrusel-escena:focus-visible::after { content: ""; position: absolute; top: calc(18px + var(--extra) - 6px); left: 50%; width: calc(var(--w) + 12px); height: calc(var(--h) + 12px); border: 2px solid var(--ink); border-radius: 27px; transform: translateX(-50%); pointer-events: none; }
+.carrusel:not(.is-3d) .carrusel-escena:focus-visible .carrusel-pista { outline: 2px solid var(--ink); outline-offset: 4px; }
 .carrusel-controles { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .carrusel-boton { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--line-strong); border-radius: 99px; background: #fff; color: var(--ink); cursor: pointer; transition: border-color .15s ease, transform .16s var(--ease-salida, ease-out); }
 @media (hover: hover) { .carrusel-boton:hover { border-color: var(--ink-2); } }
@@ -71,17 +97,15 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
 .carrusel-boton .is-play, .carrusel.is-pausado .carrusel-boton .is-pausa { display: none; }
 .carrusel.is-pausado .carrusel-boton .is-play { display: block; }
 .carrusel-cuenta { min-width: 52px; color: var(--muted); font-size: var(--fs-caption); font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; }
-.carrusel:not(.is-3d) .carrusel-controles { display: none; }
-.carrusel-info { display: grid; justify-items: center; gap: 6px; max-width: 540px; margin: 18px auto 0; text-align: center; }
+.carrusel:not(.is-3d) .carrusel-controles, .carrusel:not(.is-3d) .carrusel-pista-txt { display: none; }
+.carrusel-info { display: grid; justify-items: center; gap: 4px; max-width: 540px; margin: 16px auto 0; text-align: center; }
 .carrusel-grupo { width: fit-content; padding: 5px 12px; border-radius: 999px; background: var(--bg-alt); color: var(--ink-2); font-size: var(--fs-caption); font-weight: 800; }
 .carrusel-info h3 { font-size: var(--fs-subtitle); letter-spacing: -.015em; }
-.carrusel-info p:not(.carrusel-grupo) { color: var(--ink-2); font-size: .9375rem; text-wrap: pretty; }
-.carrusel-info .carrusel-medida { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
-.carrusel-info .carrusel-nota { color: var(--muted); font-size: var(--fs-small); }
-.carrusel-info .btn { margin-top: 8px; }
+.carrusel-pista-txt { color: var(--muted); font-size: var(--fs-small); }
+.carrusel-info .btn { margin-top: 10px; }
 .carrusel-info > * { transition: opacity .16s ease, transform .16s ease; }
 .carrusel-info.is-saliendo > * { opacity: 0; transform: translateY(3px); }
-@media (prefers-reduced-motion: reduce) { .carrusel-info > * { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .carrusel-info > *, .carrusel.is-3d .carrusel-volteo { transition: none; } }
 .galeria-nota { margin-inline: auto; text-align: center; }
 
 /* Créditos (creditos.html): una fila por elemento, con autor, licencia y enlaces */
