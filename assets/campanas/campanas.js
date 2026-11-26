@@ -130,10 +130,13 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   });
 })();
 
-/* Buscador de la ayuda, como cmdk (26-11-2026): ⌘K o Ctrl+K, o «Buscar…» en el panel «Ayuda». Busca en guías,
-   checklists (cada pregunta), preguntas frecuentes, artículos de las normas y medidas de aparatos. El índice lo arma
-   tools/ayuda.py (assets/campanas/ayuda-indice.json) y se descarga la primera vez que se abre. Flechas para moverse,
-   Enter para abrir, Esc para cerrar; el primer resultado queda marcado. */
+/* Buscador de la ayuda, como cmdk (26-11-2026): ⌘K o Ctrl+K, la lupa de la cabecera o «Buscar…» en el panel «Ayuda».
+   Busca en guías, checklists (cada pregunta), preguntas frecuentes, artículos de las normas y medidas de aparatos. El
+   índice lo arma tools/ayuda.py (assets/campanas/ayuda-indice.json) y se descarga la primera vez que se abre.
+   Sin texto recomienda: tu avance en los checklists, lo más buscado y tus búsquedas recientes (solo en este
+   dispositivo). Con texto, algunas búsquedas traen una respuesta rápida arriba (plazo con su línea de tiempo, medida
+   de un aparato contra el límite de 50 cm, avance de los checklists, pilas, costo, retiro domiciliario) y sus acciones
+   quedan primero en la lista: Enter hace la principal. Flechas para moverse, Enter para abrir, Esc para cerrar. */
 (() => {
   const d = document;
   const V = (d.currentScript?.src.match(/\?v=(\w+)/) || [])[1] || '1';
@@ -146,17 +149,43 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     permiso: ['autorizacion'], salud: ['seremi'], fecha: ['plazo', 'dias habiles'], cuando: ['plazo', 'anticipacion'], demora: ['plazo'],
     medida: ['tamano', 'cm'], tamano: ['medida', 'cm'], chico: ['pequeno'], grande: ['grandes'], reporte: ['retc'], reportar: ['retc'],
     municipio: ['municipalidad'], muni: ['municipalidad'], rep: ['20.920', 'ley'], decreto: ['ds'], basura: ['raee', 'residuo'],
-    chatarra: ['raee'], electrodomestico: ['aparato'], reciclaje: ['recoleccion', 'reciclaje'], domicilio: ['domiciliario'], casa: ['domiciliario']
+    chatarra: ['raee'], electrodomestico: ['aparato'], reciclaje: ['recoleccion', 'reciclaje'], domicilio: ['domiciliario'], casa: ['domiciliario'],
+    lavarropa: ['lavadora'], micro: ['microondas'], monitor: ['pantalla', 'monitor'], avance: ['checklist'], progreso: ['checklist']
   };
-  /* Formas de cada palabra: la escrita, sin plural y sus sinónimos */
+  /* Lo más buscado (botones de la recomendación inicial) */
+  const FRECUENTES = ['plazo', 'autorización', 'pilas', 'microondas', 'refrigerador', 'costo', 'retiro domiciliario', 'RETC'];
+  /* Respuestas rápidas: palabras (en sus formas) que las activan */
+  const INTENCION = {
+    plazo: ['plazo', 'anticipacion', 'dias habiles', 'demora', 'antelacion', 'cuanto tiempo'],
+    avance: ['checklist', 'avance', 'progreso', 'mis respuestas'],
+    pilas: ['pila'],
+    costo: ['cuesta', 'cotiza', 'gratis', 'cobran', 'presupuesto', 'tarifa'],
+    domicilio: ['domiciliario']
+  };
+  const FAQ = { pilas: 'p-se-reciben-pilas-y-baterias-sueltas', costo: 'p-cuanto-cuesta-organizar-una-campana', domicilio: 'p-como-funciona-el-retiro-domiciliario-asistido' };
+  const FOTO = { pilas: ['assets/campanas/guias/pilas-baterias-720.webp', 'Pila de 9 V, pilas AA y AAA y una batería recargable', 480],
+    domicilio: ['assets/campanas/raee-retiro-domiciliario-720.webp', '', 540] };
+  const RECIENTES = 'cr-busquedas';
   const formas = (p) => {
     const base = p.length > 4 && p.endsWith('es') ? p.slice(0, -2) : p.length > 3 && p.endsWith('s') ? p.slice(0, -1) : p;
     return [...new Set([p, base, ...(SINONIMOS[p] || []), ...(SINONIMOS[base] || [])])];
   };
   const LUPA = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>';
+  const RELOJ = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>';
   const fold = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-  const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  let dlg = null; let input = null; let lista = null; let indice = null; let ops = []; let activo = -1;
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const leer = (k, def) => { try { return JSON.parse(localStorage.getItem(k) || 'null') ?? def; } catch { return def; } };
+  let dlg = null; let input = null; let cuerpo = null; let extra = null; let lista = null; let indice = null; let ops = []; let activo = -1;
+  /* La respuesta se vuelve a dibujar (y a animar) solo cuando cambia, no a cada tecla */
+  let previa = null;
+  const ponExtra = (html) => { if (html !== previa) { extra.innerHTML = html; previa = html; } };
+
+  /* Fechas (como el cálculo de «¿Hasta cuándo pedir la autorización?»: días hábiles de lunes a viernes, sin feriados) */
+  const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const habiles = (f, n) => { const x = new Date(f); for (let k = 0; k < n;) { x.setDate(x.getDate() + 1); if (x.getDay() % 6) k++; } return x; };
+  const larga = (f) => `${DIAS[f.getDay()]} ${f.getDate()} de ${MESES[f.getMonth()]} de ${f.getFullYear()}`;
+  const corta = (f) => `${f.getDate()} ${MESES[f.getMonth()].slice(0, 3)}.`;
 
   const marca = (texto, palabras) => {
     let html = esc(texto);
@@ -168,13 +197,10 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     });
     return html;
   };
+  const avance = () => indice.filter((x) => x.ck).map((x) => ({ ...x, r: leer(`cr-res-${x.ck}`, null) }));
   const busca = (q) => {
     const palabras = fold(q).split(/\s+/).filter(Boolean);
-    if (!indice) return { palabras, filas: [] };
-    if (!palabras.length) {
-      const pick = (g, n) => indice.filter((x) => x.g === g && !/#/.test(x.u || '')).slice(0, n);
-      return { palabras, filas: [...pick('Acciones', 1), ...pick('Guías', 3), ...pick('Checklists', 4)] };
-    }
+    if (!indice || !palabras.length) return { palabras, variantes: [], filas: [] };
     const variantes = palabras.map(formas);
     const filas = indice.map((x, i) => {
       const t = x.ft || (x.ft = fold(x.t));
@@ -182,11 +208,111 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
       if (!variantes.every((v) => v.some((f) => todo.includes(f)))) return null;
       const enTitulo = variantes.filter((v) => v.some((f) => t.includes(f))).length;
       const puntos = (variantes[0].some((f) => t.startsWith(f)) ? 0 : enTitulo === variantes.length ? 1 : enTitulo ? 2 : 3) + i / 1e4;
-      return { ...x, puntos };
+      return { ...x, puntos, enTitulo };
     }).filter(Boolean).sort((a, b) => a.puntos - b.puntos);
+    const nombrados = new Set(filas.filter((x) => x.enTitulo && (x.g === 'Aparatos' || x.g === 'Tamaños')).map((x) => x.g));
     const porGrupo = {};
-    return { palabras, filas: filas.filter((x) => (porGrupo[x.g] = (porGrupo[x.g] || 0) + 1) <= 6).slice(0, 24) };
+    return { palabras, variantes, filas: filas.filter((x) => !(nombrados.has(x.g) && !x.enTitulo)).filter((x) => (porGrupo[x.g] = (porGrupo[x.g] || 0) + 1) <= 6).slice(0, 24) };
   };
+
+  /* ---------- Respuestas rápidas: { html de la tarjeta, título del grupo de acciones, acciones } ---------- */
+  const tarjeta = (clase, etiqueta, html) => `<section class="busca-resp ${clase}" aria-label="${esc(etiqueta)}">${html}</section>`;
+  const barras = (lista) => `<ol class="busca-avance">${lista.map((x) => {
+    const h = x.r?.hechas || 0; const pend = x.r?.pend?.length || 0;
+    const txt = !h ? 'Sin respuestas' : `${h} de ${x.tot}${pend ? ` · ${pend} por resolver` : ''}`;
+    return `<li><span class="busca-avance-n">${x.e}. ${esc(x.n)}</span><span class="busca-avance-barra" role="img" aria-label="${h} de ${x.tot} preguntas respondidas${pend ? `, ${pend} con No o No sé` : ''}"><i style="--p:${(100 * (h - pend)) / x.tot}%"></i><i class="is-pend" style="--p:${(100 * pend) / x.tot}%"></i></span><small>${txt}</small></li>`;
+  }).join('')}</ol>`;
+  const siguienteCk = (lista) => lista.find((x) => x.r?.hechas && x.r.hechas < x.tot) || lista.find((x) => !x.r?.hechas) || lista[0];
+  const respuestas = {
+    plazo: (guia) => {
+      const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+      const inicio = habiles(hoy, 41);
+      return {
+        html: tarjeta('is-plazo', 'Respuesta rápida: plazo de la autorización',
+          '<p class="busca-resp-t">La autorización sanitaria se pide al menos 40 días hábiles antes</p>'
+          + `<p class="busca-resp-s">Si presentas la solicitud ahora, la campaña podría empezar desde el <strong>${larga(inicio)}</strong>.</p>`
+          + '<div class="busca-linea" role="img" aria-label="Línea de tiempo: hoy presentas la solicitud; la SEREMI tiene hasta 30 días hábiles para revisarla; quedan 10 días hábiles de margen antes del inicio.">'
+          + '<div class="busca-linea-barra"><i class="is-rev"></i><i class="is-margen"></i></div>'
+          + `<ol class="busca-linea-hitos" aria-hidden="true"><li><strong>Hoy</strong><small>Presentas</small></li><li><strong>Hasta 30 días hábiles</strong><small>Revisión de la SEREMI</small></li><li><strong>${corta(inicio)}</strong><small>Inicio posible</small></li></ol></div>`
+          + '<p class="busca-resp-nota">Aproximado: cuenta de lunes a viernes, sin feriados. Si hay observaciones, se responden en 5 días hábiles y la SEREMI tiene otros 30: conviene presentarla antes.</p>'),
+        titulo: 'Plazo de la autorización',
+        acciones: [...(guia ? [indice.find((x) => x.u === 'autorizacion-sanitaria.html')].filter(Boolean) : []),
+          { t: 'Calcular la fecha para mi campaña', s: 'Elige el día de inicio y te decimos hasta cuándo presentar la solicitud', u: './#plazo' },
+          ...(guia ? [] : [{ t: 'Plazos de la revisión', s: 'Autorización sanitaria, paso a paso', u: 'autorizacion-sanitaria.html#h-plazos' }])]
+      };
+    },
+    avance: () => {
+      const l = avance();
+      const sig = siguienteCk(l);
+      const alguna = l.some((x) => x.r?.hechas);
+      return {
+        html: tarjeta('is-avance', 'Tu avance en los checklists', `<p class="busca-resp-t">${alguna ? 'Tu avance en los checklists' : 'Cuatro checklists, uno por etapa'}</p>${barras(l)}`
+          + `<p class="busca-resp-nota">${alguna ? 'Tus respuestas quedan en este dispositivo y puedes adjuntarlas a la ficha.' : 'Responde Sí, No o No sé y te decimos qué hacer en cada caso.'}</p>`),
+        titulo: 'Tu avance',
+        acciones: [{ t: `${sig.r?.hechas ? 'Seguir con' : 'Empezar'} el checklist de ${sig.n.toLowerCase()}`, s: `Etapa ${sig.e} de 4`, u: sig.u, i: sig.i }]
+      };
+    },
+    faq: (clave) => {
+      const p = indice.find((x) => x.id === FAQ[clave]);
+      if (!p) return null;
+      const [src, alt, alto] = FOTO[clave] || [];
+      return {
+        html: tarjeta(`is-faq${src ? ' con-foto' : ''}`, `Respuesta rápida: ${p.t}`,
+          (src ? `<img class="busca-resp-foto" src="${src}" width="720" height="${alto}" alt="${esc(alt)}" decoding="async">` : '')
+          + `<div><p class="busca-resp-t">${esc(p.t)}</p><p class="busca-resp-s">${esc(p.r)}</p></div>`),
+        titulo: 'Respuesta',
+        acciones: [...(clave === 'costo' || clave === 'domicilio' ? [{ t: 'Cotizar mi campaña', s: 'Abre la ficha preliminar; la cotización llega después de revisarla', a: 'contacto' }] : []),
+          { t: 'Leer la respuesta completa', s: 'Preguntas frecuentes', u: p.u }]
+      };
+    },
+    aparato: (x) => {
+      const [a, b] = x.cm; const MAX = 200;
+      const izq = (100 * a) / MAX; const ancho = Math.max(2, (100 * (b - a)) / MAX);
+      const supera = a > 50; const cruza = a <= 50 && b > 50;
+      const lectura = `Mide ${a === b ? `unos ${a}` : `entre ${a} y ${b}`} cm; ${supera ? 'supera' : cruza ? 'puede superar' : 'no supera'} el límite de 50 cm de los pequeños aparatos.`;
+      return {
+        html: tarjeta('is-aparato', `Medida típica: ${x.t}`,
+          `<img class="busca-resp-foto" src="${x.f}" width="400" height="400" alt="" decoding="async">`
+          + `<div><p class="busca-resp-t">${esc(x.t)}</p><p class="busca-resp-s">${esc(x.med)} · <strong>${esc(x.gr)}</strong></p>`
+          + `<div class="busca-regla" aria-hidden="true"><span class="busca-regla-limite" style="left:25%"><small>50 cm</small></span>`
+          + `<span class="busca-regla-rango${supera || cruza ? ' is-sobre' : ''}" style="left:${izq}%;width:${ancho}%"></span></div>`
+          + '<p class="busca-regla-escala" aria-hidden="true"><span>0</span><span>50</span><span>100</span><span>150</span><span>200 cm</span></p>'
+          + `<p class="busca-resp-nota">${lectura}</p></div>`),
+        titulo: x.t,
+        acciones: [{ t: `Incluir «${x.gr}» en la ficha`, s: 'Lo suma a los aparatos de tu ficha, sin borrar lo que ya elegiste', a: 'contacto', add: `aparatos=${x.gr}`, i: x.i },
+          { t: 'Ver la tabla de medidas', s: 'Tamaño de los aparatos', u: x.u }]
+      };
+    }
+  };
+  /* De lo más específico a lo más general: un aparato nombrado, una pregunta frecuente, el avance y, al final, el plazo */
+  const intencion = (variantes, filas) => {
+    const todas = variantes.flat();
+    const frase = fold(input.value);
+    const hay = (lista) => lista.some((w) => (w.includes(' ') ? frase.includes(w) : todas.some((f) => f.startsWith(w))));
+    const ap = filas.find((x) => x.g === 'Tamaños' && x.enTitulo);
+    if (ap) return respuestas.aparato(ap);
+    for (const k of ['pilas', 'domicilio', 'costo']) if (hay(INTENCION[k])) return respuestas.faq(k);
+    if (hay(INTENCION.avance)) return respuestas.avance();
+    if (hay(INTENCION.plazo)) return respuestas.plazo(false);
+    if (hay(['autorizacion', 'seremi'])) return respuestas.plazo(true);
+    return null;
+  };
+
+  /* ---------- Recomendaciones sin texto ---------- */
+  const chips = (titulo, valores, borrar) => (valores.length
+    ? `<div class="busca-chips" role="group" aria-label="${titulo}"><p class="busca-chips-t">${titulo}${borrar ? '<button type="button" class="busca-chips-borrar" data-busca-borrar>Borrar</button>' : ''}</p>`
+      + `${valores.map((v) => `<button type="button" class="busca-chip" data-busca-q="${esc(v)}">${borrar ? RELOJ : ''}${esc(v)}</button>`).join('')}</div>` : '');
+  const sugerencias = () => {
+    const l = avance();
+    const pick = (g, n) => indice.filter((x) => x.g === g && !/#/.test(x.u || '')).slice(0, n);
+    const filas = [...pick('Acciones', 1), indice.find((x) => x.u === './#plazo'), ...pick('Guías', 3), ...pick('Checklists', 4)].filter(Boolean);
+    return {
+      html: (l.some((x) => x.r?.hechas) ? respuestas.avance().html : '')
+        + chips('Búsquedas recientes', leer(RECIENTES, []), true) + chips('Lo más buscado', FRECUENTES),
+      filas
+    };
+  };
+
   const mueve = (i, ver = true) => {
     if (!ops.length) { activo = -1; input.removeAttribute('aria-activedescendant'); return; }
     activo = (i + ops.length) % ops.length;
@@ -194,30 +320,58 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     input.setAttribute('aria-activedescendant', ops[activo].id);
     if (ver) ops[activo].scrollIntoView({ block: 'nearest' });
   };
+  const opcion = (x, palabras, n) => {
+    const r = x.ck ? leer(`cr-res-${x.ck}`, null) : null;
+    const s = r?.hechas && !x.u.includes('#') ? `${r.hechas} de ${r.total} respondidas · ${x.s}` : x.s;
+    const cont = `${x.i ? `<img class="busca-op-foto" src="${esc(x.i)}" width="40" height="40" alt="" loading="lazy" decoding="async">` : ''}<span class="busca-op-txt"><span class="busca-op-t">${marca(x.t, palabras)}</span>${s ? `<small>${marca(s, palabras)}</small>` : ''}</span>`;
+    const cl = `busca-op${x.i ? ' con-foto' : ''}`;
+    return x.a ? `<button type="button" class="${cl}" role="option" id="busca-op-${n}" data-dock-open="${x.a}"${x.add ? ` data-add="${esc(x.add)}"` : ''}>${cont}</button>`
+      : `<a class="${cl}" role="option" id="busca-op-${n}" href="${esc(x.u)}">${cont}</a>`;
+  };
   const pinta = () => {
-    const { palabras, filas } = busca(input.value);
-    const titulo = !palabras.length ? 'Sugerencias' : '';
+    if (!indice) { ponExtra(''); lista.innerHTML = '<p class="busca-vacio">Cargando…</p>'; ops = []; return; }
+    const q = input.value.trim();
+    let { palabras, variantes, filas } = busca(q);
+    let html = ''; let grupos = [];
+    if (!palabras.length) {
+      const s = sugerencias();
+      html = s.html; grupos = [['Sugerencias', s.filas]];
+    } else {
+      const r = intencion(variantes, filas);
+      if (r) {
+        html = r.html;
+        const usadas = new Set(r.acciones.map((x) => x.u).filter(Boolean));
+        filas = filas.filter((x) => !usadas.has(x.u));
+        grupos.push([r.titulo, r.acciones]);
+      }
+      [...new Set(filas.map((x) => x.g))].forEach((g) => grupos.push([g, filas.filter((x) => x.g === g)]));
+    }
     let n = 0;
-    lista.innerHTML = !indice ? '<p class="busca-vacio">Cargando…</p>'
-      : !filas.length ? `<p class="busca-vacio">No encontramos «${esc(input.value.trim())}». Prueba con otra palabra o <button type="button" class="busca-enlace" data-dock-open="conversar">escríbenos por WhatsApp</button>.</p>`
-        : [...new Set(filas.map((x) => x.g))].sort((a, b) => (palabras.length ? 0 : GRUPOS.indexOf(a) - GRUPOS.indexOf(b))).map((g) => `<div class="busca-grupo" role="group" aria-label="${titulo || g}"><p class="busca-grupo-t" aria-hidden="true">${titulo || g}</p>${filas.filter((x) => x.g === g).map((x) => {
-          const cont = `<span class="busca-op-t">${marca(x.t, palabras)}</span>${x.s ? `<small>${marca(x.s, palabras)}</small>` : ''}`;
-          return x.a ? `<button type="button" class="busca-op" role="option" id="busca-op-${n++}" data-dock-open="${x.a}">${cont}</button>`
-            : `<a class="busca-op" role="option" id="busca-op-${n++}" href="${esc(x.u)}">${cont}</a>`;
-        }).join('')}</div>`).join('');
+    /* Sin resultados, el aviso y su enlace van fuera de la lista (una lista de opciones solo lleva opciones) */
+    const nada = palabras.length && !filas.length && !html;
+    lista.innerHTML = nada ? '' : grupos.map(([g, fs]) => `<div class="busca-grupo" role="group" aria-label="${esc(g)}"><p class="busca-grupo-t" aria-hidden="true">${esc(g)}</p>${fs.map((x) => opcion(x, palabras, n++)).join('')}</div>`).join('');
+    ponExtra(nada ? `<p class="busca-vacio" role="status">No encontramos «${esc(q)}». Prueba con otra palabra o <button type="button" class="busca-enlace" data-dock-open="conversar">escríbenos por WhatsApp</button>.</p>${chips('Prueba con', FRECUENTES.slice(0, 5))}` : html);
     ops = [...lista.querySelectorAll('.busca-op')];
     mueve(0, false);
-    lista.scrollTop = 0;
+    cuerpo.scrollTop = 0;
+  };
+  const recordar = () => {
+    const q = input.value.trim().slice(0, 40);
+    if (q.length < 2) return;
+    const l = [q, ...leer(RECIENTES, []).filter((x) => fold(x) !== fold(q))].slice(0, 5);
+    try { localStorage.setItem(RECIENTES, JSON.stringify(l)); } catch { /* sin almacenamiento */ }
   };
   const crear = () => {
     dlg = d.createElement('dialog');
     dlg.className = 'busca';
     dlg.setAttribute('aria-label', 'Buscar en la ayuda');
-    dlg.innerHTML = `<div class="busca-caja">${LUPA}<input type="text" role="combobox" aria-expanded="true" aria-controls="busca-lista" aria-autocomplete="list" aria-label="Buscar en la ayuda" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="Buscar en guías, checklists, preguntas y normas…"><button type="button" class="busca-cerrar" data-busca-cerrar>Cerrar</button></div>`
-      + '<div class="busca-lista" id="busca-lista" role="listbox" aria-label="Resultados"></div>'
+    dlg.innerHTML = `<div class="busca-caja">${LUPA}<input type="text" role="combobox" aria-expanded="true" aria-controls="busca-lista" aria-autocomplete="list" aria-label="Buscar en la ayuda" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="Busca un aparato, un plazo o una norma…"><button type="button" class="busca-cerrar" data-busca-cerrar>Cerrar</button></div>`
+      + '<div class="busca-cuerpo"><div class="busca-extra"></div><div class="busca-lista" id="busca-lista" role="listbox" aria-label="Resultados"></div></div>'
       + '<p class="busca-pie" aria-hidden="true"><span><kbd>↑</kbd><kbd>↓</kbd> moverse</span><span><kbd>↵</kbd> abrir</span><span><kbd>esc</kbd> cerrar</span></p>';
     d.body.append(dlg);
     input = dlg.querySelector('input');
+    cuerpo = dlg.querySelector('.busca-cuerpo');
+    extra = dlg.querySelector('.busca-extra');
     lista = dlg.querySelector('.busca-lista');
     input.addEventListener('input', pinta);
     input.addEventListener('keydown', (e) => {
@@ -226,14 +380,20 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
       if ((e.key === 'Home' || e.key === 'End') && ops.length && !input.value) { e.preventDefault(); mueve(e.key === 'Home' ? 0 : ops.length - 1); }
     });
     lista.addEventListener('pointermove', (e) => { const o = e.target.closest('.busca-op'); if (o && ops.indexOf(o) !== activo) mueve(ops.indexOf(o), false); });
-    /* Al elegir, se cierra primero (los enlaces de esta misma página y «Organizar una campaña» siguen su curso) */
-    lista.addEventListener('click', (e) => { if (e.target.closest('.busca-op, .busca-enlace')) dlg.close(); });
+    /* Al elegir, se recuerda la búsqueda y se cierra primero (los enlaces de esta misma página y la ficha siguen su curso) */
+    lista.addEventListener('click', (e) => { if (e.target.closest('.busca-op')) { recordar(); dlg.close(); } });
+    extra.addEventListener('click', (e) => {
+      if (e.target.closest('.busca-enlace')) { dlg.close(); return; }
+      const chip = e.target.closest('[data-busca-q]');
+      if (chip) { input.value = chip.dataset.buscaQ; pinta(); input.focus(); return; }
+      if (e.target.closest('[data-busca-borrar]')) { try { localStorage.removeItem(RECIENTES); } catch { /* nada */ } pinta(); input.focus(); }
+    });
     dlg.addEventListener('click', (e) => { if (e.target === dlg || e.target.closest('[data-busca-cerrar]')) dlg.close(); });
   };
-  const abrir = () => {
+  const abrir = (q = '') => {
     if (!dlg) crear();
     if (dlg.open) return;
-    input.value = '';
+    input.value = q;
     pinta();
     dlg.showModal();
     input.focus();
@@ -242,7 +402,7 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
         .catch(() => { lista.innerHTML = '<p class="busca-vacio">No se pudo cargar el buscador. Revisa tu conexión e inténtalo de nuevo.</p>'; });
     }
   };
-  d.addEventListener('click', (e) => { if (e.target.closest('[data-busca-abrir]')) { e.preventDefault(); abrir(); } });
+  d.addEventListener('click', (e) => { const b = e.target.closest('[data-busca-abrir]'); if (b) { e.preventDefault(); abrir(b.dataset.buscaAbrir || ''); } });
   d.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); if (dlg?.open) dlg.close(); else abrir(); }
   });
@@ -363,6 +523,33 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   };
   abre();
   addEventListener('hashchange', abre);
+})();
+
+/* Anclas que llegan a su lugar (26-11-2026): con content-visibility, las secciones de arriba cambian de alto mientras
+   el navegador baja con desplazamiento suave, y el destino quedaba corrido (p. ej., #plazo desde el buscador). Al
+   terminar de desplazarse se revisa una vez y, si quedó corrido, se ajusta sin animación. Si la persona ya movió la
+   página por su cuenta, no se toca. */
+(() => {
+  const corrige = () => {
+    const id = location.hash.length > 1 ? decodeURIComponent(location.hash.slice(1)) : '';
+    const el = id ? document.getElementById(id) : null;
+    if (!el) return;
+    let hecho = false; let intentos = 0;
+    const suelta = () => { hecho = true; };
+    ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((t) => addEventListener(t, suelta, { once: true, passive: true }));
+    const revisa = () => {
+      if (hecho) return;
+      const margen = (parseFloat(getComputedStyle(el).scrollMarginTop) || 0) + (parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0);
+      if (Math.abs(el.getBoundingClientRect().top - margen) > 12 && intentos++ < 3) {
+        el.scrollIntoView({ block: 'start', behavior: 'instant' });
+        setTimeout(revisa, 150);
+      } else hecho = true;
+    };
+    addEventListener('scrollend', () => setTimeout(revisa, 60), { once: true });
+    setTimeout(revisa, 1100);
+  };
+  if (location.hash) corrige();
+  addEventListener('hashchange', corrige);
 })();
 
 /* ¿Hasta cuándo pedir la autorización? ([data-plazo], «Cómo funciona», 26-11-2026): se elige el primer día de la

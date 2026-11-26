@@ -6,7 +6,8 @@
    <div class="pick" data-fila="…" data-title="…" data-sub="…"> con un .pick-btn y, según el tipo:
    - opciones: <select hidden> con las opciones (data-hint en cada <option> agrega una línea). Una se elige con un toque.
    - varias:   <input type="hidden"> y data-options="A|B|C" (data-exclusive="C" si una opción excluye a las demás;
-               data-hints, una línea bajo cada opción; data-guia, una ayuda plegable sobre la lista).
+               data-hints, una línea bajo cada opción; data-imgs, una imagen por opción; data-guia, una ayuda plegable
+               sobre la lista). En opciones, data-hint y data-img van en cada <option>.
    - fecha:    <input type="hidden">; calendario de un día (data-hasta="365": hasta cuántos días desde hoy).
    - comuna:   <input type="hidden" name="comuna"> y, si se quiere, otro name="region": todas las comunas de Chile.
    - texto:    <input type="hidden">; data-placeholder, data-maxlength y data-optional. Con data-mapa, también el mapa
@@ -68,7 +69,7 @@
       const r = await Picker.choose({
         title: row.dataset.title, sub: row.dataset.sub || '', layout: row.dataset.layout || 'list', value: f.value,
         otherText: f.selectedOptions[0]?.dataset.otro || '',
-        groups: [{ options: opts.map((o) => ({ value: o.value, label: o.dataset.base, hint: o.dataset.hint || '', other: PICK.isOther(o.dataset.base) })) }]
+        groups: [{ options: opts.map((o) => ({ value: o.value, label: o.dataset.base, hint: o.dataset.hint || '', img: o.dataset.img || '', other: PICK.isOther(o.dataset.base) })) }]
       });
       if (r === undefined) return;
       const v = typeof r === 'object' ? r.value : r;
@@ -94,6 +95,7 @@
     varias: async (row, f) => {
       const all = row.dataset.options.split('|');
       const hints = row.dataset.hints ? row.dataset.hints.split('|') : [];
+      const imgs = row.dataset.imgs ? row.dataset.imgs.split('|') : [];
       const guia = row.dataset.guia ? d.getElementById(row.dataset.guia) : null;
       /* Lo guardado puede traer «Otro material: lo escrito» */
       const now = (f.value ? f.value.split(', ') : []).map(PICK.splitOther);
@@ -102,7 +104,7 @@
         exclusive: row.dataset.exclusive ? row.dataset.exclusive.split('|') : [],
         otherText: now.find(([base]) => PICK.isOther(base))?.[1] || '',
         intro: guia ? `<details class="opt-guia"><summary>${guia.dataset.pregunta || guia.dataset.title}</summary><div class="ventana-texto">${guia.innerHTML}</div></details>` : '',
-        groups: [{ options: all.map((x, i) => ({ value: x, label: x, hint: hints[i] || '', other: PICK.isOther(x) })) }], value: now.map(([base]) => base)
+        groups: [{ options: all.map((x, i) => ({ value: x, label: x, hint: hints[i] || '', img: imgs[i] || '', other: PICK.isOther(x) })) }], value: now.map(([base]) => base)
       });
       if (!r) return;
       const values = Array.isArray(r) ? r : r.values;

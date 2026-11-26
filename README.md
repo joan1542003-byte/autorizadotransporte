@@ -113,3 +113,10 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 - Buscador: lupa en la cabecera (también en el teléfono); entiende sinónimos y formas comunes (refri, tele, precio, fecha, permiso, municipio…) y plurales; busca también en el texto de cada sección de las guías, en el «Qué hacer» de cada pregunta de los checklists, en los puntos «en simple» de las normas y en los aparatos de la galería (130 entradas); los grupos se ordenan por su mejor resultado.
 - Portadas de «para quién»: sombra más firme y sombra en el texto; el texto sobre las fotos queda en 7,6:1 o más (medido sobre los píxeles reales).
 - Revisión: axe-core (WCAG 2.2 A/AA y buenas prácticas) en todas las páginas y con el menú «Ayuda», el buscador, la ficha y un selector abiertos, en escritorio y teléfono: 0 problemas; sin errores de consola.
+
+## Fotos del cliente y buscador con respuestas (26-11-2026)
+
+- Fotos en `assets/campanas/guias/` (720/1280 y recorte de cabecera `-cab-`) y `assets/campanas/aparatos/` (categorías y aparatos). Las ubica `tools/ayuda.py` (`foto()`, `FOTOS`, `MEDIDA_FOTO`). En el teléfono, la franja de cabecera es 4:1 para que el título siga siendo lo principal (Lighthouse 100).
+- Buscador (`campanas.js`): recomendaciones sin texto (avance de checklists, lo más buscado, búsquedas recientes en este dispositivo), miniaturas y respuestas rápidas con gráfico (plazo, medida contra 50 cm, avance, pilas, costo, retiro domiciliario).
+- `filas.js` (compartido): opciones con foto (`data-img` / `data-imgs`). Falta llevarlo a Transporte.
+- Anclas: con `#destino` las secciones se dibujan completas (antes `#plazo` quedaba corrido).

@@ -195,6 +195,41 @@ for c in CHECKLISTS:
     c['total'] = len(c['preguntas'])
 
 
+# ---------- Fotos (imágenes entregadas por el cliente el 26-11-2026, en WebP de 720 y 1280 px) ----------
+G_FOTOS = 'assets/campanas/guias'
+FOTOS = {
+    'etapa-1-planificacion': 'Equipo de la municipalidad y de la campaña recorre una plaza y mide el espacio donde irán los toldos',
+    'etapa-2-autorizacion': 'Persona revisa la carpeta de antecedentes de la campaña y el plano del punto de recepción',
+    'etapa-3-punto-armado': 'Punto de recepción armado antes de abrir: toldos, mesa de registro y jaulas rotuladas por tipo de aparato',
+    'etapa-3-recepcion': 'Encargado con chaleco y guantes revisa a la vista un microondas que entrega una vecina',
+    'etapa-4-cierre': 'Camión cargado con los aparatos recibidos sale del punto al cierre de la campaña',
+    'tamano-pequenos-huincha': 'Hervidor, plancha, secador de pelo, celular y microondas sobre una mesa, junto a una huincha de medir',
+    'difusion-plaza': 'Pendón de una campaña de reciclaje electrónico en una plaza, con el toldo de recepción al fondo',
+}
+FOTO_ETAPA = {1: 'etapa-1-planificacion', 2: 'etapa-2-autorizacion', 3: 'etapa-3-punto-armado', 4: 'etapa-4-cierre'}
+
+
+def foto(nombre, clase='guia-foto', sizes='(max-width: 860px) calc(100vw - 40px), 820px', alt=None):
+    a = FOTOS[nombre] if alt is None else alt
+    # La de cabecera (guía o checklist) se ve al abrir la página: se pide de inmediato, sin esperar
+    # (y usa su recorte 2:1, más liviano: assets/campanas/guias/<nombre>-cab-720|1280.webp)
+    if 'is-portada' in clase or 'is-franja' in clase:
+        return (f'<figure class="{clase}"><img src="{G_FOTOS}/{nombre}-cab-1280.webp" srcset="{G_FOTOS}/{nombre}-cab-720.webp 720w, {G_FOTOS}/{nombre}-cab-1280.webp 1280w" '
+                f'sizes="{sizes}" width="1280" height="640" alt="{esc(a)}" fetchpriority="high"></figure>')
+    return (f'<figure class="{clase}"><img src="{G_FOTOS}/{nombre}-1280.webp" srcset="{G_FOTOS}/{nombre}-720.webp 720w, {G_FOTOS}/{nombre}-1280.webp 1280w" '
+            f'sizes="{sizes}" width="1280" height="853" alt="{esc(a)}" loading="lazy" decoding="async"></figure>')
+
+
+FOTO_CK = {1: 'etapa-1-planificacion', 2: 'etapa-2-autorizacion', 3: 'difusion-plaza', 4: 'etapa-4-cierre'}
+
+
+def con_precarga(html, nombre):
+    """La foto de cabecera se pide junto con el CSS (como el hero de la portada): sin esto llegaba tarde en el teléfono."""
+    link = (f'<link rel="preload" as="image" type="image/webp" imagesrcset="{G_FOTOS}/{nombre}-cab-720.webp 720w, {G_FOTOS}/{nombre}-cab-1280.webp 1280w" '
+            'imagesizes="(max-width: 860px) calc(100vw - 40px), 820px" fetchpriority="high">')
+    return re.sub(r'(<meta name="viewport"[^>]*>\n)', lambda m: m.group(1) + link + '\n', html, count=1)
+
+
 # ---------- Guías ----------
 def entrada(t):
     """«Antes de abrir: la carpeta…» → el momento en negrita, para leer la lista de un vistazo."""
@@ -251,7 +286,7 @@ def guia_paso_a_paso():
         e = c['etapa']
         secciones.append(
             f'<section class="guia-sec guia-etapa" id="etapa-{e}" aria-labelledby="h-etapa-{e}"><p class="guia-etapa-n">Etapa {e} de 4</p><h2 id="h-etapa-{e}">{esc(c["nombre"])}</h2>'
-            f'<p class="guia-sub">{esc(c["lema"])}.</p>{puntos(ETAPAS_GUIA[e])}'
+            f'<p class="guia-sub">{esc(c["lema"])}.</p>{foto(FOTO_ETAPA[e])}{puntos(ETAPAS_GUIA[e])}'
             f'<p class="guia-resultado"><strong>Al terminar esta etapa:</strong> {esc(c["resultado"])}</p>{franja_ck(c)}</section>')
     roles = ''.join(f'<li>{I["punto"]}<span><strong>{esc(a)}.</strong> {esc(b)}</span></li>' for a, b in ROLES)
     cuerpo = (
@@ -289,16 +324,33 @@ MEDIDAS = [
     ('Lavadora', '60 × 85 cm', 'Grandes aparatos'),
     ('Refrigerador', '1,4 a 1,8 m de alto', 'Grandes aparatos; se recibe entero y aparte'),
 ]
+# Foto de cada fila de MEDIDAS y, para el buscador, su medida en cm (mínima y máxima de lo más largo) y su grupo en la ficha
+MEDIDA_FOTO = ['celular', 'hervidor', 'microondas', 'notebook', 'televisor', 'lavadora', 'refrigerador']
+MEDIDA_CM = [(15, 25), (20, 30), (45, 50), (30, 40), (73, 123), (85, 85), (140, 180)]
+MEDIDA_GRUPO = ['Pequeños aparatos', 'Pequeños aparatos', 'Pequeños aparatos', 'Computadores', 'Pantallas y monitores', 'Grandes aparatos', 'Grandes aparatos']
+
+
+def mini(nombre, px=48):
+    return f'<img class="tabla-foto" src="assets/campanas/aparatos/aparato-{nombre}-160.webp" width="{px}" height="{px}" alt="" loading="lazy" decoding="async">'
 
 
 def medidas_html():
-    filas = ''.join(f'<tr><th scope="row">{esc(a)}<small>{esc(c)}</small></th><td>{esc(b)}</td></tr>' for a, b, c in MEDIDAS)
+    filas = ''.join(f'<tr><th scope="row"><span class="tabla-aparato">{mini(MEDIDA_FOTO[i])}<span>{esc(a)}<small>{esc(c)}</small></span></span></th><td>{esc(b)}</td></tr>'
+                    for i, (a, b, c) in enumerate(MEDIDAS))
     return (f'<table class="tabla-tamanos"><caption class="sr-only">Medidas aproximadas de aparatos comunes</caption>'
             f'<thead><tr><th scope="col">Aparato y grupo en la ficha</th><th scope="col">Medida aprox.</th></tr></thead><tbody>{filas}</tbody></table>')
 
 
 def guia_tamano():
-    tarjetas = ''.join(f'<li><strong>{esc(a)}</strong><small>{esc(b)}</small><p>{esc(c)}</p></li>' for a, b, c in EJEMPLOS)
+    imgs = [('assets/campanas/aparatos/categoria-pequenos', 960, 720, 'Hervidor, plancha y secador de pelo'),
+            ('assets/campanas/aparatos/categoria-grandes', 960, 720, 'Lavadora, cocina y refrigerador'),
+            ('assets/campanas/aparatos/aparato-refrigerador', 400, 400, 'Refrigerador')]
+    def img(k):
+        base, w, h, alt = imgs[k]
+        if w == 960:
+            return f'<img src="{base}-480.webp" srcset="{base}-480.webp 480w, {base}-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 40px), 260px" width="{w}" height="{h}" alt="{alt}" loading="lazy" decoding="async">'
+        return f'<img src="{base}-400.webp" width="{w}" height="{h}" alt="{alt}" loading="lazy" decoding="async">'
+    tarjetas = ''.join(f'<li><span class="tamano-foto">{img(k)}</span><strong>{esc(a)}</strong><small>{esc(b)}</small><p>{esc(c)}</p></li>' for k, (a, b, c) in enumerate(EJEMPLOS))
     cuerpo = (
         f'<section class="guia-sec" aria-labelledby="h-ley"><h2 id="h-ley">Qué dice la normativa chilena</h2>'
         f'<p class="guia-texto">Ni la Ley 20.920 ni el DS 22/2025 clasifican los aparatos por su tamaño. El DS 22/2025 los agrupa en tres categorías:</p>'
@@ -313,7 +365,7 @@ def guia_tamano():
         f'<section class="guia-sec" aria-labelledby="h-medidas"><h2 id="h-medidas">Medidas de referencia</h2>'
         f'<p class="guia-texto">Medidas aproximadas de aparatos comunes, para saber en qué grupo va cada uno. Lo que vale es la medida de tu aparato.</p>'
         f'{medidas_html()}</section>'
-        f'<section class="guia-sec" aria-labelledby="h-influye"><h2 id="h-influye">Cómo influye el tamaño en la campaña</h2>'
+        f'<section class="guia-sec" aria-labelledby="h-influye"><h2 id="h-influye">Cómo influye el tamaño en la campaña</h2>{foto("etapa-3-recepcion")}'
         + puntos([('<strong>Recepción:</strong> los pequeños se reciben en mesones y contenedores; los grandes necesitan una zona de carga, acceso para vehículos y ayuda para bajarlos.', []),
                   ('<strong>Contenedores y transporte:</strong> el tamaño y la cantidad definen cuántos contenedores, cuánto espacio y qué vehículos se necesitan.', [r29(24, 'c'), r29(24, 'j')]),
                   ('<strong>Retiro domiciliario asistido:</strong> pensado para aparatos grandes de quienes no pueden llevarlos al punto. Al inscribirse se indica el tipo, la cantidad, las medidas y el estado de cada aparato.', []),
@@ -330,7 +382,7 @@ def guia_tamano():
         'menu': 'Tamaño de los aparatos', 'resumen': 'Qué cuenta como pequeño o grande, con ejemplos, y cómo influye en la campaña.',
         'descripcion': 'Qué es un aparato eléctrico o electrónico pequeño o grande, con ejemplos, qué dice la normativa chilena (DS 22/2025) y cómo influye el tamaño en una campaña de recolección de RAEE.',
         'lead': 'Qué cuenta como aparato pequeño o grande, con ejemplos, qué dice la normativa chilena y cómo influye el tamaño al organizar la campaña.',
-        'cuerpo': cuerpo, 'ld_extra': None, 'faq': faq,
+        'cuerpo': cuerpo, 'ld_extra': None, 'faq': faq, 'foto': 'tamano-pequenos-huincha',
     }
 
 
@@ -340,7 +392,7 @@ def guia_autorizacion():
         + puntos([('La pide el responsable de la campaña: la municipalidad, la empresa, el sistema de gestión o quien la organice.', [r29(24, 'a')]),
                   ('Se presenta ante la SEREMI de Salud de la región donde se hará la campaña; en la Región Metropolitana, la SEREMI de Salud Metropolitana.', [r29(24), r29(39)]),
                   ('Al menos 40 días hábiles antes del inicio: cerca de dos meses.', [r29(24)])]) + '</section>'
-        f'<section class="guia-sec" aria-labelledby="h-incluye"><h2 id="h-incluye">Qué incluye la solicitud</h2>'
+        f'<section class="guia-sec" aria-labelledby="h-incluye"><h2 id="h-incluye">Qué incluye la solicitud</h2>{foto("etapa-2-autorizacion")}'
         f'<p class="guia-texto">Describe la campaña: responsable, residuos y cantidades, equipos y contenedores, cronograma, actividades, información a la población, permiso del lugar, plan de contingencia, destino, vehículos y, si hay residuos peligrosos, la capacitación del personal.{refs_html([r29(24)])}</p>'
         f'{franja_ck(CK["checklist-autorizacion-sanitaria"])}</section>'
         f'<section class="guia-sec" aria-labelledby="h-plazos"><h2 id="h-plazos">Plazos de la revisión</h2><ol class="guia-steps">'
@@ -480,7 +532,8 @@ def etapas_html():
         filas.append(
             f'<details id="como-funciona-{c["etapa"]}"><summary><span class="etapa-n">{c["etapa"]}</span><span class="etapa-titulo"><strong>{esc(c["nombre"])}</strong></span>'
             f'<span class="plus" aria-hidden="true"></span></summary><div class="answer"><p>{esc(c["intro"])}</p>'
-            f'<ul class="etapa-pasos">{pasos}</ul><dl class="etapa-datos">{datos}</dl>'
+            f'<div class="etapa-cuerpo"><ul class="etapa-pasos">{pasos}</ul>{foto({1: "etapa-1-planificacion", 2: "etapa-2-autorizacion", 3: "etapa-3-recepcion", 4: "etapa-4-cierre"}[c["etapa"]], "etapa-foto", "(max-width: 760px) calc(100vw - 72px), 360px")}</div>'
+            f'<dl class="etapa-datos">{datos}</dl>'
             f'<p class="etapa-acciones"><a href="{c["slug"]}.html">Checklist de {c["total"]} preguntas{I["flecha"]}</a>'
             f'<a href="paso-a-paso.html#etapa-{c["etapa"]}">Paso a paso{I["flecha"]}</a></p></div></details>')
     return nbsp(f'      <div class="accordion etapas-lista reveal">{"".join(filas)}</div>')
@@ -560,7 +613,9 @@ def pagina_guia(g, base):
     main = (f'  <article class="container guia">\n    {N.crumbs([("Inicio", "./"), (g["menu"], "")])}\n'
             f'    <header class="guia-head">'
             f'<h1 class="norm-title">{esc(g["titulo"])}</h1><p class="norm-lead">{esc(g["lead"])}</p>'
-            f'<div class="norm-actions guia-actions">{acciones}</div></header>\n    {g["cuerpo"]}\n'
+            f'<div class="norm-actions guia-actions">{acciones}</div></header>\n'
+            + (f'    {foto(g["foto"], "guia-foto is-portada", "(max-width: 860px) calc(100vw - 40px), 820px")}\n' if g.get('foto') else '')
+            + f'    {g["cuerpo"]}\n'
             + (f'    {N.faq_html(g["faq"])}\n' if g['faq'] else '') + f'    {fuente()}\n  </article>')
     return pagina(base, g['slug'], g['titulo'], g['descripcion'], g['ld_extra'], g['faq'], main, g['icono'], TEMA_DE[g['slug']])
 
@@ -591,7 +646,7 @@ def pagina_checklist(c, base):
         f'    {N.crumbs([("Inicio", "./"), ("Paso a paso", "paso-a-paso.html"), (c["titulo"], "")])}\n'
         f'    <header class="guia-head">'
         f'<h1 class="norm-title">{esc(c["nombre"])}: {esc(c["lema"][0].lower() + c["lema"][1:])}</h1>'
-        f'<p class="norm-lead">{esc(c["intro"])}</p>'
+        f'<p class="norm-lead">{esc(c["intro"])}</p>{foto(FOTO_CK[c["etapa"]], "guia-foto is-franja")}'
         f'<div class="norm-actions guia-actions"><a class="btn btn-quiet btn-small" href="paso-a-paso.html#etapa-{c["etapa"]}">{I["guia"]}<span>Leer la guía</span></a>'
         f'<button class="btn btn-quiet btn-small" type="button" data-ckc-imprimir>{I["imprimir"]}<span>Imprimir o guardar en PDF</span></button></div></header>\n'
         f'    <nav class="ckc-etapas" aria-label="Etapas de la campaña"><ol>{etapas}</ol></nav>\n'
@@ -687,14 +742,18 @@ def indice_busqueda():
                       ('¿Hasta cuándo pedir la autorización?', 'Calcula el plazo y la fecha límite para presentar la solicitud', './#plazo'),
                       ('Aparatos que se reciben', 'Galería de aparatos por tipo', './#aparatos')):
         items.append({'g': 'Portada', 't': t, 's': sub, 'u': u})
+    ap = 'assets/campanas/aparatos'
+    MINI_GUIA = {'paso-a-paso': 'etapa-3-punto-armado', 'tamano-de-los-aparatos': 'tamano-pequenos-huincha', 'autorizacion-sanitaria': 'etapa-2-autorizacion'}
     for g in GUIAS:
-        items.append({'g': 'Guías', 't': g['titulo'], 's': g['resumen'], 'u': f'{g["slug"]}.html'})
+        items.append({'g': 'Guías', 't': g['titulo'], 's': g['resumen'], 'u': f'{g["slug"]}.html', **({'i': f'{G_FOTOS}/{MINI_GUIA[g["slug"]]}-160.webp'} if g['slug'] in MINI_GUIA else {})})
         for hid, h, cuerpo in re.findall(r'<h2 id="([^"]+)">(.*?)</h2>(.*?)(?=</section>)', g['cuerpo'], re.S):
-            items.append({'g': 'Guías', 't': texto_plano(h), 's': g['menu'], 'u': f'{g["slug"]}.html#{hid}', 'k': texto_plano(cuerpo)[:400]})
+            items.append({'g': 'Guías', 't': texto_plano(h), 's': g['menu'], 'u': f'{g["slug"]}.html#{hid}', 'k': texto_plano(cuerpo)[:400], **({'i': items[-1]['i']} if items[-1].get('i') else {})})
     for c in CHECKLISTS:
-        items.append({'g': 'Checklists', 't': c['titulo'], 's': f'Etapa {c["etapa"]} de 4 · {c["lema"]}', 'u': f'{c["slug"]}.html'})
+        items.append({'g': 'Checklists', 't': c['titulo'], 's': f'Etapa {c["etapa"]} de 4 · {c["lema"]}', 'u': f'{c["slug"]}.html',
+                      'i': f'{G_FOTOS}/{ {1: "etapa-1-planificacion", 2: "etapa-2-autorizacion", 3: "difusion-plaza", 4: "etapa-4-cierre"}[c["etapa"]]}-160.webp',
+                      'ck': c['slug'], 'e': c['etapa'], 'n': c['nombre'], 'tot': c['total']})
         for i, q in enumerate(c['preguntas'], 1):
-            items.append({'g': 'Checklists', 't': q[0], 's': f'{c["titulo"]}, pregunta {i}', 'u': f'{c["slug"]}.html#p{i}', 'k': q[2]})
+            items.append({'g': 'Checklists', 't': q[0], 's': f'{c["titulo"]}, pregunta {i}', 'u': f'{c["slug"]}.html#p{i}', 'k': q[2], 'i': items[-i]['i']})
     paginas = ['preguntas.html'] + sorted(f.name for f in ROOT.glob('*.html') if f.name not in ('preguntas.html', 'index.html', 'creditos.html')) + ['index.html']
     for pagina in paginas:
         archivo = './' if pagina == 'index.html' else pagina
@@ -702,7 +761,11 @@ def indice_busqueda():
         for pid, q, a in re.findall(r'<details id="(p-[^"]+)"><summary>(.*?)<span class="plus".*?<div class="answer">(.*?)</div></details>', s, re.S):
             if any(x['t'] == texto_plano(q) and x['g'] == 'Preguntas' for x in items):
                 continue
-            items.append({'g': 'Preguntas', 't': texto_plano(q), 's': texto_plano(a)[:150], 'u': f'{archivo}#{pid}'})
+            extra = {}
+            if pid in ('p-cuanto-cuesta-organizar-una-campana', 'p-se-reciben-pilas-y-baterias-sueltas', 'p-como-funciona-el-retiro-domiciliario-asistido'):
+                frases = re.split(r'(?<=\.)\s+', texto_plano(a))
+                extra = {'r': ' '.join(frases[:2]), 'id': pid}
+            items.append({'g': 'Preguntas', 't': texto_plano(q), 's': texto_plano(a)[:150], 'u': f'{archivo}#{pid}', **extra})
     for n in N.NORMAS:
         items.append({'g': 'Normativa', 't': f'{n["corto"]}: {n["nombre"]}', 's': n.get('oficial', ''), 'u': f'{n["slug"]}.html',
                       'k': ' '.join(t for t, _ in n.get('simple', []))[:600]})
@@ -710,9 +773,13 @@ def indice_busqueda():
             items.append({'g': 'Normativa', 't': f'{n["corto"]}, art. {num}: {nota}', 'u': f'{n["slug"]}.html#art-{num}'})
     m = re.search(r'<script type="application/json" data-galeria-datos>(.*?)</script>', (ROOT / 'index.html').read_text(encoding='utf-8'), re.S)
     for x in (json.loads(m.group(1)) if m else []):
-        items.append({'g': 'Aparatos', 't': x['nombre'], 's': f'{x["categoria"]}: {x["texto"]}', 'u': './#aparatos'})
-    for a, b, c in MEDIDAS:
-        items.append({'g': 'Tamaños', 't': a, 's': f'{b} · {c}', 'u': 'tamano-de-los-aparatos.html#h-medidas'})
+        foto_ap = {'Celular': 'aparato-celular', 'Notebook': 'aparato-notebook', 'Televisor': 'aparato-televisor', 'Refrigerador': 'aparato-refrigerador',
+                   'Lavadora': 'aparato-lavadora', 'Microondas': 'aparato-microondas'}.get(x['nombre'], 'categoria-pequenos')
+        items.append({'g': 'Aparatos', 't': x['nombre'], 's': f'{x["categoria"]}: {x["texto"]}', 'u': './#aparatos', 'i': f'{ap}/{foto_ap}-160.webp'})
+    for k, (a, b, c) in enumerate(MEDIDAS):
+        items.append({'g': 'Tamaños', 't': a, 's': f'{b} · {c}', 'u': 'tamano-de-los-aparatos.html#h-medidas',
+                      'i': f'{ap}/aparato-{MEDIDA_FOTO[k]}-160.webp', 'f': f'{ap}/aparato-{MEDIDA_FOTO[k]}-400.webp',
+                      'cm': list(MEDIDA_CM[k]), 'gr': MEDIDA_GRUPO[k], 'med': b})
     (ROOT / 'assets/campanas/ayuda-indice.json').write_text(json.dumps(items, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     return len(items)
 
@@ -727,10 +794,11 @@ def main():
         print('ok menú', nombre)
     base = N.plantilla()
     for g in GUIAS:
-        (ROOT / f'{g["slug"]}.html').write_text(pagina_guia(g, base), encoding='utf-8')
+        html = pagina_guia(g, base)
+        (ROOT / f'{g["slug"]}.html').write_text(con_precarga(html, g['foto']) if g.get('foto') else html, encoding='utf-8')
         print('ok', g['slug'])
     for c in CHECKLISTS:
-        (ROOT / f'{c["slug"]}.html').write_text(pagina_checklist(c, base), encoding='utf-8')
+        (ROOT / f'{c["slug"]}.html').write_text(con_precarga(pagina_checklist(c, base), FOTO_CK[c['etapa']]), encoding='utf-8')
         print('ok', c['slug'])
     actualizar_sitemap()
     actualizar_llms()

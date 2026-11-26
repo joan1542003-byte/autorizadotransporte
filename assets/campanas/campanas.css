@@ -392,6 +392,8 @@ body[data-site="campanas"] main > .section:last-child { padding-bottom: clamp(48
    acercan a la vista, así el teléfono hace menos trabajo antes de mostrar el hero. El alto estimado se reemplaza por el
    real («auto») la primera vez que se dibujan. */
 body[data-site="campanas"] main > .section:not(.hero), body[data-site="campanas"] .site-footer { content-visibility: auto; contain-intrinsic-size: auto 760px; }
+/* Si se llega con un #ancla (p. ej., #plazo), las secciones se dibujan completas: con altos estimados el destino quedaba corrido */
+html:has(main :target) body[data-site="campanas"] main > .section:not(.hero) { content-visibility: visible; }
 
 /* =====================================================================================
    Colores y jerarquía (13-11-2026, pedido del cliente): cada categoría de «Ayuda» tiene su color (sin rojos, que se
@@ -511,7 +513,7 @@ body[data-site="campanas"] { --ease-salida: cubic-bezier(.23, 1, .32, 1); }
 :is(.ayu-busca, .busca-pie) kbd { padding: 2px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-alt); color: var(--ink-2); font: 700 .75rem/1.4 var(--font); }
 @media (pointer: coarse) { .ayu-busca kbd { display: none; } }
 
-.busca { width: min(640px, calc(100vw - 24px)); max-height: min(580px, calc(100svh - 48px)); margin: 10vh auto auto; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #fff; color: var(--ink); box-shadow: 0 28px 70px -28px rgb(21 26 45 / .5); }
+.busca { width: min(660px, calc(100vw - 24px)); max-height: min(640px, calc(100svh - 48px)); margin: 10vh auto auto; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #fff; color: var(--ink); box-shadow: 0 28px 70px -28px rgb(21 26 45 / .5); }
 .busca[open] { display: flex; flex-direction: column; }
 .busca::backdrop { background: rgb(21 26 45 / .34); }
 @media (max-width: 640px) { .busca { margin: 12px auto auto; max-height: calc(100svh - 24px); } }
@@ -521,7 +523,8 @@ body[data-site="campanas"] { --ease-salida: cubic-bezier(.23, 1, .32, 1); }
 .busca-caja input::placeholder { color: var(--muted); }
 .busca-cerrar { flex: none; min-height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink-2); font: 700 .8125rem/1 var(--font); cursor: pointer; }
 .busca-cerrar:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.busca-lista { flex: 1; min-height: 0; padding: 6px; overflow-y: auto; overscroll-behavior: contain; scroll-padding: 8px; }
+.busca-cuerpo { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding: 8px; }
+.busca-lista { padding: 6px; }
 .busca-grupo-t { padding: 12px 10px 4px; color: var(--muted); font-size: var(--fs-caption); font-weight: 700; }
 .busca-op { display: grid; gap: 2px; width: 100%; min-height: 44px; padding: 9px 10px; border: 0; border-radius: 10px; background: none; color: var(--ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
 .busca-op[aria-selected="true"] { background: var(--bg-alt); }
@@ -612,3 +615,90 @@ body[data-site="campanas"] .guia-errors { padding-left: 0; border-left: 0; }
 .nav-busca:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .nav-busca:active { transform: scale(.94); }
 @media (max-width: 860px) { .nav-busca { width: 44px; height: 44px; margin-right: 2px; } }
+
+/* ==========================================================================
+   Fotos del cliente (26-11-2026) y buscador con respuestas rápidas, gráficos y recomendaciones
+   ========================================================================== */
+.guia-foto { margin: 16px 0 20px; }
+.guia-foto img, .etapa-foto img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; object-position: 50% 35%; border-radius: 14px; background: #eceeed; }
+.guia-foto.is-portada { margin: 22px 0 8px; }
+.guia-foto.is-portada img { aspect-ratio: 2 / 1; }
+.guia-foto:is(.is-portada, .is-franja) img { object-position: 50% 50%; }
+.guia-foto.is-franja { margin: 18px 0 4px; }
+.guia-foto.is-franja img { aspect-ratio: 16 / 5; }
+/* En el teléfono, franja delgada: el título y la presentación siguen siendo lo primero que se ve completo */
+@media (max-width: 640px) { .guia-foto:is(.is-portada, .is-franja) img { aspect-ratio: 4 / 1; } }
+.etapa-cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 20px; align-items: start; }
+.etapa-foto { margin: 0; }
+.etapa-foto img { border-radius: 12px; }
+@media (max-width: 760px) { .etapa-cuerpo { grid-template-columns: 1fr; } .etapa-foto { order: -1; } .etapa-foto img { aspect-ratio: 16 / 9; } }
+.tabla-aparato { display: flex; align-items: center; gap: 12px; }
+.tabla-aparato > span { display: grid; }
+.tabla-foto { flex: none; width: 48px; height: 48px; border-radius: 10px; background: #eceeed; object-fit: cover; }
+.tamano-foto { display: block; margin: -16px -16px 10px; overflow: hidden; border-radius: 15px 15px 0 0; background: #eceeed; }
+.tamano-foto img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+/* El refrigerador es una foto cuadrada: entera, sin recortarle arriba y abajo */
+.tamano-foto img[src*="aparato-"] { object-fit: contain; background: #f0f0f1; }
+.doc-case-foto { display: block; width: 100%; max-width: 360px; height: auto; aspect-ratio: 4 / 3; margin-bottom: 14px; border-radius: 12px; object-fit: cover; background: #eceeed; }
+
+/* Opciones con foto en el buscador */
+.busca-op { grid-template-columns: minmax(0, 1fr); align-items: center; }
+.busca-op.con-foto { grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; }
+.busca-op-txt { display: grid; gap: 2px; min-width: 0; }
+.busca-op-foto { width: 40px; height: 40px; border-radius: 9px; background: #eceeed; object-fit: cover; }
+/* Respuesta rápida */
+.busca-extra:empty { display: none; }
+.busca-extra { display: grid; gap: 14px; padding: 14px 14px 4px; }
+.busca-resp { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg-alt); }
+.busca-resp.is-aparato, .busca-resp.con-foto { grid-template-columns: 96px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.busca-resp.con-foto { grid-template-columns: 132px minmax(0, 1fr); }
+.busca-resp-foto { width: 100%; height: auto; aspect-ratio: 1; border-radius: 10px; background: #fff; object-fit: cover; }
+.busca-resp-t { color: var(--ink); font-size: 1rem; font-weight: 700; line-height: 1.35; text-wrap: balance; }
+.busca-resp-s { margin-top: 2px; color: var(--ink-2); font-size: .9375rem; line-height: 1.5; }
+.busca-resp-s strong { color: var(--ink); }
+.busca-resp-nota { color: var(--muted); font-size: var(--fs-caption); line-height: 1.5; }
+@media (max-width: 520px) {
+  .busca-resp.is-aparato { grid-template-columns: 72px minmax(0, 1fr); }
+  .busca-resp.con-foto { grid-template-columns: 1fr; }
+  .busca-resp.con-foto .busca-resp-foto { aspect-ratio: 16 / 7; }
+}
+/* Línea de tiempo del plazo: 30 días hábiles de revisión y 10 de margen, sobre 40 */
+.busca-linea { margin-top: 4px; }
+.busca-linea-barra { display: flex; gap: 3px; height: 10px; }
+.busca-linea-barra i { border-radius: 99px; }
+.busca-linea-barra .is-rev { flex: 30; background: #2f5f98; }
+.busca-linea-barra .is-margen { flex: 10; background: repeating-linear-gradient(135deg, #2f5f98 0 3px, #c9d5e6 3px 7px); }
+.busca-linea-hitos { list-style: none; display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 10px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.busca-linea-hitos li { display: grid; gap: 1px; font-size: var(--fs-caption); line-height: 1.35; }
+.busca-linea-hitos li:nth-child(2) { text-align: center; }
+.busca-linea-hitos li:last-child { text-align: right; }
+.busca-linea-hitos strong { color: var(--ink); }
+.busca-linea-hitos small { color: var(--muted); }
+/* Regla de 0 a 200 cm con el límite de 50 cm de los pequeños aparatos */
+.busca-regla { position: relative; height: 12px; margin: 22px 0 0; border-radius: 99px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
+.busca-regla-rango { position: absolute; top: 0; bottom: 0; min-width: 6px; border-radius: 99px; background: #6b4c9a; }
+.busca-regla-rango.is-sobre { background: #4f5890; }
+.busca-regla-limite { position: absolute; top: -18px; bottom: -4px; border-left: 2px dashed var(--ink-2); }
+.busca-regla-limite small { position: absolute; top: -2px; left: 6px; color: var(--ink-2); font-size: .75rem; font-weight: 700; white-space: nowrap; }
+.busca-regla-escala { display: flex; justify-content: space-between; margin-top: 4px; color: var(--muted); font-size: .75rem; font-variant-numeric: tabular-nums; }
+/* Avance de los checklists: Sí y, aparte, lo que quedó en No o No sé */
+.busca-avance { list-style: none; display: grid; gap: 8px; margin-top: 2px; }
+.busca-avance li { display: grid; grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) minmax(0, 8.5rem); gap: 10px; align-items: center; font-size: var(--fs-caption); font-variant-numeric: tabular-nums; }
+.busca-avance-n { overflow: hidden; color: var(--ink); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.busca-avance-barra { display: flex; height: 8px; overflow: hidden; border-radius: 99px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
+.busca-avance-barra i { width: var(--p); background: #2f5f98; transition: width .3s var(--ease-salida, ease-out); }
+.busca-avance-barra i.is-pend { background: #b7791f; }
+.busca-avance small { color: var(--muted); }
+@media (max-width: 520px) { .busca-avance li { grid-template-columns: minmax(0, 1fr) auto; } .busca-avance-barra { grid-column: 1 / -1; grid-row: 2; } }
+/* Recomendaciones: búsquedas recientes y lo más buscado */
+.busca-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.busca-chips-t { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 2px; color: var(--muted); font-size: var(--fs-caption); font-weight: 700; }
+.busca-chips-borrar { min-height: 24px; padding: 0 4px; border: 0; background: none; color: var(--ink-2); font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.busca-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; background: #fff; color: var(--ink); font: 600 .875rem/1 var(--font); cursor: pointer; transition: border-color .15s ease, background-color .15s ease; }
+.busca-chip svg { color: var(--muted); }
+@media (hover: hover) { .busca-chip:hover { border-color: var(--ink-2); } }
+:is(.busca-chip, .busca-chips-borrar):focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .busca-resp { animation: busca-resp-in .22s var(--ease-salida, ease-out) both; }
+  @keyframes busca-resp-in { from { opacity: 0; transform: translateY(4px); } }
+}
