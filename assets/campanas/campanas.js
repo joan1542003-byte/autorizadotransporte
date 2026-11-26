@@ -137,7 +137,22 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
 (() => {
   const d = document;
   const V = (d.currentScript?.src.match(/\?v=(\w+)/) || [])[1] || '1';
-  const GRUPOS = ['Acciones', 'Guías', 'Checklists', 'Preguntas', 'Normativa', 'Tamaños', 'Portada'];
+  const GRUPOS = ['Acciones', 'Guías', 'Checklists', 'Preguntas', 'Aparatos', 'Tamaños', 'Normativa', 'Portada'];
+  /* Cómo lo dice la gente → cómo está escrito en el sitio (sin tildes, en minúscula) */
+  const SINONIMOS = {
+    tele: ['televisor'], tv: ['televisor'], refri: ['refrigerador'], nevera: ['refrigerador'], frigobar: ['refrigerador'], heladera: ['refrigerador'],
+    pc: ['computador'], compu: ['computador'], laptop: ['notebook'], portatil: ['notebook'], celu: ['celular'], telefono: ['celular'], movil: ['celular'],
+    bateria: ['pila'], precio: ['cuesta', 'cotiza'], costo: ['cuesta', 'cotiza'], valor: ['cuesta', 'cotiza'], cotizar: ['cotiza', 'ficha'],
+    permiso: ['autorizacion'], salud: ['seremi'], fecha: ['plazo', 'dias habiles'], cuando: ['plazo', 'anticipacion'], demora: ['plazo'],
+    medida: ['tamano', 'cm'], tamano: ['medida', 'cm'], chico: ['pequeno'], grande: ['grandes'], reporte: ['retc'], reportar: ['retc'],
+    municipio: ['municipalidad'], muni: ['municipalidad'], rep: ['20.920', 'ley'], decreto: ['ds'], basura: ['raee', 'residuo'],
+    chatarra: ['raee'], electrodomestico: ['aparato'], reciclaje: ['recoleccion', 'reciclaje'], domicilio: ['domiciliario'], casa: ['domiciliario']
+  };
+  /* Formas de cada palabra: la escrita, sin plural y sus sinónimos */
+  const formas = (p) => {
+    const base = p.length > 4 && p.endsWith('es') ? p.slice(0, -2) : p.length > 3 && p.endsWith('s') ? p.slice(0, -1) : p;
+    return [...new Set([p, base, ...(SINONIMOS[p] || []), ...(SINONIMOS[base] || [])])];
+  };
   const LUPA = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>';
   const fold = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -160,10 +175,13 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
       const pick = (g, n) => indice.filter((x) => x.g === g && !/#/.test(x.u || '')).slice(0, n);
       return { palabras, filas: [...pick('Acciones', 1), ...pick('Guías', 3), ...pick('Checklists', 4)] };
     }
+    const variantes = palabras.map(formas);
     const filas = indice.map((x, i) => {
-      const t = fold(x.t); const todo = `${t} ${fold(x.s || '')}`;
-      if (!palabras.every((p) => todo.includes(p))) return null;
-      const puntos = (t.startsWith(palabras[0]) ? 0 : palabras.every((p) => t.includes(p)) ? 1 : 2) + i / 1e4;
+      const t = x.ft || (x.ft = fold(x.t));
+      const todo = x.fa || (x.fa = `${t} ${fold(x.s || '')} ${fold(x.k || '')}`);
+      if (!variantes.every((v) => v.some((f) => todo.includes(f)))) return null;
+      const enTitulo = variantes.filter((v) => v.some((f) => t.includes(f))).length;
+      const puntos = (variantes[0].some((f) => t.startsWith(f)) ? 0 : enTitulo === variantes.length ? 1 : enTitulo ? 2 : 3) + i / 1e4;
       return { ...x, puntos };
     }).filter(Boolean).sort((a, b) => a.puntos - b.puntos);
     const porGrupo = {};
@@ -182,7 +200,7 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     let n = 0;
     lista.innerHTML = !indice ? '<p class="busca-vacio">Cargando…</p>'
       : !filas.length ? `<p class="busca-vacio">No encontramos «${esc(input.value.trim())}». Prueba con otra palabra o <button type="button" class="busca-enlace" data-dock-open="conversar">escríbenos por WhatsApp</button>.</p>`
-        : GRUPOS.filter((g) => filas.some((x) => x.g === g)).map((g) => `<div class="busca-grupo" role="group" aria-label="${titulo || g}"><p class="busca-grupo-t" aria-hidden="true">${titulo || g}</p>${filas.filter((x) => x.g === g).map((x) => {
+        : [...new Set(filas.map((x) => x.g))].sort((a, b) => (palabras.length ? 0 : GRUPOS.indexOf(a) - GRUPOS.indexOf(b))).map((g) => `<div class="busca-grupo" role="group" aria-label="${titulo || g}"><p class="busca-grupo-t" aria-hidden="true">${titulo || g}</p>${filas.filter((x) => x.g === g).map((x) => {
           const cont = `<span class="busca-op-t">${marca(x.t, palabras)}</span>${x.s ? `<small>${marca(x.s, palabras)}</small>` : ''}`;
           return x.a ? `<button type="button" class="busca-op" role="option" id="busca-op-${n++}" data-dock-open="${x.a}">${cont}</button>`
             : `<a class="busca-op" role="option" id="busca-op-${n++}" href="${esc(x.u)}">${cont}</a>`;
@@ -205,6 +223,7 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     input.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); mueve(activo + (e.key === 'ArrowDown' ? 1 : -1)); }
       if (e.key === 'Enter' && ops[activo]) { e.preventDefault(); ops[activo].click(); }
+      if ((e.key === 'Home' || e.key === 'End') && ops.length && !input.value) { e.preventDefault(); mueve(e.key === 'Home' ? 0 : ops.length - 1); }
     });
     lista.addEventListener('pointermove', (e) => { const o = e.target.closest('.busca-op'); if (o && ops.indexOf(o) !== activo) mueve(ops.indexOf(o), false); });
     /* Al elegir, se cierra primero (los enlaces de esta misma página y «Organizar una campaña» siguen su curso) */

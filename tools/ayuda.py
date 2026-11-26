@@ -402,7 +402,7 @@ def menu_html():
     for k, nombre, bajada, icono, slugs in TEMAS:
         if k == 'checklists':
             filas = ''.join(f'<li class="ayu-ck"><a class="ayu-ck-titulo" href="{c["slug"]}.html" data-lista="{c["slug"]}"><span class="doc-icon">{I["lista"]}</span>'
-                            f'<span><strong>{c["etapa"]}. {esc(c["nombre"])}</strong><small>{c["total"]} preguntas · {esc(c["lema"])}</small></span></a></li>' for c in CHECKLISTS)
+                            f'<span><strong>{c["etapa"]}. {esc(c["nombre"])}</strong><small>{esc(c["lema"])} ({c["total"]} preguntas)</small></span></a></li>' for c in CHECKLISTS)
             cuerpo = f'<p class="docs-lead">Responde Sí, No o No sé en cada pregunta: te mostramos qué hacer con lo que falta. Tus respuestas quedan en este dispositivo.</p><ul class="ayu-cks">{filas}</ul>'
         elif k == 'normativa':
             filas = ''.join(f'<li class="ayu-ck"><a class="ayu-ck-titulo" href="{n["slug"]}.html"><span class="doc-icon">{I["normativa"]}</span>'
@@ -426,9 +426,14 @@ def menu_html():
 BOTON = (f'<a href="#ayuda" class="nav-docs" data-docs-open aria-controls="docs-panel" aria-expanded="false">Ayuda<span class="nav-docs-chev">{I["abajo"]}</span></a>')
 
 
+BUSCA = (f'<button class="nav-busca" type="button" data-busca-abrir aria-label="Buscar en la ayuda" title="Buscar (⌘K)">{I["buscar"]}</button>')
+
+
 def con_menu(s):
-    """Cabecera con el botón «Ayuda» (en lugar de «Normativa») y el panel entre sus marcas."""
+    """Cabecera con el botón «Ayuda» (en lugar de «Normativa»), la lupa del buscador y el panel entre sus marcas."""
     s = s.replace('<header class="site-header">', '<header class="site-header has-docs">', 1)
+    if 'class="nav-busca"' not in s:
+        s = s.replace('    <button class="menu-toggle"', f'    {BUSCA}\n    <button class="menu-toggle"', 1)
     s = re.sub(r'\n\s*<a href="normativa\.html"(?: aria-current="page")?>Normativa</a>', '', s, count=1)
     if 'class="nav-docs"' not in s:
         s = re.sub(r'(\n(\s*)<a [^>]*class="btn btn-primary btn-small"[^>]*>Organizar una campaña</a>)', lambda m: f'\n{m.group(2)}{BOTON}' + m.group(1), s, count=1)
@@ -553,7 +558,7 @@ def pagina_guia(g, base):
     acciones = (f'<button class="btn btn-ink btn-small" type="button" data-dock-open="contacto">{I["ficha"]}<span>Organizar una campaña</span></button>'
                 + (f'<a class="btn btn-quiet btn-small" href="{ck["slug"]}.html">{I["lista"]}<span>{esc(ck["titulo"])}</span></a>' if ck else ''))
     main = (f'  <article class="container guia">\n    {N.crumbs([("Inicio", "./"), (g["menu"], "")])}\n'
-            f'    <header class="guia-head"><p class="norm-kind"><span class="doc-icon">{I[g["icono"]]}</span>{esc(g["tipo"])}</p>'
+            f'    <header class="guia-head">'
             f'<h1 class="norm-title">{esc(g["titulo"])}</h1><p class="norm-lead">{esc(g["lead"])}</p>'
             f'<div class="norm-actions guia-actions">{acciones}</div></header>\n    {g["cuerpo"]}\n'
             + (f'    {N.faq_html(g["faq"])}\n' if g['faq'] else '') + f'    {fuente()}\n  </article>')
@@ -584,7 +589,7 @@ def pagina_checklist(c, base):
     main = (
         f'  <article class="container guia ckc" data-ck-campana data-clave="cr-{c["slug"]}" data-total="{c["total"]}" data-nombre="{esc(c["nombre"])}">\n'
         f'    {N.crumbs([("Inicio", "./"), ("Paso a paso", "paso-a-paso.html"), (c["titulo"], "")])}\n'
-        f'    <header class="guia-head"><p class="norm-kind"><span class="doc-icon">{I["lista"]}</span>Checklist · Etapa {c["etapa"]} de 4 · {c["total"]} preguntas</p>'
+        f'    <header class="guia-head">'
         f'<h1 class="norm-title">{esc(c["nombre"])}: {esc(c["lema"][0].lower() + c["lema"][1:])}</h1>'
         f'<p class="norm-lead">{esc(c["intro"])}</p>'
         f'<div class="norm-actions guia-actions"><a class="btn btn-quiet btn-small" href="paso-a-paso.html#etapa-{c["etapa"]}">{I["guia"]}<span>Leer la guía</span></a>'
@@ -684,12 +689,12 @@ def indice_busqueda():
         items.append({'g': 'Portada', 't': t, 's': sub, 'u': u})
     for g in GUIAS:
         items.append({'g': 'Guías', 't': g['titulo'], 's': g['resumen'], 'u': f'{g["slug"]}.html'})
-        for hid, h in re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', g['cuerpo']):
-            items.append({'g': 'Guías', 't': texto_plano(h), 's': g['menu'], 'u': f'{g["slug"]}.html#{hid}'})
+        for hid, h, cuerpo in re.findall(r'<h2 id="([^"]+)">(.*?)</h2>(.*?)(?=</section>)', g['cuerpo'], re.S):
+            items.append({'g': 'Guías', 't': texto_plano(h), 's': g['menu'], 'u': f'{g["slug"]}.html#{hid}', 'k': texto_plano(cuerpo)[:400]})
     for c in CHECKLISTS:
         items.append({'g': 'Checklists', 't': c['titulo'], 's': f'Etapa {c["etapa"]} de 4 · {c["lema"]}', 'u': f'{c["slug"]}.html'})
         for i, q in enumerate(c['preguntas'], 1):
-            items.append({'g': 'Checklists', 't': q[0], 's': f'{c["titulo"]}, pregunta {i}', 'u': f'{c["slug"]}.html#p{i}'})
+            items.append({'g': 'Checklists', 't': q[0], 's': f'{c["titulo"]}, pregunta {i}', 'u': f'{c["slug"]}.html#p{i}', 'k': q[2]})
     paginas = ['preguntas.html'] + sorted(f.name for f in ROOT.glob('*.html') if f.name not in ('preguntas.html', 'index.html', 'creditos.html')) + ['index.html']
     for pagina in paginas:
         archivo = './' if pagina == 'index.html' else pagina
@@ -699,9 +704,13 @@ def indice_busqueda():
                 continue
             items.append({'g': 'Preguntas', 't': texto_plano(q), 's': texto_plano(a)[:150], 'u': f'{archivo}#{pid}'})
     for n in N.NORMAS:
-        items.append({'g': 'Normativa', 't': f'{n["corto"]}: {n["nombre"]}', 's': n.get('oficial', ''), 'u': f'{n["slug"]}.html'})
+        items.append({'g': 'Normativa', 't': f'{n["corto"]}: {n["nombre"]}', 's': n.get('oficial', ''), 'u': f'{n["slug"]}.html',
+                      'k': ' '.join(t for t, _ in n.get('simple', []))[:600]})
         for num, nota in n.get('articulos', []):
             items.append({'g': 'Normativa', 't': f'{n["corto"]}, art. {num}: {nota}', 'u': f'{n["slug"]}.html#art-{num}'})
+    m = re.search(r'<script type="application/json" data-galeria-datos>(.*?)</script>', (ROOT / 'index.html').read_text(encoding='utf-8'), re.S)
+    for x in (json.loads(m.group(1)) if m else []):
+        items.append({'g': 'Aparatos', 't': x['nombre'], 's': f'{x["categoria"]}: {x["texto"]}', 'u': './#aparatos'})
     for a, b, c in MEDIDAS:
         items.append({'g': 'Tamaños', 't': a, 's': f'{b} · {c}', 'u': 'tamano-de-los-aparatos.html#h-medidas'})
     (ROOT / 'assets/campanas/ayuda-indice.json').write_text(json.dumps(items, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')

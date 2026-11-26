@@ -106,3 +106,10 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 - Avisos como Sonner: se apilan, se despliegan al pasar el puntero, duran 4 s (se pausan con el puntero, el foco o la pestaña oculta) y se cierran con su botón o deslizándolos. Reemplazan `window.SITE.toast` solo en Campañas.
 - Preguntas con dirección propia: cada pregunta desplegable tiene id (`#p-…`, y `#como-funciona-N` en la portada); al abrirla, la URL la lleva y se puede compartir; al llegar con ese enlace, se abre.
 - Portadas de «Una campaña para cada organización»: la foto real con una sombra abajo (antes, teñida de verde) y el texto alineado a la izquierda.
+
+## Pulido sin errores (26-11-2026, 2)
+
+- Sin trazos verticales decorativos: el índice de artículos de las normas marca el actual con un fondo (sin la barra que se deslizaba), el «Cómo funciona» de los servicios y el resultado marcado del buscador van sin raya al lado. Guías y checklists sin la etiqueta sobre el título (las migas ya dicen dónde se está); el menú «Ayuda» sin cadenas «8 preguntas · …».
+- Buscador: lupa en la cabecera (también en el teléfono); entiende sinónimos y formas comunes (refri, tele, precio, fecha, permiso, municipio…) y plurales; busca también en el texto de cada sección de las guías, en el «Qué hacer» de cada pregunta de los checklists, en los puntos «en simple» de las normas y en los aparatos de la galería (130 entradas); los grupos se ordenan por su mejor resultado.
+- Portadas de «para quién»: sombra más firme y sombra en el texto; el texto sobre las fotos queda en 7,6:1 o más (medido sobre los píxeles reales).
+- Revisión: axe-core (WCAG 2.2 A/AA y buenas prácticas) en todas las páginas y con el menú «Ayuda», el buscador, la ficha y un selector abiertos, en escritorio y teléfono: 0 problemas; sin errores de consola.
