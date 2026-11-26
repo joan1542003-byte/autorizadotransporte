@@ -131,8 +131,6 @@ body[data-site="campanas"] .stage-media.stage-color {
 }
 body[data-site="campanas"] .stage-media img { object-position: 62% 58%; }
 
-/* Servicios adicionales: para quién son y cuándo se prestan */
-.service-tag { width: fit-content; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); font-size: var(--fs-caption); font-weight: 800; }
 
 /* Hero: con «Quiero organizar una campaña» abierto, el título y la bajada pasan al plazo (data-view de transporte-ui.js).
    Los dos textos ocupan la misma celda; el que no corresponde queda invisible y fuera de la lectura en voz alta. */
@@ -155,7 +153,7 @@ body[data-site="campanas"] { background: #fff; }
 body[data-site="campanas"] .section-alt { background: transparent; }
 body[data-site="campanas"] .related { background: #fff; }
 body[data-site="campanas"] ::selection { background: #d7f5c4; color: var(--ink); }
-body[data-site="campanas"] .section-head .title::after { content: ""; display: block; width: 36px; height: 3px; margin-top: 14px; border-radius: 3px; background: linear-gradient(90deg, var(--accent), #7fd36b); }
+body[data-site="campanas"] .section-head .title::after { content: ""; display: block; width: 36px; height: 3px; margin-top: 14px; border-radius: 3px; background: var(--accent); }
 body[data-site="campanas"] .accordion .plus { color: var(--accent); }
 body[data-site="campanas"] .accordion summary:hover { color: var(--accent-strong); }
 body[data-site="campanas"] :is(.plan, .service, .related):hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
@@ -164,7 +162,7 @@ body[data-site="campanas"] .site-footer { border-top-color: color-mix(in srgb, v
 
 /* Teléfono: el hero ocupa la pantalla bajo la barra; la foto crece y toma el alto que sobra */
 @media (max-width: 860px) {
-  body[data-site="campanas"] .stage { display: flex; flex-direction: column; min-height: calc(100vh - 96px); min-height: calc(100svh - 96px); }
+  body[data-site="campanas"] .stage { display: flex; flex-direction: column; min-height: calc(100vh - 168px); min-height: calc(100svh - 168px - env(safe-area-inset-bottom, 0px)); }
   body[data-site="campanas"] .stage-media { flex: 1 1 auto; min-height: 190px; }
   body[data-site="campanas"] .stage-media img { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; }
 }
@@ -461,3 +459,37 @@ body[data-site="campanas"] .download-icon { color: var(--tc); }
 .ck-adjunto-t { display: grid; gap: 1px; min-width: 0; }
 .ck-adjunto-t strong { font-size: .9375rem; }
 .ck-adjunto-t small { color: var(--muted); font-size: var(--fs-caption); font-weight: 600; line-height: 1.4; }
+
+/* =====================================================================================
+   Pulido con las referencias de diseño del cliente (26-11-2026): Vercel Web Interface Guidelines, las 13 reglas de
+   tipografía de Lucas, cuándo poner íconos en botones (Caleb Porzio), Anti UI Slop (uizze), Taste Skill y Emil Kowalski.
+   ===================================================================================== */
+/* Texto corrido en líneas de 45 a 75 caracteres (antes, hasta 130 en las respuestas y las etapas) */
+body[data-site="campanas"] :is(.accordion .answer p, .etapa-pasos li, .guia-texto, .guia-sub, .guia-resultado, .guia-points li, .norm-art p, .norm-source p, .ckc-ayuda, .ckc-reco p, .ckc-fin-nota, .section-head .lead) { max-width: 68ch; }
+/* Cifras de ancho fijo: conteos, pasos y medidas no se mueven al cambiar */
+body[data-site="campanas"] :is(.ckc-barra, .ckc-num, .ckc-etapa-n, .ckc-etapa-t small, .ckc-pend-n, .etapa-n, .tabla-tamanos td, .norm-facts, .ck-adjunto-t small) { font-variant-numeric: tabular-nums; }
+/* Enlaces sueltos (citas, migas, acciones de las etapas): al menos 24 px de alto para tocarlos (WCAG 2.2, 2.5.8) */
+body[data-site="campanas"] :is(.law-ref, .norm-crumbs a, .etapa-acciones a, .ckc-link, .ckc-siguiente a) { display: inline-flex; align-items: center; min-height: 24px; }
+/* Campos de texto a 16 px en pantallas táctiles: con menos, el iPhone acerca la página al escribir */
+@media (pointer: coarse) { body[data-site="campanas"] :is(.pick-field input, .opt-other input, .picker-search input, .text-field textarea) { font-size: 16px; } }
+/* Fotos de las tarjetas: al pasar el puntero, un acercamiento sutil */
+@media (hover: hover) { body[data-site="campanas"] .plan:hover .plan-foto { transform: scale(1.03); } }
+/* Movimiento: sin entradas al hacer scroll (todas las secciones entraban igual y el contenido tardaba en aparecer);
+   transiciones de paneles, pasos y ventanas más cortas y sin desenfoque */
+@media (prefers-reduced-motion: no-preference) {
+  body[data-site="campanas"] :is(.reveal.is-in, .reveal-group.is-in > *) { animation: none; }
+  @keyframes panel-in { from { opacity: 0; transform: translateY(8px); } }
+  @keyframes step-in { from { opacity: 0; transform: translateX(16px); } }
+  @keyframes step-back { from { opacity: 0; transform: translateX(-16px); } }
+  @keyframes hero-card-in { from { opacity: 0; transform: translateY(10px) scale(.985); } }
+  @keyframes hero-fade-in { from { opacity: 0; transform: translateY(6px); } }
+  @keyframes picker-in { from { opacity: 0; transform: translateY(12px) scale(.98); } }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(-4px); } }
+}
+/* Sin barras de color a un costado de los recuadros ni bajo las fotos (recurso típico de plantilla): tinte parejo */
+body[data-site="campanas"] .ckc-reco { border-left: 0; border-radius: 14px; }
+body[data-site="campanas"] .service-media { border-bottom: 0; }
+/* Títulos en 700 (antes 800): una jerarquía más sobria, sin perder el carácter de la marca */
+body[data-site="campanas"] :is(h1, h2, h3) { font-weight: 700; }
+/* Pie: enlaces con al menos 24 px de alto para tocarlos */
+body[data-site="campanas"] .site-footer li a { display: inline-block; padding-block: 3px; }

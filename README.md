@@ -87,3 +87,14 @@ La ficha no envía datos a ningún servidor: arma un resumen y abre WhatsApp (`5
 
 - Cierre de cada checklist: «Guardar en PDF» y «Cotizar mi campaña», uno al lado del otro, y la etapa siguiente como enlace (en la etapa 4 había dos «Organizar una campaña»).
 - Checklists en la ficha: cada checklist deja su resumen en el navegador (`cr-res-<etapa>`, `checklist.js`); si hay alguno, el paso «Campaña» de la ficha muestra «Incluir mis checklists» (marcado) y cada etapa va al resumen y a WhatsApp con cuántas se respondieron y, textuales, las preguntas que quedaron en No o No sé. Lo arma `tools/ayuda.py` entre `<!-- ayuda:ck-ficha:inicio -->` y `<!-- ayuda:ck-ficha:fin -->`.
+
+## Pulido con referencias de diseño (26-11-2026)
+
+Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipografía de Lucas, cuándo poner íconos en botones (Caleb Porzio), Anti UI Slop (uizze), Taste Skill, Impeccable, el skill frontend-design de Anthropic y Emil Kowalski (además de shadcn, Radix, Vaul, Sonner y las demás librerías de la lista, como patrones).
+- Texto corrido en líneas de hasta unos 68 caracteres (antes, hasta 130); cifras de ancho fijo en conteos y medidas; espacios que no se cortan entre número y unidad y en «art. 24» o «DS 29/2024» (`nbsp()` en `tools/ayuda.py`).
+- Títulos en 700 (antes 800) y sin punto final en los títulos de sección.
+- Una sola acción rellena por pantalla: «Sumar a mi campaña» pasa a botón secundario. Sin flecha en los botones que abren la ficha (la flecha queda para los enlaces que llevan a otra página); «Ver más preguntas» pasa a «Todas las preguntas».
+- Fuera lo que se lee como plantilla: la píldora «Para municipalidades · Durante la campaña» (repetía el título de la sección), la raya verde bajo las fotos de los servicios, la barra lateral de «Qué hacer» en los checklists y el degradado de la raya bajo los títulos.
+- Movimiento: sin entradas al hacer scroll (todas las secciones entraban igual); transiciones de paneles, pasos y ventanas más cortas y sin desenfoque; acercamiento de las fotos al pasar el puntero de 1,05 a 1,03 y solo con puntero.
+- Tacto: enlaces sueltos de al menos 24 px de alto; campos a 16 px en pantallas táctiles (el iPhone ya no acerca la página al escribir); en el teléfono, el hero deja libre el espacio del botón de ayuda flotante (tapaba «¿Prefieres conversar?»).
+- Enlaces: 919 internos revisados; la guía de tamaños citaba el art. 2 del DS 22/2025, que faltaba en su página y se agregó desde el texto oficial. Externos, todos responden salvo yoreciclo.cl, que no tiene DNS configurado (el dominio está registrado).

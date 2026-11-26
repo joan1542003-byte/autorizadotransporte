@@ -52,6 +52,21 @@ I = {
 }
 
 
+# Espacios que no se cortan entre un número y su unidad, y en «art. 24» o «DS 29/2024» (Vercel Web Interface Guidelines)
+UNIDAD = r'(?:cm|kg|m²|m|t|días|toneladas|tonelada|litros|meses|mes|preguntas)(?![\w²])'
+
+
+def nbsp(html):
+    partes = re.split(r'(<[^>]+>)', html)
+    for i, t in enumerate(partes):
+        if t.startswith('<'):
+            continue
+        t = re.sub(r'(\d) (?=' + UNIDAD + ')', '\\1\u00a0', t)
+        t = re.sub(r'\b(art\.|arts\.|n\.°|DS|Ley) (?=\d)', '\\1\u00a0', t)
+        partes[i] = t
+    return ''.join(partes)
+
+
 def r29(art, letra=''):
     """Cita al DS 29/2024 en el sitio (artículo con su letra, si la tiene)."""
     return (DS29, art, f'DS 29/2024, art. {art}{" " + letra if letra else ""}')
@@ -338,7 +353,7 @@ def guia_autorizacion():
         f'<li><span>Preséntala en la SEREMI de Salud al menos 40 días hábiles antes del inicio.</span></li>'
         f'<li><span>Responde las observaciones dentro de 5 días hábiles, si las hay.</span></li></ol>'
         f'<p class="guia-texto">Si organizas la campaña con nosotros, preparamos contigo la solicitud y sus antecedentes.</p>'
-        f'<div class="guia-actions-row"><button class="btn btn-primary btn-small" type="button" data-dock-open="contacto">{I["ficha"]}<span>Organizar una campaña</span></button></div></section>'
+        f'<div class="guia-actions-row"><button class="btn btn-primary btn-small" type="button" data-dock-open="contacto">Organizar una campaña</button></div></section>'
         f'<section class="guia-sec" aria-labelledby="h-durante"><h2 id="h-durante">Durante y después de la campaña</h2>'
         + puntos([('El lugar se limpia al final de cada jornada, cuenta con contenedores suficientes y los residuos se llevan a un centro de acopio o a una instalación de valorización o eliminación autorizada.', [r29(26)]),
                   ('Con residuos peligrosos: superficie fácil de limpiar, personal capacitado presente y cierre con vigilancia si quedan residuos fuera de horario.', [r29(25)]),
@@ -460,7 +475,7 @@ def etapas_html():
             f'<ul class="etapa-pasos">{pasos}</ul><dl class="etapa-datos">{datos}</dl>'
             f'<p class="etapa-acciones"><a href="{c["slug"]}.html">Checklist de {c["total"]} preguntas{I["flecha"]}</a>'
             f'<a href="paso-a-paso.html#etapa-{c["etapa"]}">Paso a paso{I["flecha"]}</a></p></div></details>')
-    return f'      <div class="accordion etapas-lista reveal">{"".join(filas)}</div>'
+    return nbsp(f'      <div class="accordion etapas-lista reveal">{"".join(filas)}</div>')
 
 
 def con_etapas(s):
@@ -499,7 +514,7 @@ def con_tamanos(s):
     a, b = '<!-- ayuda:tamanos:inicio -->', '<!-- ayuda:tamanos:fin -->'
     if a not in s:
         return s
-    return s[:s.index(a) + len(a)] + '\n' + tamanos_html() + '\n' + s[s.index(b):]
+    return s[:s.index(a) + len(a)] + '\n' + nbsp(tamanos_html()) + '\n' + s[s.index(b):]
 
 
 # ---------- Páginas ----------
@@ -524,7 +539,7 @@ def pagina(base, slug, titulo, desc, ld_extra, faq, main, kind_ico, tema='genera
     if faq:
         graph.append({'@type': 'FAQPage', 'mainEntity': [{'@type': 'Question', 'name': q, 'acceptedAnswer': {'@type': 'Answer', 'text': a}} for q, a in faq]})
     s = N.con_cabeza(base, f'{titulo} | Campañas de recolección', desc, url, {'@context': 'https://schema.org', '@graph': graph})
-    s = re.sub(r'<main id="contenido">.*?</main>', lambda m: f'<main id="contenido">\n{main}\n</main>', s, count=1, flags=re.S)
+    s = re.sub(r'<main id="contenido">.*?</main>', lambda m: f'<main id="contenido">\n{nbsp(main)}\n</main>', s, count=1, flags=re.S)
     s = s.replace('<a href="preguntas.html" aria-current="page">Preguntas</a>', '<a href="preguntas.html">Preguntas</a>')
     s = s.replace('class="nav-docs" data-docs-open', 'class="nav-docs" aria-current="true" data-docs-open', 1)
     return N.con_tema(s, tema)

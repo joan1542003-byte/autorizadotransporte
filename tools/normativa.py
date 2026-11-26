@@ -205,7 +205,7 @@ NORMAS = [
         'fuente_pie': f'Texto del Diario Oficial de la República de Chile del 7 de mayo de 2026 (CVE 2805526), revisado el {REVISADO_TXT}.',
         'origen': ('diario', 'ds-22-2025-mma.txt'), 'epigrafes': True,
         'articulos': [
-            (1, 'Objeto'), (3, 'Ámbito de aplicación'), (4, 'Categorías de AEE'), (32, 'Campañas de recolección domiciliaria'),
+            (1, 'Objeto'), (2, 'Definiciones'), (3, 'Ámbito de aplicación'), (4, 'Categorías de AEE'), (32, 'Campañas de recolección domiciliaria'),
             (44, 'Municipalidades'), (46, 'Obligaciones de los consumidores'), (49, 'Entrada en vigencia'),
         ],
         'simple': [
