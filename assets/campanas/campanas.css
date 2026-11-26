@@ -39,62 +39,50 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
 .guia-parte { display: grid; gap: 10px; margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--line); scroll-margin-top: 96px; }
 .guia-parte-titulo { font-size: clamp(1.375rem, 1.2rem + .8vw, 1.75rem); }
 
-/* ---------- Aparatos: galería infinita con modelos 3D (galeria3d.js) ---------- */
-.galeria3d { position: relative; margin-top: 4px; }
-.galeria-escena { position: relative; }
-.galeria-lienzo {
-  position: relative; height: clamp(300px, 38vw, 460px); outline: none; touch-action: pan-y; cursor: grab;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
-          mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
-}
-.galeria-lienzo:active { cursor: grabbing; }
-.galeria-lienzo:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); border-radius: 24px; }
-.galeria-lienzo canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .6s var(--ease); }
-.galeria3d.is-lista .galeria-lienzo canvas { opacity: 1; }
-.galeria-carga {
-  position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: var(--fs-small); font-weight: 700;
-  opacity: 0; pointer-events: none; transition: opacity .3s;
-}
-.galeria3d.is-cargando:not(.is-lista) .galeria-carga { opacity: 1; }
-/* Sin WebGL (o si falla la carga): los cuatro tipos en una fila, sin 3D */
-.galeria-respaldo { display: none; list-style: none; position: absolute; inset: 0; align-content: center; justify-content: center; grid-template-columns: repeat(auto-fit, minmax(130px, 170px)); gap: 14px; }
-.galeria-respaldo li { display: grid; justify-items: center; gap: 10px; padding: 18px 10px; border-radius: 20px; background: var(--bg); color: var(--ink); font-size: var(--fs-small); font-weight: 800; text-align: center; }
-.galeria-respaldo-icono { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); }
-.galeria3d.sin-3d .galeria-respaldo { display: grid; }
-.galeria3d.sin-3d .galeria-lienzo { -webkit-mask-image: none; mask-image: none; cursor: default; }
-.galeria3d.sin-3d canvas, .galeria3d.sin-3d .galeria-flecha, .galeria3d.sin-3d .galeria-puntos { display: none; }
-.galeria-flecha {
-  position: absolute; top: 50%; z-index: 2; display: grid; place-items: center; width: 44px; height: 44px; margin-top: -22px;
-  border: 1px solid var(--line); border-radius: 999px; background: rgb(255 255 255 / .9); color: var(--ink); cursor: pointer;
-  box-shadow: 0 10px 24px -16px rgb(21 26 45 / .45); transition: border-color .25s, color .25s;
-}
-.galeria-flecha:hover { border-color: var(--accent); color: var(--accent); }
-.galeria-flecha:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.galeria-flecha.is-prev { left: clamp(0px, 4vw, 56px); }
-.galeria-flecha.is-next { right: clamp(0px, 4vw, 56px); }
-.galeria-puntos { display: flex; justify-content: center; gap: 8px; }
-.galeria-puntos button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 99px; background: var(--line-strong); cursor: pointer; transition: width .35s var(--ease), background-color .35s; }
-.galeria-puntos button[aria-current] { width: 22px; background: var(--accent); }
-.galeria-puntos button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.galeria-info { display: grid; justify-items: center; gap: 6px; max-width: 520px; margin: 18px auto 0; text-align: center; }
-/* Categoría del aparato del centro: una píldora centrada sobre la galería */
-.galeria-cat { width: fit-content; margin: 0 auto; padding: 6px 14px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); font-size: var(--fs-small); font-weight: 800; }
-.galeria-info h3 { font-size: var(--fs-subtitle); letter-spacing: -.015em; }
-.galeria-info p:not(.galeria-cat) { color: var(--ink-2); font-size: .9375rem; }
-.galeria-info .galeria-recibe { color: var(--muted); font-size: var(--fs-small); }
-.galeria-info .btn { margin-top: 10px; }
+/* ---------- Aparatos: carrusel infinito con perspectiva (carrusel.js, 26-11-2026) ----------
+   Sin JavaScript es una fila con desplazamiento horizontal; con él (is-3d), las tarjetas van por dentro de un cilindro.
+   Todas las tarjetas miden lo mismo: foto cuadrada y una franja con el nombre y el grupo. */
+#aparatos { overflow-x: clip; }
+.carrusel { --w: clamp(220px, 58vw, 340px); --h: calc(var(--w) * 1.25); position: relative; margin-top: 4px; }
+@media (min-width: 900px) { .carrusel { --w: clamp(340px, 30vw, 400px); } }
+.carrusel-escena { position: relative; margin-inline: calc(50% - 50vw); padding: 26px 0 30px; outline: none; }
+/* Con el teclado, el foco se ve en la tarjeta del centro (no como un marco de lado a lado) */
+.carrusel-escena:focus-visible .is-centro .carrusel-tarjeta, .carrusel:not(.is-3d) .carrusel-escena:focus-visible .carrusel-pista { outline: 2px solid var(--ink); outline-offset: 4px; }
+.carrusel-pista { list-style: none; display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-inline: max(var(--gutter, 20px), calc(50vw - var(--w) / 2)); }
+.carrusel-pista::-webkit-scrollbar { display: none; }
+.carrusel-item { flex: 0 0 var(--w); height: var(--h); scroll-snap-align: center; }
+.carrusel-tarjeta { display: grid; grid-template-rows: auto 1fr; height: 100%; margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 22px; background: #fff; box-shadow: 0 22px 44px -30px rgb(21 26 45 / .45); }
+.carrusel-tarjeta img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; background: #eceeed; pointer-events: none; -webkit-user-drag: none; }
+.carrusel-tarjeta figcaption { display: grid; align-content: center; gap: 2px; min-width: 0; padding: 0 18px; }
+.carrusel-tarjeta strong { overflow: hidden; color: var(--ink); font-size: 1.0625rem; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.carrusel-tarjeta small { overflow: hidden; color: var(--muted); font-size: var(--fs-caption); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+/* Con JavaScript: perspectiva y cilindro */
+.carrusel.is-3d .carrusel-escena { overflow: clip; perspective: calc(var(--w) * 3.3); perspective-origin: 50% 50%; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+.carrusel.is-arrastrando .carrusel-escena { cursor: grabbing; }
+.carrusel.is-3d .carrusel-pista { display: block; position: relative; height: var(--h); padding: 0; overflow: visible; transform-style: preserve-3d; }
+.carrusel.is-3d .carrusel-item { position: absolute; top: 0; left: 50%; width: var(--w); margin-left: calc(var(--w) / -2); backface-visibility: hidden; will-change: transform; }
+.carrusel.is-3d .carrusel-item:not(.is-centro) { cursor: pointer; }
+.carrusel.is-3d .carrusel-item:not(.is-centro) .carrusel-tarjeta { box-shadow: 0 14px 30px -26px rgb(21 26 45 / .5); }
+.carrusel-controles { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.carrusel-boton { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--line-strong); border-radius: 99px; background: #fff; color: var(--ink); cursor: pointer; transition: border-color .15s ease, transform .16s var(--ease-salida, ease-out); }
+@media (hover: hover) { .carrusel-boton:hover { border-color: var(--ink-2); } }
+.carrusel-boton:active { transform: scale(.96); }
+.carrusel-boton:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.carrusel-boton .is-play, .carrusel.is-pausado .carrusel-boton .is-pausa { display: none; }
+.carrusel.is-pausado .carrusel-boton .is-play { display: block; }
+.carrusel-cuenta { min-width: 52px; color: var(--muted); font-size: var(--fs-caption); font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; }
+.carrusel:not(.is-3d) .carrusel-controles { display: none; }
+.carrusel-info { display: grid; justify-items: center; gap: 6px; max-width: 540px; margin: 18px auto 0; text-align: center; }
+.carrusel-grupo { width: fit-content; padding: 5px 12px; border-radius: 999px; background: var(--bg-alt); color: var(--ink-2); font-size: var(--fs-caption); font-weight: 800; }
+.carrusel-info h3 { font-size: var(--fs-subtitle); letter-spacing: -.015em; }
+.carrusel-info p:not(.carrusel-grupo) { color: var(--ink-2); font-size: .9375rem; text-wrap: pretty; }
+.carrusel-info .carrusel-medida { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.carrusel-info .carrusel-nota { color: var(--muted); font-size: var(--fs-small); }
+.carrusel-info .btn { margin-top: 8px; }
+.carrusel-info > * { transition: opacity .16s ease, transform .16s ease; }
+.carrusel-info.is-saliendo > * { opacity: 0; transform: translateY(3px); }
+@media (prefers-reduced-motion: reduce) { .carrusel-info > * { transition: none; } }
 .galeria-nota { margin-inline: auto; text-align: center; }
-/* Cambio de aparato: el texto se desvanece y vuelve suave (galeria3d.js agrega is-saliendo) */
-.galeria-cat, .galeria-info > * { transition: opacity .42s var(--ease), transform .42s var(--ease); }
-.galeria3d.is-saliendo .galeria-cat, .galeria3d.is-saliendo .galeria-info > * { opacity: 0; transform: translateY(3px); transition-duration: .2s; transition-timing-function: ease-in; }
-@media (prefers-reduced-motion: reduce) { .galeria-cat, .galeria-info > * { transition: none; } }
-@media (max-width: 760px) {
-  .galeria-escena { margin-inline: calc(var(--gutter) * -1); }
-  .galeria-lienzo { height: 300px; }
-  .galeria-flecha { width: 40px; height: 40px; margin-top: -20px; }
-  .galeria-flecha.is-prev { left: 8px; }
-  .galeria-flecha.is-next { right: 8px; }
-}
 
 /* Créditos (creditos.html): una fila por elemento, con autor, licencia y enlaces */
 .creditos-lista { list-style: none; display: grid; border-top: 1px solid var(--line); }
@@ -148,7 +136,7 @@ body[data-site="campanas"] .stage-panel > .hcard { height: 100%; }
 
 /* Fondo de todo el sitio: blanco, el mismo en todas las secciones. El verde queda para detalles: la raya bajo los títulos
    de sección, los «+» de las preguntas, las viñetas, la selección de texto y el borde de las tarjetas al pasar el puntero.
-   La galería 3D toma este blanco para su niebla (galeria3d.js busca el primer fondo opaco). */
+   */
 body[data-site="campanas"] { background: #fff; }
 body[data-site="campanas"] .section-alt { background: transparent; }
 body[data-site="campanas"] .related { background: #fff; }
@@ -198,8 +186,8 @@ body[data-site="campanas"] .site-footer { border-top-color: color-mix(in srgb, v
   @keyframes picker-in { from { opacity: 0; transform: translateY(18px) scale(.97); filter: blur(6px); } }
   @keyframes fade-in { from { opacity: 0; transform: translateY(-6px); filter: blur(3px); } }
   /* Lo que se toca responde: se hunde un poco al presionar y vuelve con un rebote corto */
-  :is(.route, .pick-btn, .opt, .btn, .plan-btn, .galeria-flecha, .more-toggle) { transition-property: background-color, border-color, color, box-shadow, transform; transition-duration: .25s, .25s, .25s, .3s, .45s; transition-timing-function: var(--ease), var(--ease), var(--ease), var(--ease), cubic-bezier(.34, 1.56, .64, 1); }
-  :is(.route, .pick-btn, .opt, .btn, .plan-btn, .galeria-flecha, .more-toggle):active { transform: scale(.97); transition-duration: .1s; }
+  :is(.route, .pick-btn, .opt, .btn, .plan-btn, .carrusel-boton, .more-toggle) { transition-property: background-color, border-color, color, box-shadow, transform; transition-duration: .25s, .25s, .25s, .3s, .45s; transition-timing-function: var(--ease), var(--ease), var(--ease), var(--ease), cubic-bezier(.34, 1.56, .64, 1); }
+  :is(.route, .pick-btn, .opt, .btn, .plan-btn, .carrusel-boton, .more-toggle):active { transform: scale(.97); transition-duration: .1s; }
   .route:hover .route-icon { transform: translateX(2px) rotate(-4deg); }
   .route-icon { transition: transform .45s cubic-bezier(.34, 1.56, .64, 1); }
   /* La opción elegida en una ventana marca su elección con un pulso breve */
@@ -277,7 +265,9 @@ body[data-site="campanas"] main > .section:last-child { padding-bottom: clamp(48
 
 /* ---------- Checklists por etapa ---------- */
 .ckc-etapas ol { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 26px; }
-.ckc-etapas a { position: relative; display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 16px; background: #fff; color: var(--ink); text-decoration: none; transition: border-color .2s, background-color .2s; }
+/* Todas las etapas del mismo alto, aunque un nombre ocupe dos líneas */
+.ckc-etapas li { display: flex; }
+.ckc-etapas a { flex: 1; position: relative; display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 64px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 16px; background: #fff; color: var(--ink); text-decoration: none; transition: border-color .2s, background-color .2s; }
 .ckc-etapas a:hover { border-color: var(--line-strong); }
 .ckc-etapas a[aria-current="page"] { border-color: var(--tc); box-shadow: inset 0 0 0 1px var(--tc); }
 .ckc-etapa-n { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 99px; background: var(--bg-alt); color: var(--ink-2); font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -641,11 +631,20 @@ body[data-site="campanas"] .guia-errors { padding-left: 0; border-left: 0; }
 .tamano-foto img[src*="aparato-"] { object-fit: contain; background: #f0f0f1; }
 .doc-case-foto { display: block; width: 100%; max-width: 360px; height: auto; aspect-ratio: 4 / 3; margin-bottom: 14px; border-radius: 12px; object-fit: cover; background: #eceeed; }
 
-/* Opciones con foto en el buscador */
-.busca-op { grid-template-columns: minmax(0, 1fr); align-items: center; }
-.busca-op.con-foto { grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; }
-.busca-op-txt { display: grid; gap: 2px; min-width: 0; }
-.busca-op-foto { width: 40px; height: 40px; border-radius: 9px; background: #eceeed; object-fit: cover; }
+/* Opciones del buscador: compactas (título y foto chica); la marcada (puntero o flechas) se agranda: foto más grande,
+   título más grande y su descripción. Todas cambian con la misma curva y duración: lo que una crece, la anterior lo
+   devuelve, y la fila bajo el puntero no se corre. */
+.busca-op { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 0; --dur: .22s; --curva: cubic-bezier(.23, 1, .32, 1); }
+.busca-op.con-foto { grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; }
+.busca-op-txt { display: grid; grid-template-rows: auto 0fr; min-width: 0; transition: grid-template-rows var(--dur) var(--curva); }
+.busca-op-t { font-size: .9375rem; transition: font-size var(--dur) var(--curva); }
+.busca-op .busca-op-txt small { min-height: 0; margin-top: 0; opacity: 0; transition: opacity var(--dur) ease, margin-top var(--dur) var(--curva); }
+.busca-op-foto { width: 36px; height: 36px; border-radius: 8px; background: #eceeed; object-fit: cover; transition: width var(--dur) var(--curva), height var(--dur) var(--curva), border-radius var(--dur) var(--curva); }
+.busca-op[aria-selected="true"] .busca-op-txt { grid-template-rows: auto 1fr; }
+.busca-op[aria-selected="true"] .busca-op-t { font-size: 1.0625rem; }
+.busca-op[aria-selected="true"] .busca-op-txt small { margin-top: 3px; opacity: 1; }
+.busca-op[aria-selected="true"] .busca-op-foto { width: 64px; height: 64px; border-radius: 12px; }
+@media (prefers-reduced-motion: reduce) { .busca-op { --dur: 0s; } }
 /* Respuesta rápida */
 .busca-extra:empty { display: none; }
 .busca-extra { display: grid; gap: 14px; padding: 14px 14px 4px; }

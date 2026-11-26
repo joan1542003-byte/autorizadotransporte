@@ -546,6 +546,73 @@ def con_etapas(s):
     return s[:s.index(a) + len(a)] + '\n' + etapas_html() + '\n      ' + s[s.index(b):]
 
 
+# ---------- Carrusel de aparatos de la portada (reemplaza la galería 3D, 26-11-2026) ----------
+# Una tarjeta por foto del cliente; el grupo es el de la ficha. La medida sale de MEDIDAS (el monitor no tiene una).
+GRUPO_TXT = {
+    'Pequeños aparatos': ('Ninguna de sus medidas supera 50 cm: celulares, hervidores, planchas, secadores de pelo, microondas y similares.',
+                          'Las pilas y baterías sueltas no se incluyen por defecto.'),
+    'Computadores': ('Notebooks, computadores de escritorio, teclados, impresoras y otros periféricos.',
+                     'Indica si traen baterías incorporadas: cambian la forma de recibirlos y almacenarlos.'),
+    'Pantallas y monitores': ('Televisores, monitores y otras pantallas, de cualquier tamaño.',
+                              'Las pantallas dañadas requieren condiciones de recepción y manipulación adecuadas.'),
+    'Grandes aparatos': ('Alguna de sus medidas supera 50 cm: lavadoras, secadoras, cocinas y refrigeradores.',
+                         'Dependen del espacio, la carga y el destino. Los refrigeradores se reciben enteros y aparte, por sus gases refrigerantes.'),
+}
+APARATOS = [('notebook', 'Notebook', 'Computadores'), ('televisor', 'Televisor', 'Pantallas y monitores'),
+            ('microondas', 'Microondas', 'Pequeños aparatos'), ('lavadora', 'Lavadora', 'Grandes aparatos'),
+            ('celular', 'Celular', 'Pequeños aparatos'), ('monitor', 'Monitor', 'Pantallas y monitores'),
+            ('hervidor', 'Hervidor', 'Pequeños aparatos'), ('refrigerador', 'Refrigerador', 'Grandes aparatos')]
+FLECHA_IZQ = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>'
+FLECHA_DER = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>'
+PAUSA = '<svg class="is-pausa" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg><svg class="is-play" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 6 4.5Z"/></svg>'
+
+
+def medida_de(foto):
+    return MEDIDAS[MEDIDA_FOTO.index(foto)][1] if foto in MEDIDA_FOTO else ''
+
+
+def carrusel_html():
+    ap = 'assets/campanas/aparatos'
+    n = len(APARATOS)
+    items = []
+    for i, (f, nombre, grupo) in enumerate(APARATOS):
+        texto, nota = GRUPO_TXT[grupo]
+        med = medida_de(f)
+        items.append(
+            f'<div class="carrusel-item" role="group" aria-roledescription="diapositiva" aria-label="{i + 1} de {n}: {nombre}" '
+            f'data-nombre="{esc(nombre)}" data-grupo="{esc(grupo)}" data-texto="{esc(texto)}" data-nota="{esc(nota)}" data-medida="{esc(med)}">'
+            f'<figure class="carrusel-tarjeta"><img src="{ap}/aparato-{f}-400.webp" srcset="{ap}/aparato-{f}-400.webp 400w, {ap}/aparato-{f}-800.webp 800w" '
+            f'sizes="(max-width: 640px) 60vw, 340px" width="800" height="800" alt="" loading="lazy" decoding="async" draggable="false">'
+            f'<figcaption><strong>{esc(nombre)}</strong><small>{esc(grupo)}</small></figcaption></figure></div>')
+    f, nombre, grupo = APARATOS[0]
+    texto, nota = GRUPO_TXT[grupo]
+    med = medida_de(f)
+    return (
+        '<div class="carrusel reveal" data-carrusel>\n'
+        '        <div class="carrusel-escena" tabindex="0" role="region" aria-roledescription="carrusel" aria-label="Aparatos que se reciben. Usa las flechas izquierda y derecha para cambiar.">\n'
+        f'          <div class="carrusel-pista">{"".join(items)}</div>\n'
+        '        </div>\n'
+        '        <div class="carrusel-controles">'
+        f'<button class="carrusel-boton" type="button" data-carrusel-prev aria-label="Aparato anterior">{FLECHA_IZQ}</button>'
+        f'<p class="carrusel-cuenta" aria-hidden="true"><span data-carrusel-n>1</span> / {n}</p>'
+        f'<button class="carrusel-boton" type="button" data-carrusel-pausa aria-pressed="false" aria-label="Pausar el carrusel" hidden>{PAUSA}</button>'
+        f'<button class="carrusel-boton" type="button" data-carrusel-next aria-label="Aparato siguiente">{FLECHA_DER}</button></div>\n'
+        '        <div class="carrusel-info" data-carrusel-info aria-live="polite">'
+        f'<p class="carrusel-grupo" data-carrusel-grupo>{esc(grupo)}</p><h3 data-carrusel-nombre>{esc(nombre)}</h3>'
+        f'<p data-carrusel-texto>{esc(texto)}</p>'
+        f'<p class="carrusel-medida" data-carrusel-medida{"" if med else " hidden"}>Medida típica: {esc(med)}</p>'
+        f'<p class="carrusel-nota" data-carrusel-nota>{esc(nota)}</p>'
+        f'<a class="btn btn-primary btn-small" href="#contacto" data-add="aparatos={esc(grupo)}" data-carrusel-add>Incluir «{esc(grupo)}» en la ficha</a></div>\n'
+        '      </div>')
+
+
+def con_carrusel(s):
+    a, b = '<!-- ayuda:carrusel:inicio -->', '<!-- ayuda:carrusel:fin -->'
+    if a not in s:
+        return s
+    return s[:s.index(a) + len(a)] + '\n      ' + carrusel_html() + '\n      ' + s[s.index(b):]
+
+
 # ---------- Ventana «Tamaño de los aparatos» de la ficha (la abre el «?» de «Aparatos» y va dentro de su ventana) ----------
 def tamanos_html():
     return ('<div id="guia-tamanos" hidden data-title="Tamaño de los aparatos" data-pregunta="¿Qué tamaño tiene cada tipo?" '
@@ -740,14 +807,16 @@ def indice_busqueda():
                       ('Servicios adicionales para municipalidades', 'Retiro domiciliario asistido y área de equipos reutilizables', './#adicionales'),
                       ('Cómo funciona una campaña', 'Las cuatro etapas, de la planificación al reporte', './#proceso'),
                       ('¿Hasta cuándo pedir la autorización?', 'Calcula el plazo y la fecha límite para presentar la solicitud', './#plazo'),
-                      ('Aparatos que se reciben', 'Galería de aparatos por tipo', './#aparatos')):
+                      ('Aparatos que se reciben', 'Fotos de aparatos por tipo, con su grupo y medida típica', './#aparatos')):
         items.append({'g': 'Portada', 't': t, 's': sub, 'u': u})
     ap = 'assets/campanas/aparatos'
     MINI_GUIA = {'paso-a-paso': 'etapa-3-punto-armado', 'tamano-de-los-aparatos': 'tamano-pequenos-huincha', 'autorizacion-sanitaria': 'etapa-2-autorizacion'}
     for g in GUIAS:
         items.append({'g': 'Guías', 't': g['titulo'], 's': g['resumen'], 'u': f'{g["slug"]}.html', **({'i': f'{G_FOTOS}/{MINI_GUIA[g["slug"]]}-160.webp'} if g['slug'] in MINI_GUIA else {})})
         for hid, h, cuerpo in re.findall(r'<h2 id="([^"]+)">(.*?)</h2>(.*?)(?=</section>)', g['cuerpo'], re.S):
-            items.append({'g': 'Guías', 't': texto_plano(h), 's': g['menu'], 'u': f'{g["slug"]}.html#{hid}', 'k': texto_plano(cuerpo)[:400], **({'i': items[-1]['i']} if items[-1].get('i') else {})})
+            m_et = re.fullmatch(r'h-etapa-(\d)', hid)
+            mini_sec = f'{G_FOTOS}/{FOTO_ETAPA[int(m_et.group(1))]}-160.webp' if m_et else (f'{G_FOTOS}/{MINI_GUIA[g["slug"]]}-160.webp' if g['slug'] in MINI_GUIA else '')
+            items.append({'g': 'Guías', 't': texto_plano(h), 's': g['menu'], 'u': f'{g["slug"]}.html#{hid}', 'k': texto_plano(cuerpo)[:400], **({'i': mini_sec} if mini_sec else {})})
     for c in CHECKLISTS:
         items.append({'g': 'Checklists', 't': c['titulo'], 's': f'Etapa {c["etapa"]} de 4 · {c["lema"]}', 'u': f'{c["slug"]}.html',
                       'i': f'{G_FOTOS}/{ {1: "etapa-1-planificacion", 2: "etapa-2-autorizacion", 3: "difusion-plaza", 4: "etapa-4-cierre"}[c["etapa"]]}-160.webp',
@@ -771,11 +840,8 @@ def indice_busqueda():
                       'k': ' '.join(t for t, _ in n.get('simple', []))[:600]})
         for num, nota in n.get('articulos', []):
             items.append({'g': 'Normativa', 't': f'{n["corto"]}, art. {num}: {nota}', 'u': f'{n["slug"]}.html#art-{num}'})
-    m = re.search(r'<script type="application/json" data-galeria-datos>(.*?)</script>', (ROOT / 'index.html').read_text(encoding='utf-8'), re.S)
-    for x in (json.loads(m.group(1)) if m else []):
-        foto_ap = {'Celular': 'aparato-celular', 'Notebook': 'aparato-notebook', 'Televisor': 'aparato-televisor', 'Refrigerador': 'aparato-refrigerador',
-                   'Lavadora': 'aparato-lavadora', 'Microondas': 'aparato-microondas'}.get(x['nombre'], 'categoria-pequenos')
-        items.append({'g': 'Aparatos', 't': x['nombre'], 's': f'{x["categoria"]}: {x["texto"]}', 'u': './#aparatos', 'i': f'{ap}/{foto_ap}-160.webp'})
+    for f, nombre, grupo in APARATOS:
+        items.append({'g': 'Aparatos', 't': nombre, 's': f'{grupo}: {GRUPO_TXT[grupo][0]}', 'u': './#aparatos', 'i': f'{ap}/aparato-{f}-160.webp'})
     for k, (a, b, c) in enumerate(MEDIDAS):
         items.append({'g': 'Tamaños', 't': a, 's': f'{b} · {c}', 'u': 'tamano-de-los-aparatos.html#h-medidas',
                       'i': f'{ap}/aparato-{MEDIDA_FOTO[k]}-160.webp', 'f': f'{ap}/aparato-{MEDIDA_FOTO[k]}-400.webp',
@@ -790,7 +856,7 @@ def main():
         s = p.read_text(encoding='utf-8')
         if nombre == 'creditos.html':  # la ficha flotante es la de preguntas.html, ya al día
             s = con_ficha(s, (ROOT / 'preguntas.html').read_text(encoding='utf-8'))
-        p.write_text(con_ck_ficha(con_tamanos(con_etapas(con_menu(s)))), encoding='utf-8')
+        p.write_text(con_carrusel(con_ck_ficha(con_tamanos(con_etapas(con_menu(s))))), encoding='utf-8')
         print('ok menú', nombre)
     base = N.plantilla()
     for g in GUIAS:

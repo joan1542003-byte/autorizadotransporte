@@ -120,3 +120,9 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 - Buscador (`campanas.js`): recomendaciones sin texto (avance de checklists, lo más buscado, búsquedas recientes en este dispositivo), miniaturas y respuestas rápidas con gráfico (plazo, medida contra 50 cm, avance, pilas, costo, retiro domiciliario).
 - `filas.js` (compartido): opciones con foto (`data-img` / `data-imgs`). Falta llevarlo a Transporte.
 - Anclas: con `#destino` las secciones se dibujan completas (antes `#plazo` quedaba corrido).
+
+## Carrusel de aparatos y buscador que se agranda (26-11-2026)
+
+- La galería 3D (three.js y siete modelos .glb, unos 2 MB) se reemplazó por un carrusel infinito con perspectiva (`assets/campanas/carrusel.js`): ocho fotos del cliente por dentro de un cilindro; arrastre con inercia, rueda horizontal, flechas, toque en una tarjeta lateral y avance automático con pausa. Su HTML lo genera `tools/ayuda.py` (`APARATOS`, `carrusel_html()`) y es también el grupo «Aparatos» del buscador. Créditos actualizados.
+- Buscador: las filas son compactas y la marcada (puntero o flechas) se agranda con su foto, título y descripción, sin que la lista salte bajo el puntero.
+- Etapas del checklist: todas del mismo alto.

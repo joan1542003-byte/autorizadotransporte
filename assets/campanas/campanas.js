@@ -379,7 +379,16 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
       if (e.key === 'Enter' && ops[activo]) { e.preventDefault(); ops[activo].click(); }
       if ((e.key === 'Home' || e.key === 'End') && ops.length && !input.value) { e.preventDefault(); mueve(e.key === 'Home' ? 0 : ops.length - 1); }
     });
-    lista.addEventListener('pointermove', (e) => { const o = e.target.closest('.busca-op'); if (o && ops.indexOf(o) !== activo) mueve(ops.indexOf(o), false); });
+    /* Con el puntero se marca la fila que está debajo, solo si el puntero se movió de verdad (no porque la lista se
+       acomodó bajo él) y no mientras la fila recién marcada termina de agrandarse */
+    let px = -1; let py = -1; let quieto = 0;
+    lista.addEventListener('pointermove', (e) => {
+      if (e.clientX === px && e.clientY === py) return;
+      px = e.clientX; py = e.clientY;
+      if (performance.now() < quieto) return;
+      const o = e.target.closest('.busca-op');
+      if (o && ops.indexOf(o) !== activo) { mueve(ops.indexOf(o), false); quieto = performance.now() + 200; }
+    });
     /* Al elegir, se recuerda la búsqueda y se cierra primero (los enlaces de esta misma página y la ficha siguen su curso) */
     lista.addEventListener('click', (e) => { if (e.target.closest('.busca-op')) { recordar(); dlg.close(); } });
     extra.addEventListener('click', (e) => {
