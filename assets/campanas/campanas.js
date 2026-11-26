@@ -38,12 +38,11 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
 })();
 
 /* Checklists en la ficha: si en este dispositivo se respondió alguno (checklist.js deja un resumen por etapa en
-   cr-res-<etapa>), el paso «Campaña» ofrece «Incluir mis checklists», marcado. Cada etapa va en su campo oculto y así
-   llega al resumen y a WhatsApp: cuántas respondió y, textuales, las preguntas que quedaron en No o No sé. */
+   cr-res-<etapa>), sus respuestas van solas en la ficha, sin opción a la vista: cada etapa en su campo oculto, que se
+   llena justo antes de armar el resumen y llega a WhatsApp: cuántas respondió y, textuales, las preguntas que quedaron
+   en No o No sé. */
 (() => {
   document.querySelectorAll('[data-ck-adjunto]').forEach((box) => {
-    const incluir = box.querySelector('[data-ck-adjunto-incluir]');
-    const detalle = box.querySelector('[data-ck-adjunto-detalle]');
     const campos = [...box.querySelectorAll('input[data-ck]')];
     const NOMBRE = { no: 'No', nose: 'No sé' };
     const leer = (k) => { try { return JSON.parse(localStorage.getItem(`cr-res-${k}`) || 'null'); } catch { return null; } };
@@ -52,12 +51,9 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
       : `${r.hechas} de ${r.total} respondidas, todas en Sí`);
     const pinta = () => {
       const hay = campos.map((c) => [c, leer(c.dataset.ck)]).filter(([, r]) => r?.hechas);
-      box.hidden = !hay.length;
-      detalle.textContent = hay.map(([, r]) => `${r.nombre}: ${r.hechas} de ${r.total}`).join(' · ');
-      campos.forEach((c) => { const r = hay.find(([x]) => x === c)?.[1]; c.value = incluir.checked && r ? texto(r) : ''; });
+      campos.forEach((c) => { const r = hay.find(([x]) => x === c)?.[1]; c.value = r ? texto(r) : ''; });
     };
     pinta();
-    incluir.addEventListener('change', pinta);
     addEventListener('storage', (e) => { if (e.key?.startsWith('cr-res-')) pinta(); });
     addEventListener('pageshow', pinta);  // al volver desde un checklist con «Atrás»
     document.addEventListener('ckc:cambio', pinta);  // en la página del checklist, mientras se responde
@@ -113,6 +109,9 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   });
 })();
 
+/* En iPhone, :active (el hundirse al tocar) solo se activa si la página escucha el toque */
+document.addEventListener('touchstart', () => {}, { passive: true });
+
 /* Campañas de recolección: lo propio de estas páginas que no está en el sistema de Transporte.
    Logo: como el de Transporte, solo mientras el puntero está encima toma otro color de la paleta de la marca (cada
    pasada, el siguiente); al salir vuelve a su verde, que define el CSS. */
@@ -166,11 +165,80 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   const FOTO = { pilas: ['assets/campanas/guias/pilas-baterias-720.webp', 'Pila de 9 V, pilas AA y AAA y una batería recargable', 480],
     domicilio: ['assets/campanas/raee-retiro-domiciliario-720.webp', '', 540] };
   const RECIENTES = 'cr-busquedas';
+  const SIN_AVANCE = 'cr-busca-sin-avance';
+  /* Atajos: lo que alguien puede escribir (sin tildes, en minúscula) y adónde lo lleva el buscador, primero en la lista.
+     Una clave de varias palabras se busca en la frase; una de una palabra, también mientras se escribe (trans → transporte). */
+  const ATAJOS = [
+    { t: 'Transporte Autorizado', s: 'Retiro de residuos peligrosos y no peligrosos · otro sitio', u: 'https://transporteautorizado.cl', ext: 1,
+      q: ['transporte', 'transportista', 'transporte autorizado', 'retiro de residuos', 'residuos peligrosos', 'residuos no peligrosos', 'residuos industriales', 'camion', 'flete', 'gestor', 'sidrep', 'peligroso', 'respel'] },
+    { t: 'HDS: hojas de seguridad', s: 'Hojas de seguridad y evaluación documental de residuos · otro sitio', u: 'https://hds.cl', ext: 1,
+      q: ['hds', 'hdsr', 'hoja de seguridad', 'hojas de seguridad', 'hoja de datos', 'msds', 'sds', 'ficha de seguridad', 'evaluacion documental'] },
+    { t: 'Escribir por WhatsApp', s: 'Conversa con nosotros: +56 9 8606 7930', a: 'conversar',
+      q: ['whatsapp', 'wsp', 'wasap', 'whats', 'telefono', 'llamar', 'contacto', 'contactar', 'hablar', 'asesor', 'ejecutivo', 'numero', 'correo', 'mail', 'email'] },
+    { t: 'Organizar una campaña', s: 'Abre la ficha preliminar para cotizar la campaña', a: 'contacto',
+      q: ['cotizar', 'cotizacion', 'presupuesto', 'contratar', 'organizar', 'solicitar', 'formulario', 'ficha', 'agendar', 'reservar', 'quiero una campana'] },
+    { t: '¿Hasta cuándo pedir la autorización?', s: 'Calcula la fecha límite para presentar la solicitud', u: './#plazo',
+      q: ['calcular', 'calculadora', 'calendario', 'fecha limite', 'cuando presentar', 'cuanto antes', 'anticipacion', 'dias habiles'] },
+    { t: 'Autorización sanitaria', s: 'Quién la pide, ante quién, con cuánta anticipación y qué incluye', u: 'autorizacion-sanitaria.html',
+      q: ['seremi', 'autorizacion', 'permiso', 'resolucion', 'sanitaria', 'tramite', 'solicitud sanitaria'] },
+    { t: 'Paso a paso de una campaña', s: 'Las cuatro etapas: planificación, autorización, ejecución y cierre', u: 'paso-a-paso.html',
+      q: ['paso a paso', 'etapas', 'como funciona', 'proceso', 'guia', 'pasos', 'como se hace', 'como organizar'] },
+    { t: 'Checklists por etapa', s: 'Responde Sí, No o No sé y te decimos qué hacer', u: 'checklist-planificacion.html',
+      q: ['checklist', 'lista de verificacion', 'chequeo', 'verificar', 'pendientes', 'revisar'] },
+    { t: 'Tamaño de los aparatos', s: 'Qué es un aparato pequeño o grande, con medidas de referencia', u: 'tamano-de-los-aparatos.html',
+      q: ['medida', 'medidas', 'tamano', 'dimension', 'pequeno', 'grande', 'cm', 'centimetros', '50 cm'] },
+    { t: 'Aparatos que se reciben', s: 'Fotos por tipo, con su grupo y medida típica', u: './#aparatos',
+      q: ['que reciben', 'que se recibe', 'aparatos', 'electrodomesticos', 'electronicos', 'raee', 'reciben', 'aceptan', 'linea blanca', 'computadores'] },
+    { t: 'Retiro domiciliario asistido', s: 'Para quienes no pueden llevar sus aparatos al punto', u: './#ad-retiro',
+      q: ['domicilio', 'domiciliario', 'retiro en casa', 'a domicilio', 'adulto mayor', 'movilidad reducida', 'retirar en casa'] },
+    { t: 'Área de equipos reutilizables', s: 'Equipos completos que podrían tener una segunda vida', u: './#ad-reutilizacion',
+      q: ['reutilizar', 'reutilizacion', 'reutilizable', 'donar', 'donacion', 'segunda vida', 'reparar', 'reacondicionar'] },
+    { t: 'Para quién es cada campaña', s: 'Municipalidades, empresas y sistemas de gestión', u: './#publicos',
+      q: ['municipalidad', 'municipio', 'muni', 'empresa', 'sistema de gestion', 'colegio', 'universidad', 'condominio', 'institucion', 'gransic'] },
+    { t: 'Normativa', s: 'DS 29/2024 Minsal, DS 22/2025 MMA y Ley REP 20.920, en simple', u: 'normativa.html',
+      q: ['ley', 'decreto', 'norma', 'normativa', 'reglamento', 'ds 29', 'ds 22', 'ley rep', '20920', '20.920', 'minsal', 'mma', 'legal'] },
+    { t: 'Checklist de cierre y reporte', s: 'Respaldos, reporte en el RETC y destino de lo recibido', u: 'checklist-cierre-reporte.html',
+      q: ['retc', 'reporte', 'reportar', 'declarar', 'ventanilla unica', 'informe final', 'certificado', 'trazabilidad'] },
+    { t: 'Preguntas frecuentes', s: 'Todas las preguntas sobre las campañas', u: 'preguntas.html',
+      q: ['preguntas', 'faq', 'dudas', 'ayuda', 'consultas'] },
+    { t: 'Créditos', s: 'Tipografías, íconos, mapa e imágenes del sitio', u: 'creditos.html', q: ['creditos', 'licencias', 'tipografia'] }
+  ];
+  const atajos = (q) => {
+    const frase = ` ${q} `;
+    const palabras = q.split(/\s+/).filter((p) => p.length >= 3);
+    return ATAJOS.filter((x) => x.q.some((k) => (k.includes(' ') ? frase.includes(` ${k}`) : palabras.some((p) => p === k || (p.length >= 4 && k.startsWith(p)) || (k.length >= 4 && p.startsWith(k)))))).slice(0, 3);
+  };
+  /* Errores de tipeo: si una palabra no aparece en el índice, se cambia por la más parecida (una letra de diferencia; dos
+     en palabras largas) */
+  let vocab = null;
+  const distancia = (a, b) => {
+    if (Math.abs(a.length - b.length) > 2) return 9;
+    const f = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      let prev = f[0]; f[0] = i;
+      for (let j = 1; j <= b.length; j++) { const t = f[j]; f[j] = Math.min(f[j] + 1, f[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = t; }
+    }
+    return f[b.length];
+  };
+  const corrige = (palabras) => {
+    if (!vocab) vocab = [...new Set(indice.flatMap((x) => fold(`${x.t} ${x.s || ''}`).split(/[^a-z0-9ñ.]+/)).filter((w) => w.length >= 4))];
+    let cambio = false;
+    const nuevas = palabras.map((p) => {
+      if (p.length < 4 || vocab.some((w) => w.includes(p)) || formas(p).some((f) => vocab.some((w) => w.includes(f)))) return p;
+      const max = p.length >= 8 ? 2 : 1;
+      let mejor = null; let d = 9;
+      vocab.forEach((w) => { const x = distancia(p, w); if (x < d) { d = x; mejor = w; } });
+      if (mejor && d <= max) { cambio = true; return mejor; }
+      return p;
+    });
+    return cambio ? nuevas : null;
+  };
   const formas = (p) => {
     const base = p.length > 4 && p.endsWith('es') ? p.slice(0, -2) : p.length > 3 && p.endsWith('s') ? p.slice(0, -1) : p;
     return [...new Set([p, base, ...(SINONIMOS[p] || []), ...(SINONIMOS[base] || [])])];
   };
   const LUPA = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>';
+  const FUERA = '<svg class="busca-op-fuera" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>';
   const RELOJ = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>';
   const fold = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -198,9 +266,16 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     return html;
   };
   const avance = () => indice.filter((x) => x.ck).map((x) => ({ ...x, r: leer(`cr-res-${x.ck}`, null) }));
-  const busca = (q) => {
+  const busca = (q, corregida) => {
     const palabras = fold(q).split(/\s+/).filter(Boolean);
     if (!indice || !palabras.length) return { palabras, variantes: [], filas: [] };
+    if (!corregida) {
+      const r = busca(q, true);
+      if (r.filas.length) return r;
+      const otra = corrige(palabras);
+      if (otra) { const r2 = busca(otra.join(' '), true); if (r2.filas.length) return { ...r2, corregido: otra.join(' ') }; }
+      return r;
+    }
     const variantes = palabras.map(formas);
     const filas = indice.map((x, i) => {
       const t = x.ft || (x.ft = fold(x.t));
@@ -220,7 +295,7 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   const barras = (lista) => `<ol class="busca-avance">${lista.map((x) => {
     const h = x.r?.hechas || 0; const pend = x.r?.pend?.length || 0;
     const txt = !h ? 'Sin respuestas' : `${h} de ${x.tot}${pend ? ` · ${pend} por resolver` : ''}`;
-    return `<li><span class="busca-avance-n">${x.e}. ${esc(x.n)}</span><span class="busca-avance-barra" role="img" aria-label="${h} de ${x.tot} preguntas respondidas${pend ? `, ${pend} con No o No sé` : ''}"><i style="--p:${(100 * (h - pend)) / x.tot}%"></i><i class="is-pend" style="--p:${(100 * pend) / x.tot}%"></i></span><small>${txt}</small></li>`;
+    return `<li style="--n:${x.e}"><span class="busca-avance-n">${x.e}. ${esc(x.n)}</span><span class="busca-avance-barra" role="img" aria-label="${h} de ${x.tot} preguntas respondidas${pend ? `, ${pend} con No o No sé` : ''}"><span class="busca-avance-relleno"><i style="--p:${(100 * (h - pend)) / x.tot}%"></i><i class="is-pend" style="--p:${(100 * pend) / x.tot}%"></i></span></span><small>${txt}</small></li>`;
   }).join('')}</ol>`;
   const siguienteCk = (lista) => lista.find((x) => x.r?.hechas && x.r.hechas < x.tot) || lista.find((x) => !x.r?.hechas) || lista[0];
   const respuestas = {
@@ -246,8 +321,9 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
       const sig = siguienteCk(l);
       const alguna = l.some((x) => x.r?.hechas);
       return {
-        html: tarjeta('is-avance', 'Tu avance en los checklists', `<p class="busca-resp-t">${alguna ? 'Tu avance en los checklists' : 'Cuatro checklists, uno por etapa'}</p>${barras(l)}`
-          + `<p class="busca-resp-nota">${alguna ? 'Tus respuestas quedan en este dispositivo y puedes adjuntarlas a la ficha.' : 'Responde Sí, No o No sé y te decimos qué hacer en cada caso.'}</p>`),
+        html: tarjeta('is-avance', 'Tu avance en los checklists', `<div class="busca-resp-cabeza"><p class="busca-resp-t">${alguna ? 'Tu avance en los checklists' : 'Cuatro checklists, uno por etapa'}</p>`
+          + (alguna ? `<button type="button" class="busca-resp-ocultar" data-busca-avance="${leer(SIN_AVANCE, 0) ? 'mostrar' : 'ocultar'}">${leer(SIN_AVANCE, 0) ? 'Mostrar al abrir' : 'Ocultar'}</button>` : '') + `</div>${barras(l)}`
+          + `<p class="busca-resp-nota">${alguna ? 'Tus respuestas quedan en este dispositivo.' : 'Responde Sí, No o No sé y te decimos qué hacer en cada caso.'}</p>`),
         titulo: 'Tu avance',
         acciones: [{ t: `${sig.r?.hechas ? 'Seguir con' : 'Empezar'} el checklist de ${sig.n.toLowerCase()}`, s: `Etapa ${sig.e} de 4`, u: sig.u, i: sig.i }]
       };
@@ -307,7 +383,7 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     const pick = (g, n) => indice.filter((x) => x.g === g && !/#/.test(x.u || '')).slice(0, n);
     const filas = [...pick('Acciones', 1), indice.find((x) => x.u === './#plazo'), ...pick('Guías', 3), ...pick('Checklists', 4)].filter(Boolean);
     return {
-      html: (l.some((x) => x.r?.hechas) ? respuestas.avance().html : '')
+      html: (l.some((x) => x.r?.hechas) && !leer(SIN_AVANCE, 0) ? respuestas.avance().html : '')
         + chips('Búsquedas recientes', leer(RECIENTES, []), true) + chips('Lo más buscado', FRECUENTES),
       filas
     };
@@ -326,12 +402,12 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     const cont = `${x.i ? `<img class="busca-op-foto" src="${esc(x.i)}" width="40" height="40" alt="" loading="lazy" decoding="async">` : ''}<span class="busca-op-txt"><span class="busca-op-t">${marca(x.t, palabras)}</span>${s ? `<small>${marca(s, palabras)}</small>` : ''}</span>`;
     const cl = `busca-op${x.i ? ' con-foto' : ''}`;
     return x.a ? `<button type="button" class="${cl}" role="option" id="busca-op-${n}" data-dock-open="${x.a}"${x.add ? ` data-add="${esc(x.add)}"` : ''}>${cont}</button>`
-      : `<a class="${cl}" role="option" id="busca-op-${n}" href="${esc(x.u)}">${cont}</a>`;
+      : `<a class="${cl}${x.ext ? ' is-externo' : ''}" role="option" id="busca-op-${n}" href="${esc(x.u)}"${x.ext ? ' target="_blank" rel="noopener noreferrer"' : ''}>${cont}${x.ext ? `${FUERA}<span class="sr-only"> (se abre en otra pestaña)</span>` : ''}</a>`;
   };
   const pinta = () => {
     if (!indice) { ponExtra(''); lista.innerHTML = '<p class="busca-vacio">Cargando…</p>'; ops = []; return; }
     const q = input.value.trim();
-    let { palabras, variantes, filas } = busca(q);
+    let { palabras, variantes, filas, corregido } = busca(q);
     let html = ''; let grupos = [];
     if (!palabras.length) {
       const s = sugerencias();
@@ -344,11 +420,19 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
         filas = filas.filter((x) => !usadas.has(x.u));
         grupos.push([r.titulo, r.acciones]);
       }
+      const usadas = new Set(grupos.flatMap(([, fs]) => fs.map((x) => x.u || x.a)));
+      const directo = atajos(fold(corregido || q)).filter((x) => !usadas.has(x.u || x.a));
+      if (directo.length) {
+        grupos.push(['Ir directo', directo]);
+        const ya = new Set(directo.map((x) => x.u).filter(Boolean));
+        filas = filas.filter((x) => !ya.has(x.u));
+      }
       [...new Set(filas.map((x) => x.g))].forEach((g) => grupos.push([g, filas.filter((x) => x.g === g)]));
+      if (corregido) html = `<p class="busca-corregido" role="status">Mostramos resultados para «<strong>${esc(corregido)}</strong>».</p>${html}`;
     }
     let n = 0;
     /* Sin resultados, el aviso y su enlace van fuera de la lista (una lista de opciones solo lleva opciones) */
-    const nada = palabras.length && !filas.length && !html;
+    const nada = palabras.length && !grupos.length && !html;
     lista.innerHTML = nada ? '' : grupos.map(([g, fs]) => `<div class="busca-grupo" role="group" aria-label="${esc(g)}"><p class="busca-grupo-t" aria-hidden="true">${esc(g)}</p>${fs.map((x) => opcion(x, palabras, n++)).join('')}</div>`).join('');
     ponExtra(nada ? `<p class="busca-vacio" role="status">No encontramos «${esc(q)}». Prueba con otra palabra o <button type="button" class="busca-enlace" data-dock-open="conversar">escríbenos por WhatsApp</button>.</p>${chips('Prueba con', FRECUENTES.slice(0, 5))}` : html);
     ops = [...lista.querySelectorAll('.busca-op')];
@@ -393,6 +477,18 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     lista.addEventListener('click', (e) => { if (e.target.closest('.busca-op')) { recordar(); dlg.close(); } });
     extra.addEventListener('click', (e) => {
       if (e.target.closest('.busca-enlace')) { dlg.close(); return; }
+      const av = e.target.closest('[data-busca-avance]');
+      if (av) {
+        const ocultar = av.dataset.buscaAvance === 'ocultar';
+        try { if (ocultar) localStorage.setItem(SIN_AVANCE, '1'); else localStorage.removeItem(SIN_AVANCE); } catch { /* sin almacenamiento */ }
+        const card = av.closest('.busca-resp');
+        /* Sin texto, se va con una animación (se pliega); con texto, solo cambia el botón */
+        if (ocultar && !input.value.trim() && card && matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+          card.classList.add('is-saliendo');
+          setTimeout(() => { previa = null; pinta(); input.focus(); }, 260);
+        } else { previa = null; pinta(); input.focus(); }
+        return;
+      }
       const chip = e.target.closest('[data-busca-q]');
       if (chip) { input.value = chip.dataset.buscaQ; pinta(); input.focus(); return; }
       if (e.target.closest('[data-busca-borrar]')) { try { localStorage.removeItem(RECIENTES); } catch { /* nada */ } pinta(); input.focus(); }

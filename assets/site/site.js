@@ -403,26 +403,37 @@
     });
   });
 
-  /* Acordeones con altura animada */
+  /* Acordeones con altura animada. Se pueden abrir y cerrar rápido: la animación nueva parte desde el alto que hay en
+     ese momento, y el aviso tardío de la que se canceló no le quita el recorte (overflow) a la nueva, que es lo que
+     dejaba el texto y las fotos encima de lo de abajo. */
   d.querySelectorAll('.accordion details').forEach((det) => {
     const summary = det.querySelector('summary');
     let anim = null;
+    let abierto = det.open;
     summary.addEventListener('click', (e) => {
       if (!motion.matches || !det.animate) return;
       e.preventDefault();
-      anim?.cancel();
-      const closing = det.open;
-      const start = det.offsetHeight;
-      det.open = !closing;
-      const end = det.offsetHeight;
-      if (closing) det.open = true;
+      const start = det.getBoundingClientRect().height;
+      const closing = abierto;
+      abierto = !closing;
+      if (anim) { const viejo = anim; anim = null; viejo.cancel(); }
+      det.open = true;
+      const alto = det.offsetHeight;
+      det.open = false;
+      const bajo = det.offsetHeight;
+      det.open = true;
       det.classList.add('is-animating');
       det.classList.toggle('is-opening', !closing);
-      anim = det.animate({ height: [`${start}px`, `${end}px`] }, { duration: 380, easing: 'cubic-bezier(.22,1,.36,1)' });
-      const done = () => { det.classList.remove('is-animating', 'is-opening'); anim = null; };
-      anim.onfinish = () => { if (closing) det.open = false; done(); };
-      anim.oncancel = done;
+      const a = det.animate({ height: [`${start}px`, `${closing ? bajo : alto}px`] }, { duration: 380, easing: 'cubic-bezier(.22,1,.36,1)' });
+      anim = a;
+      a.onfinish = () => {
+        if (anim !== a) return;
+        if (closing) det.open = false;
+        det.classList.remove('is-animating', 'is-opening');
+        anim = null;
+      };
     });
+    det.addEventListener('toggle', () => { if (!anim) abierto = det.open; });
   });
 
   /* Pestañas: radios dentro de [data-tabs] y paneles [data-tab-panel="valor"] */

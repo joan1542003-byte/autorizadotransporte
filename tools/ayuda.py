@@ -627,11 +627,10 @@ def tamanos_html():
 
 
 def ck_ficha_html():
+    """Las respuestas de los checklists van solas en la ficha (campos ocultos, sin opción a la vista): llegan en el resumen
+    que se envía si la persona respondió alguno en este dispositivo."""
     campos = ''.join(f'<input type="hidden" name="{c["slug"]}" data-label="{esc(c["titulo"])}" data-ck="{c["slug"]}">' for c in CHECKLISTS)
-    return ('<div class="ck-adjunto" data-ck-adjunto hidden><label class="ck-adjunto-fila"><input type="checkbox" data-ck-adjunto-incluir checked>'
-            f'<span class="ck-adjunto-icono" aria-hidden="true">{I["lista"]}</span>'
-            '<span class="ck-adjunto-t"><strong>Incluir mis checklists</strong><small data-ck-adjunto-detalle></small></span></label>'
-            f'{campos}</div>')
+    return f'<div data-ck-adjunto hidden>{campos}</div>'
 
 
 def con_ck_ficha(s):
@@ -731,7 +730,6 @@ def pagina_checklist(c, base):
         f'<p class="guia-resultado"><strong>Al terminar esta etapa:</strong> {esc(c["resultado"])}</p>'
         f'<div class="ckc-fin-acciones"><button class="btn btn-quiet" type="button" data-ckc-imprimir>{I["imprimir"]}<span>Guardar en PDF</span></button>'
         f'<button class="btn btn-primary" type="button" data-dock-open="contacto">{I["ficha"]}<span>Cotizar mi campaña</span></button></div>'
-        f'<p class="ckc-fin-nota">Al cotizar desde este dispositivo, la ficha te ofrece incluir tus respuestas de los checklists.</p>'
         + (f'<p class="ckc-siguiente"><a href="{sig["slug"]}.html">Seguir con la etapa {sig["etapa"]}: {esc(sig["nombre"])}{I["flecha"]}</a></p>' if sig else '')
         + '</section>\n'
         f'    {fuente()}\n  </article>')

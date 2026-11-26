@@ -127,3 +127,10 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 - Buscador: las filas son compactas y la marcada (puntero o flechas) se agranda con su foto, título y descripción, sin que la lista salte bajo el puntero.
 - Etapas del checklist: todas del mismo alto.
 - Carrusel (segunda versión): las tarjetas de los lados se curvan (cada una se dibuja en 16 franjas sobre el cilindro; la curva crece al alejarse del centro) y la del centro queda plana. Al tocar la del centro (o Enter) se voltea y muestra su grupo, medida típica y nota. El alto de la escena se calcula para que nada se corte abajo. Se arma recién cuando el carrusel se acerca a la pantalla.
+
+## Estándar Apple, búsqueda inteligente y checklists en la ficha (26-11-2026)
+
+- Acordeones (`assets/site/site.js`, compartido): se pueden abrir y cerrar rápido sin que el texto y las fotos queden encima de lo de abajo.
+- Buscador: atajos «Ir directo» para lo que alguien puede escribir (Transporte Autorizado, HDS, WhatsApp, cotizar, normativa, retiro domiciliario…), corrección de errores de tipeo, y el avance de los checklists con barras que se llenan y opción de ocultarlo.
+- Las respuestas de los checklists van solas en la ficha (campos ocultos), sin opción en el formulario.
+- Toques: lo que se toca se hunde al presionar y vuelve con resorte; nada se eleva, acerca ni gira al pasar el puntero. Degradados sutiles en vez de colores planos. Esquinas continuas (squircle) con `corner-shape`, nativo y sin JavaScript.
