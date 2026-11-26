@@ -424,7 +424,8 @@
       det.open = true;
       det.classList.add('is-animating');
       det.classList.toggle('is-opening', !closing);
-      const a = det.animate({ height: [`${start}px`, `${closing ? bajo : alto}px`] }, { duration: 380, easing: 'cubic-bezier(.22,1,.36,1)' });
+      const dur = parseFloat(getComputedStyle(det).getPropertyValue('--acordeon-ms')) || 380;
+      const a = det.animate({ height: [`${start}px`, `${closing ? bajo : alto}px`] }, { duration: dur, easing: 'cubic-bezier(.22,1,.36,1)' });
       anim = a;
       a.onfinish = () => {
         if (anim !== a) return;

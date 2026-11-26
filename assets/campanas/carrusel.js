@@ -121,7 +121,7 @@
     if (primera || quieto.matches) { pon(); return; }
     info.classList.add('is-saliendo');
     clearTimeout(cambia.t);
-    cambia.t = setTimeout(() => { pon(); info.classList.remove('is-saliendo'); }, 140);
+    cambia.t = setTimeout(() => { pon(); info.classList.remove('is-saliendo'); }, 240);
   };
 
   /* Movimiento: se acerca a la meta con un resorte amortiguado (sin rebote) */
@@ -130,7 +130,7 @@
     const dt = Math.min(0.05, (ahora - antes) / 1000 || 0.016);
     antes = ahora;
     if (!arrastrando) {
-      pos += (meta - pos) * (1 - Math.exp(-dt * 8));
+      pos += (meta - pos) * (1 - Math.exp(-dt * 5.5));
       if (Math.abs(meta - pos) < 0.0008) pos = meta;
     }
     pinta();
@@ -160,7 +160,7 @@
   const toma = () => { if (auto) ponAuto(false); };
 
   /* Volteo de la tarjeta del centro */
-  const GIRO = 520;
+  const GIRO = 750;
   const voltea = (i) => {
     if (volteada >= 0 || pos !== meta) return;
     volteada = i;

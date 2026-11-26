@@ -67,7 +67,7 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
 .carrusel.is-3d .carrusel-pista { display: block; position: relative; width: auto; height: var(--h); padding: 0; overflow: visible; transform-style: preserve-3d; }
 .carrusel.is-3d .carrusel-item { position: absolute; top: 0; left: 50%; width: var(--w); margin-left: calc(var(--w) / -2); transform-style: preserve-3d; opacity: 0; pointer-events: none; }
 .carrusel.is-3d .carrusel-item.is-plana { opacity: 1; pointer-events: auto; cursor: pointer; }
-.carrusel.is-3d .carrusel-volteo { transform-style: preserve-3d; transition: transform .52s cubic-bezier(.3, .7, .2, 1); }
+.carrusel.is-3d .carrusel-volteo { transform-style: preserve-3d; transition: transform .75s cubic-bezier(.22, 1, .36, 1); }
 .carrusel.is-3d .carrusel-item.is-volteada .carrusel-volteo { transform: rotateY(180deg); }
 .carrusel.is-3d .carrusel-volteo > .carrusel-tarjeta { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 22px 44px -30px rgb(21 26 45 / .45); }
 .carrusel.is-3d .carrusel-tarjeta.is-dorso { display: grid; grid-template-rows: none; align-content: safe center; justify-items: start; gap: 10px; padding: 26px 24px; transform: rotateY(180deg); }
@@ -105,7 +105,7 @@ body[data-site="campanas"] .routes-tabs .route:first-of-type[aria-selected="fals
 .carrusel-info h3 { font-size: var(--fs-subtitle); letter-spacing: -.015em; }
 .carrusel-pista-txt { color: var(--muted); font-size: var(--fs-small); }
 .carrusel-info .btn { margin-top: 10px; }
-.carrusel-info > * { transition: opacity .16s ease, transform .16s ease; }
+.carrusel-info > * { transition: opacity .3s ease, transform .3s cubic-bezier(.22, 1, .36, 1); }
 .carrusel-info.is-saliendo > * { opacity: 0; transform: translateY(3px); }
 @media (prefers-reduced-motion: reduce) { .carrusel-info > *, .carrusel.is-3d .carrusel-volteo { transition: none; } }
 .galeria-nota { margin-inline: auto; text-align: center; }
@@ -214,8 +214,8 @@ body[data-site="campanas"] .site-footer { border-top-color: color-mix(in srgb, v
   :is(.route, .pick-btn, .opt, .btn, .plan-btn, .carrusel-boton, .more-toggle) { transition-property: background-color, border-color, color, box-shadow, transform; transition-duration: .25s, .25s, .25s, .3s, .45s; transition-timing-function: var(--ease), var(--ease), var(--ease), var(--ease), cubic-bezier(.34, 1.56, .64, 1); }
   :is(.route, .pick-btn, .opt, .btn, .plan-btn, .carrusel-boton, .more-toggle):active { transform: scale(.97); transition-duration: .1s; }
   /* La opción elegida en una ventana marca su elección con un pulso breve */
-  .opt[aria-pressed="true"] { animation: opt-elegida .5s cubic-bezier(.34, 1.56, .64, 1); }
-  @keyframes opt-elegida { 40% { transform: scale(1.03); } }
+  .opt[aria-pressed="true"] { animation: opt-elegida .7s cubic-bezier(.22, 1, .36, 1); }
+  @keyframes opt-elegida { 35% { transform: scale(1.012); } }
 }
 
 /* Un solo fondo para todo el sitio: sin el cambio de color entre secciones, el espacio entre ellas se reduce a la mitad */
@@ -545,8 +545,8 @@ body[data-site="campanas"] { --ease-salida: cubic-bezier(.23, 1, .32, 1); }
 .busca-pie span { display: inline-flex; align-items: center; gap: 4px; }
 @media (pointer: coarse) { .busca-pie { display: none; } }
 @media (prefers-reduced-motion: no-preference) {
-  .busca[open] { animation: busca-in .2s var(--ease-salida, ease-out) both; }
-  .busca[open]::backdrop { animation: busca-velo .2s ease both; }
+  .busca[open] { animation: busca-in .32s cubic-bezier(.22, 1, .36, 1) both; }
+  .busca[open]::backdrop { animation: busca-velo .32s ease both; }
   @keyframes busca-in { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
   @keyframes busca-velo { from { opacity: 0; } }
 }
@@ -652,7 +652,7 @@ body[data-site="campanas"] .guia-errors { padding-left: 0; border-left: 0; }
 /* Opciones del buscador: compactas (título y foto chica); la marcada (puntero o flechas) se agranda: foto más grande,
    título más grande y su descripción. Todas cambian con la misma curva y duración: lo que una crece, la anterior lo
    devuelve, y la fila bajo el puntero no se corre. */
-.busca-op { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 0; --dur: .22s; --curva: cubic-bezier(.23, 1, .32, 1); }
+.busca-op { grid-template-columns: minmax(0, 1fr); align-items: center; gap: 0; --dur: .34s; --curva: cubic-bezier(.22, 1, .36, 1); }
 .busca-op.con-foto { grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; }
 .busca-op-txt { display: grid; grid-template-rows: auto 0fr; min-width: 0; transition: grid-template-rows var(--dur) var(--curva); }
 .busca-op-t { font-size: .9375rem; transition: font-size var(--dur) var(--curva); }
@@ -722,14 +722,14 @@ body[data-site="campanas"] .guia-errors { padding-left: 0; border-left: 0; }
 
 /* Buscador (26-11-2026): avance que se oculta, barras que se llenan, atajos a otros sitios y corrección de tipeo */
 .busca-resp-cabeza { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.busca-resp-ocultar { flex: none; min-height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; background: linear-gradient(180deg, #fff, #f6f7f7); color: var(--ink-2); font: 700 .8125rem/1 var(--font); cursor: pointer; transition: transform .18s cubic-bezier(.3, .7, .4, 1.4); }
-.busca-resp-ocultar:active { transform: scale(.94); }
+.busca-resp-ocultar { flex: none; min-height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; background: #fff; color: var(--ink-2); font: 700 .8125rem/1 var(--font); cursor: pointer; transition: transform .5s cubic-bezier(.22, 1, .36, 1); }
+.busca-resp-ocultar:active { transform: scale(.97); transition-duration: .14s; }
 .busca-resp-ocultar:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .busca-avance-relleno { display: flex; width: 100%; height: 100%; }
 @media (prefers-reduced-motion: no-preference) {
-  .busca-avance-relleno { animation: busca-llena .9s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--n, 1) * 90ms + 120ms); }
+  .busca-avance-relleno { animation: busca-llena 1.3s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--n, 1) * 110ms + 160ms); }
   @keyframes busca-llena { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-  .busca-resp.is-saliendo { animation: busca-resp-fuera .26s cubic-bezier(.4, 0, .2, 1) both; }
+  .busca-resp.is-saliendo { animation: busca-resp-fuera .36s cubic-bezier(.4, 0, .2, 1) both; }
   @keyframes busca-resp-fuera { to { opacity: 0; transform: scale(.96) translateY(-6px); filter: blur(2px); } }
 }
 .busca-corregido { padding: 0 4px; color: var(--ink-2); font-size: var(--fs-small); }
@@ -741,46 +741,287 @@ body[data-site="campanas"] .guia-errors { padding-left: 0; border-left: 0; }
    Estándar Apple (26-11-2026): lo que se toca responde al toque, no al paso del puntero.
    - Al presionar, se hunde (rápido); al soltar, vuelve con un resorte corto. Nada se eleva, acerca ni gira al pasar el
      puntero; las flechas de los enlaces tampoco se mueven.
-   - Superficies con degradados sutiles en vez de colores planos: un relieve que oscurece apenas hacia abajo (va sobre el
-     color de fondo, así los estados elegidos conservan su color) y un brillo arriba en los botones llenos.
    - Esquinas continuas (squircle) con corner-shape, nativo: sin JavaScript ni recortes (clip-path cortaría bordes,
      sombras y focos). Donde el navegador no lo soporta, quedan las esquinas redondeadas de siempre. Lo circular sigue
      circular.
    ========================================================================== */
 body[data-site="campanas"] {
-  --resorte: cubic-bezier(.34, 1.4, .64, 1);
-  --relieve: linear-gradient(180deg, rgb(255 255 255 / 0) 35%, rgb(16 24 40 / .035));
-  --brillo: linear-gradient(180deg, rgb(255 255 255 / .16), rgb(255 255 255 / 0) 62%);
+  --resorte: cubic-bezier(.22, 1, .36, 1);
 }
 /* Toque: se hunde al presionar y vuelve con resorte */
 body[data-site="campanas"] :is(.btn, .opt, .pick-btn, .route, .plan-btn, .more-toggle, .carrusel-boton, .busca-chip, .busca-op, .busca-cerrar, .ayu-busca, .nav-busca, .dock-toggle, .ckc-etapas a, .etapas-lista summary, .accordion summary, .plan, .service, .service-item, .related, .ckc-op, .tamano-tipos li, .plazo .btn, [data-ckc-op]) {
   -webkit-tap-highlight-color: transparent;
   transition-property: background-color, border-color, color, box-shadow, transform, opacity;
-  transition-duration: .25s, .25s, .25s, .3s, .5s, .2s;
+  transition-duration: .3s, .3s, .3s, .35s, .7s, .3s;
   transition-timing-function: ease, ease, ease, ease, var(--resorte), ease;
 }
-body[data-site="campanas"] :is(.btn, .opt, .pick-btn, .route, .plan-btn, .more-toggle, .carrusel-boton, .busca-chip, .busca-cerrar, .nav-busca, .dock-toggle, .ckc-op, [data-ckc-op]):active { transform: scale(.96); transition-duration: .25s, .25s, .25s, .3s, .08s, .2s; transition-timing-function: ease, ease, ease, ease, ease-out, ease; }
+body[data-site="campanas"] :is(.btn, .opt, .pick-btn, .route, .plan-btn, .more-toggle, .carrusel-boton, .busca-chip, .busca-cerrar, .nav-busca, .dock-toggle, .ckc-op, [data-ckc-op]):active { transform: scale(.975); transition-duration: .3s, .3s, .3s, .35s, .14s, .3s; transition-timing-function: ease, ease, ease, ease, cubic-bezier(.4, 0, .2, 1), ease; }
 /* Lo grande se hunde menos */
 body[data-site="campanas"] :is(.plan, .service, .service-item, .related, .ckc-etapas a, .ayu-busca, .busca-op):active,
-body[data-site="campanas"] :is(.etapas-lista, .accordion) summary:active { transform: scale(.985); transition-duration: .25s, .25s, .25s, .3s, .08s, .2s; transition-timing-function: ease, ease, ease, ease, ease-out, ease; }
+body[data-site="campanas"] :is(.etapas-lista, .accordion) summary:active { transform: scale(.99); transition-duration: .3s, .3s, .3s, .35s, .14s, .3s; transition-timing-function: ease, ease, ease, ease, cubic-bezier(.4, 0, .2, 1), ease; }
 @media (prefers-reduced-motion: reduce) { body[data-site="campanas"] :is(*):active { transform: none !important; } }
 /* Sin movimiento al pasar el puntero */
 @media (hover: hover) {
   body[data-site="campanas"] :is(.btn:hover svg.arrow, .link:hover svg.arrow, a:hover .link svg.arrow, .guia-links a:hover > svg:last-child, .extra:hover .extra-link::after, .post-rel-link:hover > svg:last-child) { transform: none; }
   body[data-site="campanas"] .route[aria-selected="false"]:hover::after { transform: none; }
 }
-/* Degradados sutiles */
-body[data-site="campanas"] :is(.btn-primary, .btn-wa, .btn-dark, .plan-btn) { background-image: var(--brillo); }
-body[data-site="campanas"] :is(.btn-secondary, .btn-quiet, .opt, .pick-btn, .carrusel-boton, .busca-chip, .busca-cerrar, .ayu-busca, .etapas-lista details, .tamano-tipos li, .ckc-etapas a, .carrusel-tarjeta, .busca-resp-ocultar) { background-image: var(--relieve); }
-body[data-site="campanas"] .busca-resp { background: linear-gradient(180deg, #f7f8f8, #eff1f1); }
-body[data-site="campanas"] .carrusel-grupo, body[data-site="campanas"] .busca-op[aria-selected="true"] { background: linear-gradient(180deg, #f5f6f6, #eceeee); }
-body[data-site="campanas"] .busca-avance-barra i { background: linear-gradient(180deg, #3d73b3, #2a5791); }
-body[data-site="campanas"] .busca-avance-barra i.is-pend { background: linear-gradient(180deg, #c98a2a, #a86c14); }
-body[data-site="campanas"] .busca-linea-barra .is-rev { background: linear-gradient(180deg, #3d73b3, #2a5791); }
-body[data-site="campanas"] .busca-regla-rango { background: linear-gradient(180deg, #7d5cad, #5e4189); }
-body[data-site="campanas"] .busca-regla-rango.is-sobre { background: linear-gradient(180deg, #5f68a3, #444c80); }
 /* Esquinas continuas */
 @supports (corner-shape: squircle) {
   body[data-site="campanas"] * { corner-shape: squircle; }
   body[data-site="campanas"] :is(.dock, .nav-busca, .dock-toggle, .carrusel-boton, .carrusel-girar, .ckc-etapa-n, .ckc-num, .pm, .hcard-close, .plazo-punto, .busca-linea-barra i, .busca-avance-barra, .busca-regla, .busca-regla-rango, .wa-icon, .dot) { corner-shape: round; }
 }
+/* Acordeones más pausados (site.js lee --acordeon-ms) */
+body[data-site="campanas"] .accordion details { --acordeon-ms: 520; }
+
+/* squircle:inicio (generado por tools/squircle.py; no editar a mano) */
+@supports (corner-shape: squircle) {
+:root { --r-l: 33px; --r-m: 24px; --r-s: 15px; }
+:focus-visible { border-radius: 9px; }
+.skip { border-radius: var(--r-s); }
+.site-header .container { border-radius: 999px; }
+.site-header .container::before { border-radius: inherit; }
+.nav a:not(.btn) { border-radius: 999px; }
+.menu-toggle { border-radius: 999px; }
+@media (max-width: 860px) { .nav { border-radius: 33px; } }
+@media (max-width: 860px) { .nav a:not(.btn) { border-radius: 0; } }
+.btn { border-radius: 999px; }
+.hero-meta span::before { border-radius: 99px; }
+.hero-media { border-radius: var(--r-l); }
+.card { border-radius: var(--r-m); }
+.card-media { border-radius: var(--r-m) var(--r-m) 0 0; }
+.step::before { border-radius: 99px; }
+.checklist li::before { border-radius: 99px; }
+.doc-note { border-radius: var(--r-s); }
+.feature-media { border-radius: var(--r-l); }
+.accordion .plus::before, .accordion .plus::after { border-radius: 2px; }
+.field input:not([type="radio"]):not([type="checkbox"]), .field select, .field textarea { border-radius: var(--r-s); }
+.segmented span { border-radius: 999px; }
+.segmented .dot { border-radius: 99px; }
+.segmented.has-glide { border-radius: 999px; }
+.segmented > .glide { border-radius: 999px; }
+.pill > span { border-radius: 999px; }
+[data-required-group][data-invalid] { border-radius: var(--r-s); }
+.choice > span { border-radius: var(--r-s); }
+.stepper-bar { border-radius: 99px; }
+.stepper-bar i { border-radius: inherit; }
+.summary { border-radius: var(--r-m); }
+.summary pre { border-radius: var(--r-s); }
+.panel { border-radius: var(--r-l); }
+.related { border-radius: var(--r-l); }
+.related img { border-radius: 18px; }
+.partner { border-radius: var(--r-m); }
+.dock { border-radius: calc(var(--dock-size) / 2); }
+.dock.is-open { border-radius: 39px; }
+.dock::before, .dock::after { border-radius: inherit; }
+.dock-toggle { border-radius: 50%; }
+.dock-action { border-radius: 27px; }
+.dock-action.is-ia::before { border-radius: 28px; }
+.toast { border-radius: 999px; }
+.stage { border-radius: 42px; }
+.routes { border-radius: 30px; }
+.routes-pill { border-radius: 22px; }
+.route { border-radius: 22px; }
+.route-icon { border-radius: 16px; }
+.hcard { border-radius: 30px; }
+.hcard-close { border-radius: 99px; }
+.picks { border-radius: 24px; }
+.pick-btn:focus-visible { border-radius: 18px; }
+.seg { border-radius: 21px; }
+.seg button { border-radius: 16px; }
+.text-field textarea { border-radius: 24px; }
+.map-open:focus-visible { border-radius: 12px; }
+.map-frame { border-radius: 21px; }
+.map-locate { border-radius: 999px; }
+.map-mark { border-radius: 999px; }
+.map-canvas .leaflet-bar { border-radius: 18px; }
+.map-canvas .leaflet-control-attribution { border-radius: 12px 0 0 0; }
+.more-fields > summary::before, .pm { border-radius: 99px; }
+.hcard .summary { border-radius: 0; }
+.adjuntos { border-radius: 24px; }
+.adjuntos-add { border-radius: 21px; }
+.adjunto { border-radius: 18px; }
+.adjunto img { border-radius: inherit; }
+.adjunto-quitar { border-radius: 99px; }
+.adjunto-copiar { border-radius: inherit; }
+.picker-card { border-radius: 36px; }
+.picker-icon { border-radius: 99px; }
+.picker-search { border-radius: 999px; }
+@media (max-width: 640px) { .picker-card { border-radius: 0; } }
+@media (max-width: 640px) { .picker-grab { border-radius: 99px; } }
+.opt { border-radius: 21px; }
+.opt img { border-radius: 18px; }
+.opt-check { border-radius: 99px; }
+.is-tiles .opt img { border-radius: 21px; }
+.is-chips .opt { border-radius: 999px; }
+.is-grid .opt { border-radius: 18px; }
+.opt[data-tone]::before { border-radius: 99px; }
+.opt-section { border-radius: 21px; }
+.opt-section > summary { border-radius: 20px; }
+.when-note { border-radius: 18px; }
+.when-range select { border-radius: 18px; }
+.cal-nav { border-radius: 99px; }
+.cal-day { border-radius: 18px; }
+.result-meta .pill::before { border-radius: 99px; }
+.result.is-skeleton i { border-radius: 9px; }
+.result.is-skeleton i:last-child { border-radius: 99px; }
+.results-empty { border-radius: var(--r-m); }
+@media (max-width: 860px) { .stage { border-radius: 33px; } }
+.service { border-radius: var(--r-l); }
+.more-toggle:focus-visible { border-radius: 12px; }
+.plan { border-radius: 36px; }
+.cta-band { border-radius: 42px; }
+.partner { border-radius: 30px; }
+.partner-icon { border-radius: 21px; }
+.trail-chip { border-radius: 999px; }
+.guide-input { border-radius: 21px; }
+.guide-search .guide-input { border-radius: 999px; }
+.review { border-radius: 24px; }
+.ask { border-radius: 27px; }
+.ask-send { border-radius: 20px; }
+.guide-back { border-radius: 99px; }
+.bubble.is-user { border-radius: 27px 27px 9px 27px; }
+.bubble.is-bot { border-radius: 27px 27px 27px 9px; }
+.bubble.is-bot::before { border-radius: 99px; }
+.guide-composer input { border-radius: 21px; }
+.picker-tabs { border-radius: 999px; }
+.picker-tabs button { border-radius: 999px; }
+.is-tiles .opt img, .is-tiles .opt-icon { border-radius: 21px; }
+@media (max-width: 560px) { .picker .is-tiles .opt img, .picker .is-tiles .opt-icon { border-radius: 15px; } }
+.guide-form:focus-visible { border-radius: 9px; }
+@media (max-width: 599px) { .ask { border-radius: 24px; } }
+.hero-sheet { border-radius: 0; }
+.sheet-grab { border-radius: 99px; }
+.hero-sheet .hcard { border-radius: 0; }
+@media (min-width: 861px) { .hero-sheet.is-float { border-radius: 39px; } }
+@media (min-width: 861px) { .hero-sheet.is-float .sheet-panel { border-radius: inherit; } }
+.lib mark, .post mark { border-radius: 3px; }
+.lib-search { border-radius: 21px; }
+.lib-clear { border-radius: 99px; }
+.lib-rail-btn { border-radius: 99px; }
+.lib-topic { border-radius: 0; }
+.lib-topic i { border-radius: 99px; }
+.lib-topic:focus-visible { border-radius: 9px; }
+.lib-topics-glide { border-radius: 2px; }
+.lib-hover { border-radius: 12px; }
+.doc { border-radius: 0; }
+.doc-title a::after { border-radius: inherit; }
+.doc-pdf { border-radius: 999px; }
+.posts-nav button { border-radius: 99px; }
+.post-cover { border-radius: 24px; }
+.post-cover::after { border-radius: inherit; }
+.post-pages { border-radius: 12px; }
+.post-org img { border-radius: 9px; }
+.post-rel-pdf { border-radius: 999px; }
+.posts-progress { border-radius: 2px; }
+.posts-progress i { border-radius: 2px; }
+.post-skeleton { border-radius: 24px; }
+@media (hover: hover) and (min-width: 700px) { [data-tip]::after { border-radius: 12px; } }
+.norm-why { border-radius: 21px; }
+.norm-toc a { border-radius: 0 15px 15px 0; }
+.norm-toc-glide { border-radius: 2px; }
+.norm-art { border-radius: 18px; }
+.art-link { border-radius: 12px; }
+.norm-fold { border-radius: 21px; }
+mark.find-hit { border-radius: 3px; }
+.reader-back { border-radius: 999px; }
+.reader-btn { border-radius: 999px; }
+.reader-progress { border-radius: 2px; }
+.toc-sheet-list a { border-radius: 18px; }
+@media (min-width: 640px) { .toc-sheet { border-radius: 36px 36px 0 0; } }
+.site-header.has-docs .container { border-radius: 42px; }
+.ayu-volver { border-radius: 99px; }
+.ayu-tema { border-radius: 21px; }
+.ayu-guia { border-radius: 18px; }
+.ayu-btn { border-radius: 99px; }
+.ayu-ck { border-radius: 18px; }
+.ayu-ck-titulo { border-radius: 18px; }
+.docs-xls { border-radius: 99px; }
+.docs-pie-btn { border-radius: 99px; }
+.ayu-detalle .lib-search { border-radius: 18px; }
+.guia-steps li::before { border-radius: 99px; }
+.gm-ans::before { border-radius: 99px; }
+.opt-other input { border-radius: 18px; }
+.fotos-item { border-radius: 18px; }
+.fotos-item i { border-radius: 99px; }
+.cotizar-estado { border-radius: var(--r-s); }
+@media (max-width: 640px) { .cards-compact .card-media { border-radius: 18px; } }
+.ck-barra { border-radius: 24px; }
+.ck-progreso { border-radius: 99px; }
+.ck-progreso i { border-radius: inherit; }
+.ck-leyenda i { border-radius: 99px; }
+.ck-marca { border-radius: 99px; }
+.ck-marca::before { border-radius: 99px; }
+.ck-aplica { border-radius: 99px; }
+.ck-estado { border-radius: 99px; }
+.legal-vigencia { border-radius: 18px; }
+.routes-tabs .route:first-of-type::before { border-radius: inherit; }
+.seg [data-modalidad][aria-checked="true"]::before { border-radius: inherit; }
+.hcard-wa { border-radius: 99px; }
+.guia-chips li { border-radius: 999px; }
+.carrusel-tarjeta { border-radius: 33px; }
+.carrusel-girar { border-radius: 99px; }
+.carrusel.is-3d .carrusel-escena:focus-visible::after { border-radius: 40px; }
+.carrusel-boton { border-radius: 99px; }
+.carrusel-grupo { border-radius: 999px; }
+body[data-site="campanas"] .section-head .title::after { border-radius: 3px; }
+.cta-foto { border-radius: 30px; }
+.ficha-enviada img { border-radius: 36px; }
+.guia-resultado { border-radius: 18px; }
+.tamano-tipos li { border-radius: 24px; }
+.tamano-tipos small { border-radius: 999px; }
+.ckc-etapas a { border-radius: 24px; }
+.ckc-etapa-n { border-radius: 99px; }
+.ckc-datos li { border-radius: 21px; }
+@media (max-width: 599px) { .ckc-datos { border-radius: 21px; } }
+@media (max-width: 599px) { .ckc-datos li { border-radius: 0; } }
+.ckc-barra { border-radius: 24px; }
+.ckc-progreso { border-radius: 99px; }
+.ckc-progreso i { border-radius: inherit; }
+.ckc-borrar, .ckc-quitar { border-radius: 15px; }
+.ckc-num { border-radius: 99px; }
+.ckc-ops { border-radius: 21px; }
+.ckc-ops button { border-radius: 15px; }
+.ckc-reco { border-radius: 0 21px 21px 0; }
+.ckc-pend a { border-radius: 21px; }
+.ckc-pend-n { border-radius: 99px; }
+.etapas-lista details { border-radius: 27px; }
+.etapas-lista summary:focus-visible { border-radius: 27px; }
+.etapa-n { border-radius: 18px; }
+.etapa-pasos li::before { border-radius: 50%; }
+body[data-site="campanas"] .ayu-tema .doc-icon { border-radius: 15px; }
+body[data-site="campanas"] .guia-points li::before { border-radius: 50%; }
+.pick-ayuda { border-radius: 99px; }
+.opt-guia { border-radius: 21px; }
+.opt-guia summary::before { border-radius: 99px; }
+.opt-guia summary:focus-visible { border-radius: 21px; }
+.ck-adjunto-fila { border-radius: 24px; }
+body[data-site="campanas"] .ckc-reco { border-radius: 21px; }
+.ayu-busca { border-radius: 18px; }
+:is(.ayu-busca, .busca-pie) kbd { border-radius: 9px; }
+.busca { border-radius: 27px; }
+.busca-cerrar { border-radius: 12px; }
+.busca-op { border-radius: 15px; }
+.aviso { border-radius: 21px; }
+.aviso-cerrar { border-radius: 99px; }
+.plazo { border-radius: 27px; }
+.plazo-linea::before { border-radius: 2px; }
+.plazo-punto { border-radius: 50%; }
+body[data-site="campanas"] .norm-toc a { border-radius: 15px; }
+.nav-busca { border-radius: 99px; }
+.guia-foto img, .etapa-foto img { border-radius: 21px; }
+.etapa-foto img { border-radius: 18px; }
+.tabla-foto { border-radius: 15px; }
+.tamano-foto { border-radius: 22px 22px 0 0; }
+.doc-case-foto { border-radius: 18px; }
+.busca-op-foto { border-radius: 12px; }
+.busca-op[aria-selected="true"] .busca-op-foto { border-radius: 18px; }
+.busca-resp { border-radius: 21px; }
+.busca-resp-foto { border-radius: 15px; }
+.busca-linea-barra i { border-radius: 99px; }
+.busca-regla { border-radius: 99px; }
+.busca-regla-rango { border-radius: 99px; }
+.busca-avance-barra { border-radius: 99px; }
+.busca-chip { border-radius: 99px; }
+.busca-resp-ocultar { border-radius: 99px; }
+}
+/* squircle:fin */
