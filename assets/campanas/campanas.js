@@ -205,83 +205,59 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   });
 })();
 
-/* Resumen de la ficha: al presionar «Enviar» (abre WhatsApp con el texto), Don Reco y Lola Lata agradecen en grande,
-   cubriendo el panel, con «Ver resumen» (vuelve al resumen) y «Volver» (cierra el panel; data-hero-close, como la X).
-   Mientras se ven, lo de abajo queda inerte para el teclado. Se esconden al editar o al preparar otra ficha. */
+/* Resumen de la ficha: «Enviar» la manda al correo interno de Campañas y Don Reco y Lola Lata agradecen en grande, cubriendo
+   el panel, con «Ver resumen» (vuelve al resumen) y «Volver» (cierra el panel; data-hero-close, como la X). En esta
+   vista previa NO se envía nada: el envío al correo llega con el sitio en WordPress.
+   El paso de una vista a la otra es «Distortion waves» (vendor/distortion-waves.js, MIT, sin su capa de React): una
+   onda de color que sale desde «Enviar», dobla una imagen del resumen al pasar y deja el agradecimiento; «Ver resumen»
+   la recoge de vuelta hacia el botón. El resumen y el agradecimiento son dos capas en la misma celda; la onda se carga
+   cuando la ficha se prepara (no al abrir la página) y toma sus imágenes antes de que presiones «Enviar». Sin WebGL 2,
+   sin la onda cargada o con «reducir movimiento», cambia de una a otra con un fundido. */
 (() => {
+  const base = new URL(document.currentScript?.src || location.href);
+  const url = new URL('vendor/distortion-waves.js', base); url.search = base.search;
+  let modulo = null;
+  const carga = () => (modulo ||= import(url.href).catch(() => null));
   document.querySelectorAll('[data-ficha-enviada]').forEach((gracias) => {
     const resumen = gracias.closest('.summary');
     if (!resumen) return;
     const form = document.querySelector(`form[data-summary="${resumen.id}"]`);
-    const debajo = [...resumen.children].filter((el) => el !== gracias);
-    /* Con fotos en la ficha (transporte-ui.js, [data-adjuntos]): WhatsApp no recibe adjuntos por enlace, así que el
-       agradecimiento recuerda enviarlas en el mismo chat y, donde el sistema lo permite, ofrece «Compartir fotos» */
-    const zona = form?.querySelector('[data-adjuntos]');
-    const texto = gracias.querySelector('.ficha-enviada-texto');
-    const base = texto.textContent;
-    const btnFotos = gracias.querySelector('[data-gracias-fotos]');
-    const fotos = () => zona?.fotos?.() || [];
-    const muestra = (on) => {
-      if (on) {
-        const f = fotos();
-        const comparte = f.length > 0 && !!navigator.canShare?.({ files: f });
-        const una = f.length === 1;
-        texto.textContent = !f.length ? base
-          : comparte ? `Don Reco y Lola Lata dejaron tu ficha escrita en WhatsApp. Envíala y después comparte ${una ? 'tu foto' : 'tus fotos'} en ese mismo chat.`
-            : `Don Reco y Lola Lata dejaron tu ficha escrita en WhatsApp. Envíala y después adjunta ${una ? 'tu foto' : 'tus fotos'} en ese mismo chat: ${una ? 'está' : 'están'} en «Ver resumen».`;
-        if (btnFotos) {
-          btnFotos.hidden = !comparte;
-          btnFotos.querySelector('span').textContent = una ? 'Compartir foto' : 'Compartir fotos';
-        }
-      }
-      if (!on) corta();
-      gracias.hidden = !on;
-      debajo.forEach((el) => { el.inert = on; });
-      if (on) gracias.querySelector('.ficha-enviada-titulo').focus({ preventScroll: true });
-    };
-    btnFotos?.addEventListener('click', async () => {
-      try { await navigator.share({ files: fotos() }); } catch (err) { if (err.name !== 'AbortError') window.SITE?.toast?.('No se pudo abrir el menú para compartir: adjunta las fotos en el chat.'); }
+    const enviar = resumen.querySelector('[data-send]');
+    const titulo = gracias.querySelector('.ficha-enviada-titulo');
+    /* Las dos capas: todo lo del resumen en una, el agradecimiento en la otra */
+    const vista = document.createElement('div');
+    vista.className = 'resumen-vista';
+    vista.append(...[...resumen.children].filter((el) => el !== gracias));
+    resumen.prepend(vista);
+    resumen.classList.add('con-onda');
+    gracias.hidden = false;
+    const capa = (el, on) => { el.style.opacity = on ? '' : '0'; el.style.pointerEvents = on ? '' : 'none'; el.inert = !on; el.toggleAttribute('aria-hidden', !on); };
+    capa(vista, true); capa(gracias, false);
+    let ola = null; let dentro = false;
+    const OPC = { type: 'vertical', source: enviar, palette: 'colorful', onFinish: (on) => { if (on && dentro) titulo.focus({ preventScroll: true }); } };
+    const arma = () => carga().then((m) => {
+      if (!m || ola || resumen.hidden) { ola?.prepare(); return; }
+      ola = new m.WaveController(resumen, vista, gracias);
+      ola.update({ ...OPC, revealed: false });
     });
-    /* Onda al enviar (27-11-2026; inspirada en «Distortion waves», sin React ni WebGL): un frente de color se abre desde
-       el botón que se presionó y lleva el resumen al agradecimiento. El agradecimiento se revela dentro del círculo
-       (clip-path) y, justo detrás del borde, una banda de color con lente (backdrop-filter) deforma lo que pasa. La
-       avanza requestAnimationFrame con pasos de hasta 34 ms: si WhatsApp se abre en otra pestaña, la onda espera y
-       sigue donde iba al volver. Sin movimiento (prefers-reduced-motion), el agradecimiento aparece como antes. */
-    let ondaViva = null;
-    const corta = () => { if (ondaViva) { ondaViva(); ondaViva = null; } };
-    const onda = (btn) => {
-      corta();
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const caja = resumen.getBoundingClientRect(); const b = btn.getBoundingClientRect();
-      if (!caja.width || !b.width) return;
-      const ox = b.left + b.width / 2 - caja.left; const oy = b.top + b.height / 2 - caja.top;
-      const rmax = Math.hypot(Math.max(ox, caja.width - ox), Math.max(oy, caja.height - oy)) + 64;
-      const capa = document.createElement('div');
-      capa.className = 'onda'; capa.setAttribute('aria-hidden', 'true');
-      resumen.append(capa);
-      [gracias, capa].forEach((el) => { el.style.setProperty('--ox', `${ox}px`); el.style.setProperty('--oy', `${oy}px`); el.style.setProperty('--r', '0px'); });
-      gracias.dataset.onda = '';
-      const DUR = 760; let p = 0; let antes = null; let id = 0;
-      const fin = () => { cancelAnimationFrame(id); delete gracias.dataset.onda; gracias.style.removeProperty('--r'); capa.remove(); };
-      const paso = (t) => {
-        if (antes !== null) p = Math.min(1, p + Math.min(t - antes, 34) / DUR);
-        antes = t;
-        const r = `${(1 - (1 - p) ** 3) * rmax}px`;
-        gracias.style.setProperty('--r', r); capa.style.setProperty('--r', r);
-        capa.style.opacity = p < 0.55 ? 1 : Math.max(0, 1 - (p - 0.55) / 0.45);
-        if (p < 1) id = requestAnimationFrame(paso); else { fin(); ondaViva = null; }
-      };
-      id = requestAnimationFrame(paso);
-      ondaViva = fin;
+    const muestra = (on) => {
+      dentro = on;
+      if (ola) ola.update({ ...OPC, revealed: on });
+      else { capa(vista, !on); capa(gracias, on); if (on) titulo.focus({ preventScroll: true }); }
     };
-    resumen.querySelector('[data-send]')?.addEventListener('click', (e) => { muestra(true); onda(e.currentTarget); });
+    const cierra = () => {
+      dentro = false;
+      if (ola) { ola.reset(); ola.update({ ...OPC, revealed: false }); } else { capa(vista, true); capa(gracias, false); }
+    };
+    enviar?.addEventListener('click', () => muestra(true));  // vista previa: sin envío real
     gracias.querySelector('[data-ver-resumen]').addEventListener('click', () => {
       muestra(false);
-      resumen.querySelector('[data-send]')?.focus({ preventScroll: true });
+      setTimeout(() => enviar?.focus({ preventScroll: true }), ola ? 700 : 0);
     });
-    gracias.querySelector('[data-hero-close]').addEventListener('click', () => setTimeout(() => muestra(false), 400));
-    /* La animación (222 KB) se pide al preparar la ficha, no al cargar la página: así ya está al presionar «Enviar» */
-    form?.addEventListener('submit', () => { muestra(false); gracias.querySelector('img').loading = 'eager'; });
+    gracias.querySelector('[data-hero-close]').addEventListener('click', () => setTimeout(cierra, 400));
+    /* La animación de los personajes (222 KB) y la onda se piden al preparar la ficha, no al cargar la página */
+    form?.addEventListener('submit', () => { cierra(); gracias.querySelector('img').loading = 'eager'; });
+    form?.addEventListener('summary:ready', () => requestAnimationFrame(arma));
   });
 })();
 
@@ -862,11 +838,21 @@ document.addEventListener('touchstart', () => {}, { passive: true });
     caja.className = 'lbi';
     caja.innerHTML = `<div class="lbi-box"><svg class="lbi-ring" aria-hidden="true"><path class="lbi-lado"/><path class="lbi-lado"/><path class="lbi-gap" pathLength="1"/><path class="lbi-gap" pathLength="1"/></svg></div>`;
     const box = caja.firstChild;
-    const lab = d.createElement('label');
+    /* La etiqueta de verdad queda entera y limpia (lectores de pantalla y autocompletar la leen tal cual); las letras que
+       saltan son un dibujo aparte, oculto para el lector */
+    const real = d.createElement('label');
+    real.className = 'sr-only';
+    real.htmlFor = input.id;
+    real.textContent = texto;
+    const lab = d.createElement('span');
     lab.className = 'lbi-label';
-    lab.htmlFor = input.id;
+    lab.setAttribute('aria-hidden', 'true');
+    /* Lo que ayuda al navegador y al teclado del teléfono a reconocer y llenar cada campo */
+    if (input.type === 'email') { input.setAttribute('inputmode', 'email'); input.setAttribute('autocapitalize', 'off'); input.spellcheck = false; }
+    if (input.type === 'tel') input.setAttribute('inputmode', 'tel');
+    if (/^(name|organization|given-name|family-name)$/.test(input.autocomplete)) input.setAttribute('autocapitalize', 'words');
     [...texto].forEach((ch, i) => { const sp = d.createElement('span'); sp.textContent = ch === ' ' ? ' ' : ch; sp.style.setProperty('--i', i); lab.append(sp); });
-    box.append(lab, input);
+    box.append(real, lab, input);
     input.classList.add('lbi-field');
     fila.replaceChildren(caja);
     fila.classList.add('es-lbi');
@@ -891,7 +877,8 @@ document.addEventListener('touchstart', () => {}, { passive: true });
       box.style.setProperty('--lbi-x', `${lx}px`);
     };
     const estado = () => {
-      caja.dataset.up = String(d.activeElement === input || input.value.length > 0);
+      let auto = false; try { auto = input.matches(':autofill'); } catch { try { auto = input.matches(':-webkit-autofill'); } catch { /* sin soporte */ } }
+      caja.dataset.up = String(d.activeElement === input || input.value.length > 0 || auto);
       caja.dataset.focus = String(d.activeElement === input);
       caja.dataset.invalid = String(input.getAttribute('aria-invalid') === 'true');
     };
@@ -899,12 +886,108 @@ document.addEventListener('touchstart', () => {}, { passive: true });
     input.addEventListener('blur', estado);
     input.addEventListener('input', estado);
     input.addEventListener('change', estado);
+    input.addEventListener('animationstart', (e) => { if (e.animationName === 'lbi-autofill') estado(); });
     new MutationObserver(estado).observe(input, { attributes: true, attributeFilter: ['aria-invalid'] });
     if ('ResizeObserver' in window) new ResizeObserver(dibuja).observe(box);
     d.fonts?.ready.then(dibuja);
     dibuja();
     estado();
   });
+})();
+
+/* Burbuja de ayuda con ojos (27-11-2026). Empieza siendo «?» y cada cierto tiempo se transforma en un triángulo con ojos,
+   rodeado por las tres flechas del reciclaje (giran a su lugar al entrar), y vuelve a ser «?». Los ojos están sobre una
+   esfera: el puntero la hace girar y el ojo que va hacia el borde se mueve menos y se angosta (escorzo), así un dibujo
+   plano se lee como redondo. Cada tanto parpadean. Con la burbuja abierta, el chat abierto o la pestaña oculta, se
+   detiene; con «reducir movimiento» cambia con un fundido y los ojos miran al frente. */
+(() => {
+  const dock = document.querySelector('[data-dock]');
+  const boton = dock?.querySelector('.dock-toggle');
+  if (!boton) return;
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)');
+  const NS = 'http://www.w3.org/2000/svg';
+  /* Triángulo (centro 50,55) y, alrededor, el triángulo mayor de las flechas (centro 50,53, radio 37), en sentido horario */
+  const pt = (cx, cy, r, a) => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  const V = [-90, 30, 150].map((g) => pt(50, 55, 43, (g * Math.PI) / 180));
+  const mezcla = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  const f = (n) => n.toFixed(2);
+  /* Cada flecha dobla una esquina, como en el símbolo del reciclaje: parte al final del lado anterior, gira en la esquina
+     y corre por su lado hasta la punta, que apunta a la siguiente esquina */
+  const flechas = V.map((v, i) => {
+    const ant = V[(i + 2) % 3]; const sig = V[(i + 1) % 3];
+    const ini = mezcla(ant, v, 0.8); const fin = mezcla(v, sig, 0.56);
+    const dx = sig[0] - v[0]; const dy = sig[1] - v[1]; const l = Math.hypot(dx, dy); const ux = dx / l; const uy = dy / l;
+    const h1 = [fin[0] - 8 * ux - 6 * uy, fin[1] - 8 * uy + 6 * ux]; const h2 = [fin[0] - 8 * ux + 6 * uy, fin[1] - 8 * uy - 6 * ux];
+    return `M${f(ini[0])} ${f(ini[1])}L${f(v[0])} ${f(v[1])}L${f(fin[0])} ${f(fin[1])}M${f(h1[0])} ${f(h1[1])}L${f(fin[0])} ${f(fin[1])}L${f(h2[0])} ${f(h2[1])}`;
+  }).join('');
+  const T = [-90, 30, 150].map((g) => pt(50, 57.5, 11, (g * Math.PI) / 180));
+  const tri = `M${T.map((q) => `${f(q[0])} ${f(q[1])}`).join('L')}Z`;
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'dock-cara'); svg.setAttribute('viewBox', '0 0 100 100'); svg.setAttribute('aria-hidden', 'true');
+  svg.innerHTML = `<g class="cara-q"><path d="M37.5 36.5a12.5 12.5 0 1 1 18.6 10.9c-3.9 2.2-6.1 4.8-6.1 9.1"/><circle cx="50" cy="70.5" r="4.4"/></g>`
+    + `<g class="cara-flechas"><path d="${flechas}"/></g>`
+    + `<g class="cara-tri"><path class="cara-cuerpo" d="${tri}"/><g class="cara-ojo"><ellipse rx="2" ry="2.7"/></g><g class="cara-ojo"><ellipse rx="2" ry="2.7"/></g></g>`;
+  boton.append(svg);
+  dock.classList.add('con-cara');
+  const ojos = [...svg.querySelectorAll('.cara-ojo')];
+  /* Los ojos en la esfera: posición en el disco unitario y radio de la esfera (centro 50,57, algo abajo: ahí pesa el triángulo) */
+  const BASE = [[-0.36, 0.1], [0.36, 0.1]]; const R = 10; const CX = 50; const CY = 59.5;
+  let yaw = 0; let pitch = 0; let meta = { yaw: 0, pitch: 0 }; let antes = 0; let raf = 0; let ultimo = 0;
+  const pinta = () => {
+    BASE.forEach(([x0, y0], i) => {
+      const z0 = Math.sqrt(1 - x0 * x0 - y0 * y0);
+      const x1 = x0 * Math.cos(yaw) + z0 * Math.sin(yaw);
+      const z1 = -x0 * Math.sin(yaw) + z0 * Math.cos(yaw);
+      const y2 = y0 * Math.cos(pitch) - z1 * Math.sin(pitch);
+      const z2 = y0 * Math.sin(pitch) + z1 * Math.cos(pitch);
+      ojos[i].setAttribute('transform', `translate(${f(CX + x1 * R)} ${f(CY + y2 * R)}) scale(${f(0.35 + 0.65 * Math.max(0, z2))} 1)`);
+    });
+  };
+  const paso = (t) => {
+    const dt = Math.min(t - (antes || t), 50); antes = t;
+    if (t - ultimo > 4000) meta = { yaw: 0, pitch: 0 };  // sin movimiento un rato: vuelve a mirarte
+    const k = 1 - Math.exp(-dt / 90);
+    yaw += (meta.yaw - yaw) * k; pitch += (meta.pitch - pitch) * k;
+    pinta();
+    raf = Math.abs(meta.yaw - yaw) + Math.abs(meta.pitch - pitch) > 0.002 || t - ultimo < 4200 ? requestAnimationFrame(paso) : 0;
+  };
+  const mira = (e) => {
+    if (quieto.matches || svg.dataset.cara !== 'simbolo') return;
+    const r = boton.getBoundingClientRect();
+    const lim = (v) => Math.max(-1, Math.min(1, v));
+    meta = { yaw: lim((e.clientX - (r.left + r.width / 2)) / 320) * 0.62, pitch: -lim((e.clientY - (r.top + r.height / 2)) / 320) * 0.5 };
+    ultimo = performance.now();
+    if (!raf) { antes = 0; raf = requestAnimationFrame(paso); }
+  };
+  addEventListener('pointermove', mira, { passive: true });
+  addEventListener('pointerdown', mira, { passive: true });
+  pinta();
+  /* El ciclo: «?» → triángulo con flechas → «?»… Solo corre con la burbuja a la vista, cerrada y la pestaña visible */
+  const DURA = { pregunta: 3600, simbolo: 7000 };
+  let reloj = 0; let parpadeo = 0;
+  const activo = () => dock.classList.contains('is-visible') && !dock.classList.contains('is-open') && !dock.classList.contains('is-chat') && !document.hidden;
+  const parpadea = () => {
+    clearTimeout(parpadeo);
+    parpadeo = setTimeout(() => {
+      if (svg.dataset.cara === 'simbolo' && !quieto.matches && activo()) { svg.classList.add('parpadea'); setTimeout(() => svg.classList.remove('parpadea'), 140); }
+      parpadea();
+    }, 2600 + Math.random() * 3200);
+  };
+  const pon = (cara) => {
+    svg.dataset.cara = cara;
+    if (cara === 'pregunta') { meta = { yaw: 0, pitch: 0 }; }
+  };
+  const sigue = () => {
+    clearTimeout(reloj);
+    if (!activo()) return;
+    const ahora = svg.dataset.cara || 'pregunta';
+    reloj = setTimeout(() => { if (activo()) { pon(ahora === 'pregunta' ? 'simbolo' : 'pregunta'); } sigue(); }, DURA[ahora]);
+  };
+  pon('pregunta');
+  new MutationObserver(sigue).observe(dock, { attributes: true, attributeFilter: ['class'] });
+  document.addEventListener('visibilitychange', sigue);
+  sigue();
+  parpadea();
 })();
 
 /* Avisos como Sonner (26-11-2026): reemplaza window.SITE.toast en Campañas. Se apilan (los anteriores quedan detrás,

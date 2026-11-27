@@ -845,23 +845,54 @@ body[data-site="campanas"] :is(.display, .title, .norm-title) { font-weight: 650
 .pick-field .lbi-field { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0 var(--lbi-x, 14px); border: 0; border-radius: 14px; background: none; color: var(--ink); font: 600 1rem/1 var(--font); outline: none; }
 .pick-field .lbi-field::placeholder { color: transparent; transition: color .2s ease; }
 .pick-field .lbi[data-focus="true"] .lbi-field::placeholder { color: var(--muted); font-weight: 500; }
+/* Autocompletar: la etiqueta sube igual (también si el navegador llena el campo sin avisar) y el campo queda con un tinte
+   suave en vez del amarillo o celeste del navegador; el contorno va encima del relleno */
+.lbi-ring { z-index: 1; }
+.lbi-label { z-index: 2; }
+.lbi:has(.lbi-field:-webkit-autofill) .lbi-gap { stroke-dashoffset: -1; }
+.lbi:has(.lbi-field:-webkit-autofill) .lbi-label { color: var(--ink-2); font-weight: 600; transform: translateY(calc(-50% - 26px)) scale(.78); }
+.pick-field .lbi-field:-webkit-autofill { -webkit-box-shadow: 0 0 0 40px #f2f7f4 inset; box-shadow: 0 0 0 40px #f2f7f4 inset; -webkit-text-fill-color: var(--ink); caret-color: var(--ink); animation: lbi-autofill 1ms; }
+@keyframes lbi-autofill { from { opacity: 1; } to { opacity: 1; } }
 @media (prefers-reduced-motion: no-preference) {
   .lbi[data-focus="true"][data-hop] .lbi-label span { animation: lbi-hop .3s cubic-bezier(.23, 1, .32, 1) both; animation-delay: calc(var(--i) * 12ms); }
   @keyframes lbi-hop { 40% { transform: translateY(-2px); } }
 }
 @media (prefers-reduced-motion: reduce) { .lbi-label, .lbi-gap, .lbi-ring path { transition: none; } }
 
-/* ---------- Onda al enviar la ficha (campanas.js, 27-11-2026) ----------
-   El agradecimiento se revela en un círculo que crece desde «Enviar» (--r lo mueve campanas.js); la banda de color va
-   justo detrás del borde, con lente: desenfoque leve y más saturación sobre lo que pasa por debajo. */
-.summary:has(> .ficha-enviada) { position: relative; }
-.ficha-enviada[data-onda] { animation: none !important; clip-path: circle(var(--r, 0px) at var(--ox) var(--oy)); }
-.ficha-enviada[data-onda] picture { animation-delay: .12s !important; }
-.onda { position: absolute; inset: 0; z-index: 4; border-radius: inherit; pointer-events: none;
-  background: radial-gradient(circle at var(--ox) var(--oy), #1c7a4b calc(var(--r) - 46px), #3fb98a calc(var(--r) - 32px), #8fdcb4 calc(var(--r) - 20px), #d6f2a6 calc(var(--r) - 9px), #fff var(--r));
-  -webkit-backdrop-filter: blur(4px) saturate(1.7); backdrop-filter: blur(4px) saturate(1.7);
-  -webkit-mask: radial-gradient(circle at var(--ox) var(--oy), transparent calc(var(--r) - 58px), rgba(0, 0, 0, .55) calc(var(--r) - 38px), #000 calc(var(--r) - 14px), transparent calc(var(--r) + 1px));
-  mask: radial-gradient(circle at var(--ox) var(--oy), transparent calc(var(--r) - 58px), rgba(0, 0, 0, .55) calc(var(--r) - 38px), #000 calc(var(--r) - 14px), transparent calc(var(--r) + 1px)); }
+/* ---------- Onda al enviar la ficha (Distortion waves, campanas.js, 27-11-2026) ----------
+   El resumen y el agradecimiento son dos capas en la misma celda; la onda (un canvas WebGL encima) pasa de una a otra.
+   Los personajes no hacen su entrada propia: la entrada es la onda. */
+.hcard .summary.con-onda:not([hidden]) { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+.summary.con-onda > .resumen-vista, .summary.con-onda > .ficha-enviada { grid-area: 1 / 1; min-width: 0; min-height: 0; isolation: isolate; }
+.summary.con-onda > .resumen-vista { display: flex; flex-direction: column; background: #fff; }
+.summary.con-onda > .ficha-enviada { position: relative; inset: auto; z-index: auto; }
+.summary.con-onda > .ficha-enviada, .summary.con-onda > .ficha-enviada picture { animation: none !important; }
+
+/* ---------- Burbuja de ayuda con ojos (campanas.js, 27-11-2026) ----------
+   «?» y el triángulo con ojos rodeado por las flechas del reciclaje se turnan; al entrar, las flechas giran un tercio de
+   vuelta hasta su lugar y el triángulo crece con un rebote leve. Con la burbuja abierta o el chat, manda la X. */
+.dock.con-cara .dock-toggle .dock-q { display: none; }
+.dock-toggle .dock-cara { grid-area: 1 / 1; width: 42px; height: 42px; overflow: visible; transition: opacity .25s ease; }
+.dock.is-open .dock-cara, .dock.is-chat .dock-cara { opacity: 0; }
+.dock-cara > g { transform-box: view-box; transform-origin: 50px 56px; }
+.dock-cara .cara-q path { fill: none; stroke: currentColor; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+.dock-cara .cara-q circle { fill: currentColor; }
+.dock-cara .cara-flechas path { fill: none; stroke: currentColor; stroke-width: 5.5; stroke-linecap: round; stroke-linejoin: round; }
+.dock-cara .cara-cuerpo { fill: currentColor; stroke: currentColor; stroke-width: 7; stroke-linejoin: round; }
+.dock-cara .cara-ojo ellipse { fill: var(--accent-strong, #15613b); transform-box: fill-box; transform-origin: center; transition: transform .07s ease-out; }
+.dock-cara.parpadea .cara-ojo ellipse { transform: scaleY(.12); }
+.dock-cara .cara-q { transition: opacity .28s ease, transform .42s cubic-bezier(.23, 1, .32, 1); }
+.dock-cara .cara-tri { transition: opacity .3s ease, transform .5s cubic-bezier(.34, 1.45, .64, 1); }
+.dock-cara .cara-flechas { transition: opacity .3s ease, transform .75s cubic-bezier(.32, .72, 0, 1); }
+.dock-cara[data-cara="pregunta"] .cara-tri { opacity: 0; transform: scale(.55); transition-delay: 0s; }
+.dock-cara[data-cara="pregunta"] .cara-flechas { opacity: 0; transform: rotate(-120deg) scale(.82); }
+.dock-cara[data-cara="simbolo"] .cara-q { opacity: 0; transform: scale(.6) rotate(-14deg); }
+.dock-cara[data-cara="simbolo"] .cara-tri { transition-delay: .08s; }
+.dock-cara[data-cara="simbolo"] .cara-flechas { transition-delay: .04s; }
+.dock-cara[data-cara="pregunta"] .cara-q { transition-delay: .12s; }
+@media (prefers-reduced-motion: reduce) {
+  .dock-cara > g { transition: opacity .3s ease !important; transform: none !important; }
+}
 
 /* squircle:inicio (generado por tools/squircle.py; no editar a mano) */
 @supports (corner-shape: squircle) {
@@ -1118,7 +1149,6 @@ body[data-site="campanas"] .norm-toc a { border-radius: 15px; }
 .sek-skin { border-radius: 99px; }
 .sek-hit { border-radius: 99px; }
 .pick-field .lbi-field { border-radius: 21px; }
-.onda { border-radius: inherit; }
 /* Burbuja «?» abierta: opciones de 48 px a 8 px del borde (24 + 8 = 32); abajo a la derecha, el botón redondo de 56 px
    va al ras: esa esquina es la del círculo (28 px, redonda) */
 body[data-site="campanas"] .dock.is-open { border-radius: 32px 32px 28px 32px; corner-shape: squircle squircle round squircle; }
