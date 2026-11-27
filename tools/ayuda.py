@@ -571,11 +571,13 @@ def medida_de(foto):
     return MEDIDAS[MEDIDA_FOTO.index(foto)][1] if foto in MEDIDA_FOTO else ''
 
 
-GIRAR = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>'
+MAS = '<svg class="is-mas" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><svg class="is-cerrar" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>'
 
 
 def carrusel_html():
-    """Cada tarjeta tiene frente (foto, nombre y grupo) y dorso (su información); al tocar la del centro se voltea."""
+    """Carrusel plano, al estilo de Apple (27-11-2026): una fila que se desplaza con el dedo, el trackpad o las flechas,
+    con la tarjeta siguiente asomándose. Cada tarjeta es la foto con su nombre y grupo debajo; el «+» abre su
+    información sobre la foto (y la opción de sumarla a la ficha)."""
     ap = 'assets/campanas/aparatos'
     n = len(APARATOS)
     items = []
@@ -583,29 +585,22 @@ def carrusel_html():
         texto, nota = GRUPO_TXT[grupo]
         med = medida_de(f)
         items.append(
-            f'<div class="carrusel-item" role="group" aria-roledescription="diapositiva" aria-label="{i + 1} de {n}: {nombre}" '
-            f'data-nombre="{esc(nombre)}" data-grupo="{esc(grupo)}"><div class="carrusel-volteo">'
-            f'<figure class="carrusel-tarjeta is-frente"><img src="{ap}/aparato-{f}-400.webp" srcset="{ap}/aparato-{f}-400.webp 400w, {ap}/aparato-{f}-800.webp 800w" '
-            f'sizes="(max-width: 640px) 60vw, 400px" width="800" height="800" alt="" loading="lazy" decoding="async" draggable="false">'
-            f'<figcaption><span><strong>{esc(nombre)}</strong><small>{esc(grupo)}</small></span><span class="carrusel-girar">{GIRAR}</span></figcaption></figure>'
-            f'<div class="carrusel-tarjeta is-dorso"><p class="carrusel-grupo">{esc(grupo)}</p><p class="carrusel-dorso-t">{esc(nombre)}</p>'
+            f'<div class="carrusel-item" role="group" aria-roledescription="diapositiva" aria-label="{i + 1} de {n}: {nombre}">'
+            f'<div class="carrusel-tarjeta"><img src="{ap}/aparato-{f}-400.webp" srcset="{ap}/aparato-{f}-400.webp 400w, {ap}/aparato-{f}-800.webp 800w" '
+            f'sizes="(max-width: 640px) 72vw, 340px" width="800" height="800" alt="" loading="lazy" decoding="async">'
+            f'<div class="carrusel-detalle" id="carrusel-{f}" hidden>'
             + (f'<p class="carrusel-medida">Medida típica: {esc(med)}</p>' if med else '')
-            + f'<p class="carrusel-dorso-texto">{esc(texto)}</p><p class="carrusel-dorso-nota">{esc(nota)}</p>'
-            f'<p class="carrusel-dorso-volver">{GIRAR}Toca para volver</p></div></div></div>')
-    f, nombre, grupo = APARATOS[0]
+            + f'<p>{esc(texto)}</p><p class="carrusel-nota">{esc(nota)}</p>'
+            f'<a class="btn btn-primary btn-small" href="#contacto" data-add="aparatos={esc(grupo)}">Incluir en la ficha</a></div>'
+            f'<button class="carrusel-mas" type="button" aria-expanded="false" aria-controls="carrusel-{f}" aria-label="Más sobre {esc(nombre).lower()}">{MAS}</button></div>'
+            f'<h3 class="carrusel-nombre">{esc(nombre)}</h3><p class="carrusel-grupo">{esc(grupo)}</p></div>')
     return (
         '<div class="carrusel reveal" data-carrusel>\n'
-        '        <div class="carrusel-escena" tabindex="0" role="region" aria-roledescription="carrusel" aria-label="Aparatos que se reciben. Flechas izquierda y derecha para cambiar; Enter para ver la información de la tarjeta del centro.">\n'
-        f'          <div class="carrusel-pista">{"".join(items)}</div>\n'
-        '        </div>\n'
+        '        <div class="carrusel-pista" tabindex="0" role="region" aria-roledescription="carrusel" aria-label="Aparatos que se reciben">'
+        f'{"".join(items)}</div>\n'
         '        <div class="carrusel-controles">'
-        f'<button class="carrusel-boton" type="button" data-carrusel-prev aria-label="Aparato anterior">{FLECHA_IZQ}</button>'
-        f'<p class="carrusel-cuenta" aria-hidden="true"><span data-carrusel-n>1</span> / {n}</p>'
-        f'<button class="carrusel-boton" type="button" data-carrusel-pausa aria-pressed="false" aria-label="Pausar el carrusel" hidden>{PAUSA}</button>'
-        f'<button class="carrusel-boton" type="button" data-carrusel-next aria-label="Aparato siguiente">{FLECHA_DER}</button></div>\n'
-        '        <div class="carrusel-info" data-carrusel-info aria-live="polite">'
-        f'<h3 data-carrusel-nombre>{esc(nombre)}</h3><p class="carrusel-pista-txt">Toca la tarjeta del centro para ver su información.</p>'
-        f'<a class="btn btn-primary btn-small" href="#contacto" data-add="aparatos={esc(grupo)}" data-carrusel-add>Incluir «{esc(grupo)}» en la ficha</a></div>\n'
+        f'<button class="carrusel-boton" type="button" data-carrusel-prev aria-label="Aparatos anteriores" disabled>{FLECHA_IZQ}</button>'
+        f'<button class="carrusel-boton" type="button" data-carrusel-next aria-label="Aparatos siguientes">{FLECHA_DER}</button></div>\n'
         '      </div>')
 
 

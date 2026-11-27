@@ -155,3 +155,7 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 - Hero: al cambiar de opción, el título y el texto se funden uno después del otro (0,18 s y 0,3 s), sin desenfoque ni movimiento: ya no se ven los dos a medias ni «desaparecen». Prueba: `hero4.mjs` (la suma de opacidades nunca pasa de 1).
 - Animaciones sutiles: desplazamientos de 4 a 8 px, sin escala, desenfoque, giro ni rebote.
 - Sin eyebrows (el rótulo chico sobre los títulos de preguntas, normativa, normas y créditos; «Etapa N de 4» pasa al título: «1. Planificación») ni la raya verde bajo los títulos de sección.
+
+## Carrusel plano al estilo de Apple (27-11-2026)
+
+- Reemplaza al de perspectiva: una fila con desplazamiento nativo e imán por tarjeta (dedo, trackpad, teclado), alineada con el contenido y con la siguiente asomándose; flechas abajo a la derecha que se apagan en los extremos. Cada tarjeta: la foto cuadrada y debajo su nombre y grupo; el «+» muestra su información sobre la foto (medida típica, descripción, nota e «Incluir en la ficha»), Esc la cierra. `carrusel.js` pasó de ~280 a ~70 líneas. Prueba: `carrusel2.mjs`.
