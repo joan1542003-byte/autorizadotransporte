@@ -38,24 +38,43 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
 })();
 
 /* Ficha visual (27-11-2026): algunas filas se eligen a la vista, sin abrir una ventana ([data-visual] en la fila).
-   - fotos:  tarjetas con foto (quién organiza, aparatos, servicios adicionales). Una opción (<select>) o varias (campo
-             oculto con data-options); la foto sale de data-img en cada <option> o de data-imgs en la fila.
-   - meses:  calendario de los doce meses posibles (los arma el bloque anterior), con «Aún no lo sé» y, al elegir un mes,
-             hasta cuándo pedir la autorización sanitaria (40 días hábiles antes del día 1; aproximado, sin feriados).
+   - fotos:  tarjetas (quién organiza, aparatos, servicios adicionales), con su imagen PNG (data-img en cada <option> o
+             data-imgs en la fila) o, mientras no esté, un ícono de línea. Una opción (<select>) o varias (campo oculto
+             con data-options).
+   - meses:  los doce meses posibles en una sola fila que se desliza (el año aparece donde cambia), «Aún no lo sé» al
+             final y, al elegir uno, hasta cuándo pedir la autorización (40 días hábiles antes del día 1; aproximado).
    - chips:  botones en fila (peso estimado).
    El dato vive en el mismo campo de siempre (select o campo oculto) y se avisa con «change»: el resumen, los campos
    condicionales, las preselecciones (data-set, data-add) y la validación siguen igual; si algo cambia el campo desde
-   fuera, las tarjetas se ponen al día. Una opción «Otro…» abre la ventana de siempre para escribir cuál. Sin
-   JavaScript, la fila sigue siendo el botón que abre la ventana. */
+   fuera, la ficha se pone al día. «Otro…» abre la ventana de siempre para escribir cuál. Sin JavaScript, la fila sigue
+   siendo el botón que abre la ventana. */
 (() => {
   const d = document;
   const filas = [...d.querySelectorAll('[data-visual]')];
   if (!filas.length) return;
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
-  const MAS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
-  const CAL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+  const svg = (p) => `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+  /* Íconos de línea (Lucide) mientras no estén los PNG de cada opción */
+  const ICONOS = {
+    municipal: '<path d="M10 18v-7"/><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/>',
+    empresa: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+    sistema: '<path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5"/><path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12"/><path d="m14 16-3 3 3 3"/><path d="M8.293 13.596 7.196 9.5 3.1 10.598"/><path d="m9.344 5.811 1.093-1.892A1.83 1.83 0 0 1 11.985 3a1.784 1.784 0 0 1 1.546.888l3.943 6.843"/><path d="m13.378 9.633 4.096 1.098 1.097-4.096"/>',
+    Computadores: '<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>',
+    'Pantallas y monitores': '<rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>',
+    'Pequeños aparatos': '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+    'Grandes aparatos': '<path d="M3 6h3"/><path d="M17 6h.01"/><rect width="18" height="20" x="3" y="2" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M12 18a2.5 2.5 0 0 0 0-5 2.5 2.5 0 0 1 0-5"/>',
+    'Retiro domiciliario asistido': '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    'Área de equipos potencialmente reutilizables': '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+    otro: '<path d="M5 12h14"/><path d="M12 5v14"/>'
+  };
+  const CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
   const otro = (v) => /^Otr[oa]s?\b/.test(v);
+  /* Rótulos cortos en las tarjetas (el valor guardado no cambia) */
+  const CORTO = {
+    'Área de equipos potencialmente reutilizables': 'Equipos reutilizables', 'Retiro domiciliario asistido': 'Retiro domiciliario',
+    'Menos de 500 kg': 'Hasta 500 kg', 'Entre 500 kg y 1 tonelada': '500 kg a 1 ton', 'Entre 1 y 3 toneladas': '1 a 3 ton',
+    'Entre 3 y 10 toneladas': '3 a 10 ton', 'Más de 10 toneladas': 'Más de 10 ton'
+  };
   const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
   const antesHabiles = (f, n) => { const x = new Date(f); for (let k = 0; k < n;) { x.setDate(x.getDate() - 1); if (x.getDay() % 6) k++; } return x; };
@@ -66,7 +85,7 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     const multi = row.dataset.fila === 'varias';
     if (!campo) return;
     const rotulo = row.querySelector('.pick-label')?.textContent.trim() || row.dataset.title;
-    const opcional = /Opcional/.test(row.querySelector('.pick-value')?.dataset.empty || '') || row.dataset.fila === 'varias' && !row.dataset.requiredPick;
+    const opcional = /Opcional/.test(row.querySelector('.pick-value')?.dataset.empty || '') || (multi && !row.dataset.requiredPick);
     const imgs = row.dataset.imgs ? row.dataset.imgs.split('|') : [];
     const opciones = multi
       ? row.dataset.options.split('|').map((v, i) => ({ value: v, label: v, img: imgs[i] || '' }))
@@ -75,21 +94,26 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     caja.className = `vis vis-modo-${modo}`;
     caja.setAttribute('role', multi ? 'group' : 'radiogroup');
     caja.setAttribute('aria-label', rotulo);
-    const titulo = `<p class="vis-titulo" aria-hidden="true">${esc(rotulo)}${opcional ? ' <span>Opcional</span>' : ''}</p>`;
     const rol = multi ? 'aria-pressed' : 'role="radio" aria-checked';
-    let html = '';
+    /* El texto del título ya está en el aria-label del grupo; la ayuda «?», si la hay, sí debe quedar accesible */
+    let html = `<p class="vis-titulo"><span aria-hidden="true">${esc(rotulo)}</span>${opcional ? '<span class="vis-opcional" aria-hidden="true">opcional</span>' : ''}</p>`;
     if (modo === 'meses') {
-      const meses = opciones.filter((o) => o.value !== 'Aún no lo sé');
-      html = `<div class="vis-meses">${meses.map((o, i) => { const [mes, , anio] = o.value.split(' '); return `<button type="button" class="vis-op vis-mes" ${rol}="false" data-v="${esc(o.value)}" style="--i:${i}"><span class="vis-mes-n">${esc(mes.slice(0, 3))}</span><span class="vis-mes-a">${esc(anio)}</span></button>`; }).join('')}</div>`
-        + `<div class="vis-pie"><button type="button" class="vis-op vis-chip" ${rol}="false" data-v="Aún no lo sé">Aún no lo sé</button><p class="vis-plazo" data-vis-plazo hidden>${CAL}<span></span></p></div>`;
+      let anio = '';
+      html += `<div class="vis-meses">${opciones.map((o) => {
+        if (o.value === 'Aún no lo sé') return '';
+        const [mes, , y] = o.value.split(' ');
+        const cambia = y !== anio; anio = y;
+        return `${cambia ? `<span class="vis-anio" aria-hidden="true">${esc(y)}</span>` : ''}<button type="button" class="vis-op vis-mes" ${rol}="false" data-v="${esc(o.value)}" aria-label="${esc(o.value)}">${esc(mes.slice(0, 3))}</button>`;
+      }).join('')}<button type="button" class="vis-op vis-mes vis-nose" ${rol}="false" data-v="Aún no lo sé">Aún no lo sé</button></div>`
+        + '<p class="vis-plazo" data-vis-plazo hidden></p>';
     } else if (modo === 'chips') {
-      html = `<div class="vis-chips">${opciones.map((o) => `<button type="button" class="vis-op vis-chip" ${rol}="false" data-v="${esc(o.value)}">${esc(o.label)}</button>`).join('')}</div>`;
+      html += `<div class="vis-chips">${opciones.map((o) => `<button type="button" class="vis-op vis-chip" ${rol}="false" data-v="${esc(o.value)}"${CORTO[o.label] ? ` aria-label="${esc(o.label)}"` : ''}>${esc(CORTO[o.label] || o.label)}</button>`).join('')}</div>`;
     } else {
-      html = `<div class="vis-fotos">${opciones.map((o, i) => `<button type="button" class="vis-op vis-foto${o.img ? '' : ' sin-foto'}${otro(o.value) ? ' es-otro' : ''}" ${rol}="false" data-v="${esc(o.value)}" style="--i:${i}">`
-        + `<span class="vis-foto-img">${o.img ? `<img src="${esc(o.img)}" width="160" height="160" alt="" loading="lazy" decoding="async">` : MAS}</span>`
-        + `<span class="vis-foto-t">${esc(o.label)}</span><span class="vis-check" aria-hidden="true">${CHECK}</span></button>`).join('')}</div>`;
+      html += `<div class="vis-fotos">${opciones.map((o, i) => `<button type="button" class="vis-op vis-foto" ${rol}="false" data-v="${esc(o.value)}" style="--i:${i}">`
+        + `<span class="vis-icono">${o.img ? `<img src="${esc(o.img)}" width="40" height="40" alt="" loading="lazy" decoding="async">` : svg(ICONOS[otro(o.value) ? 'otro' : o.value] || ICONOS.otro)}</span>`
+        + `<span class="vis-foto-t">${esc(CORTO[o.label] || o.label)}</span><span class="vis-check" aria-hidden="true">${CHECK}</span></button>`).join('')}</div>`;
     }
-    caja.innerHTML = titulo + html;
+    caja.innerHTML = html;
     row.prepend(caja);
     row.classList.add('es-visual');
     const ayuda = row.querySelector(':scope > .pick-ayuda');
@@ -101,7 +125,7 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
       const valores = multi ? lista() : [campo.value];
       botones.forEach((b) => {
         const v = b.dataset.v;
-        const on = multi ? valores.some((x) => x === v || (otro(v) && x.startsWith(`${v.split(' ')[0]}`) && otro(x))) : valores[0] === v;
+        const on = multi ? valores.some((x) => x === v || (otro(v) && otro(x))) : valores[0] === v;
         b.setAttribute(multi ? 'aria-pressed' : 'aria-checked', String(on));
         if (!multi) b.tabIndex = on || (!campo.value && b === botones[0]) ? 0 : -1;
       });
@@ -112,8 +136,11 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
         plazo.hidden = i < 0;
         if (i >= 0) {
           const lim = antesHabiles(new Date(Number(m[2]), i, 1), 40);
-          plazo.querySelector('span').textContent = `Pide la autorización sanitaria a más tardar el ${DIAS[lim.getDay()]} ${lim.getDate()} de ${MESES[lim.getMonth()]} (aprox.).`;
+          plazo.textContent = `Pide la autorización sanitaria antes del ${DIAS[lim.getDay()]} ${lim.getDate()} de ${MESES[lim.getMonth()]}.`;
         }
+        /* El mes elegido queda a la vista en la fila */
+        const sel = caja.querySelector('.vis-mes[aria-checked="true"]');
+        if (sel) { const f = sel.parentElement; const x = sel.offsetLeft - (f.clientWidth - sel.offsetWidth) / 2; f.scrollTo({ left: Math.max(0, x), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
       }
     };
     const guarda = (valor) => {
@@ -130,12 +157,13 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
         const ya = l.findIndex((x) => x === v || (otro(v) && otro(x)));
         if (ya >= 0) l.splice(ya, 1); else l.push(v);
         const orden = opciones.map((o) => o.value);
-        l.sort((a, b2) => orden.indexOf(otro(a) ? orden.find(otro) : a) - orden.indexOf(otro(b2) ? orden.find(otro) : b2));
+        const pos = (x) => orden.indexOf(otro(x) ? orden.find(otro) : x);
+        l.sort((x, y) => pos(x) - pos(y));
         guarda(l.join(', '));
       } else guarda(campo.value === v && row.dataset.fila !== 'opciones' ? '' : v);
       row.removeAttribute('data-invalid');
     });
-    /* Una opción: flechas para moverse entre las tarjetas, como un grupo de radios */
+    /* Una opción: flechas para moverse, como un grupo de radios */
     if (!multi) caja.addEventListener('keydown', (e) => {
       const paso = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
       if (!paso) return;

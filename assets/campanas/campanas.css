@@ -727,7 +727,7 @@ body[data-site="campanas"] :is(.etapas-lista, .accordion) summary:active { trans
 /* Esquinas continuas */
 @supports (corner-shape: squircle) {
   body[data-site="campanas"] * { corner-shape: squircle; }
-  body[data-site="campanas"] :is(.dock, .nav-busca, .dock-toggle, .carrusel-boton, .carrusel-mas, .vis-check, .vis-chip, .carrusel-girar, .ckc-etapa-n, .ckc-num, .pm, .hcard-close, .plazo-punto, .busca-linea-barra i, .busca-avance-barra, .busca-regla, .busca-regla-rango, .wa-icon, .dot) { corner-shape: round; }
+  body[data-site="campanas"] :is(.dock, .nav-busca, .dock-toggle, .carrusel-boton, .carrusel-mas, .vis-check, .vis-chip, .vis-mes, .carrusel-girar, .ckc-etapa-n, .ckc-num, .pm, .hcard-close, .plazo-punto, .busca-linea-barra i, .busca-avance-barra, .busca-regla, .busca-regla-rango, .wa-icon, .dot) { corner-shape: round; }
 }
 /* Acordeones más pausados (site.js lee --acordeon-ms) */
 body[data-site="campanas"] .accordion details { --acordeon-ms: 520; }
@@ -759,48 +759,48 @@ body[data-site="campanas"] { --font: Allo, "Allo fallback", -apple-system, Blink
 body[data-site="campanas"] :is(.display, .title, .norm-title) { font-weight: 650; letter-spacing: -.022em; }
 
 /* ---------- Ficha visual (campanas.js, 27-11-2026) ----------
-   Equilibrio antes que tamaño: cada opción es una fila baja (miniatura de 44 px, nombre y una marca redonda a la
-   derecha), en dos columnas; los meses, un calendario de botones chicos; el peso, botones en fila. Elegir se ve al
-   instante (fondo verde suave, borde y marca llena), nada se mueve de lugar y al tocar se hunde un poco. */
+   Menos es más: tarjetas sin borde sobre un gris muy suave, con ícono (o el PNG de cada opción) y nombre; la marca
+   aparece solo en la elegida. Los meses, una fila de píldoras que se desliza. Ajuste óptico: el texto se centra por la
+   altura de las mayúsculas (text-box), no por la caja de la línea, y los íconos van a la altura del texto. */
 .pick.es-visual > .pick-btn { display: none; }
-.pick.es-visual { display: block; padding: 12px 14px 14px; background: #fff !important; }
-.vis { display: grid; gap: 8px; }
-.vis-titulo { display: flex; align-items: center; gap: 8px; min-height: 24px; color: var(--ink); font-size: .875rem; font-weight: 700; }
-.vis-titulo span { padding: 1px 7px; border-radius: 99px; background: var(--bg-alt); color: var(--muted); font-size: .6875rem; font-weight: 700; }
-.vis-titulo .pick-ayuda { position: static; flex: none; width: 26px; height: 26px; margin-left: auto; transform: none; }
-.vis-op { -webkit-tap-highlight-color: transparent; font: inherit; color: var(--ink); cursor: pointer; transition: transform .16s ease-out, box-shadow .18s ease, background-color .18s ease, color .18s ease, border-color .18s ease; }
+.pick.es-visual { display: block; padding: 16px 16px 18px; background: #fff !important; }
+.vis { --vis-fondo: #f2f4f3; --vis-fondo-2: #e9edeb; display: grid; gap: 12px; }
+.vis-titulo { display: flex; align-items: center; gap: 6px; min-height: 22px; color: var(--ink); font-size: .9375rem; font-weight: 600; }
+.vis-titulo .vis-opcional { color: var(--muted); font-size: .8125rem; font-weight: 500; }
+.vis-titulo .pick-ayuda { position: static; flex: none; width: 24px; height: 24px; margin-left: auto; transform: none; }
+.vis-op { -webkit-tap-highlight-color: transparent; border: 0; font: inherit; color: var(--ink); cursor: pointer; transition: transform .16s ease-out, background-color .18s ease, color .18s ease, box-shadow .18s ease; }
 .vis-op:active { transform: scale(.97); }
 .vis-op:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-@media (hover: hover) and (pointer: fine) { .vis-op:not([aria-checked="true"]):not([aria-pressed="true"]):hover { border-color: var(--line-strong); background: #fbfcfb; } }
-/* Opciones con miniatura: filas bajas en dos columnas (una en pantallas angostas) */
-.vis-fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 8px; }
-.vis-foto { display: grid; grid-template-columns: 44px minmax(0, 1fr) 20px; align-items: center; gap: 10px; min-height: 60px; padding: 8px 12px 8px 8px; border: 1px solid var(--line); border-radius: 14px; background: #fff; text-align: left; }
-.vis-foto-img { display: grid; place-items: center; width: 44px; height: 44px; overflow: hidden; border-radius: 10px; background: var(--bg-alt); color: var(--muted); }
-.vis-foto-img img { width: 100%; height: 100%; object-fit: cover; }
-.vis-foto-t { font-size: .875rem; font-weight: 600; line-height: 1.25; }
-.vis-check { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line-strong); color: transparent; transition: background-color .18s ease, box-shadow .18s ease, color .18s ease, transform .2s cubic-bezier(.23, 1, .32, 1); }
-.vis-check svg { width: 12px; height: 12px; }
-.vis-foto:is([aria-pressed="true"], [aria-checked="true"]) { border-color: var(--accent); background: var(--accent-soft, #eaf5ee); }
-.vis-foto:is([aria-pressed="true"], [aria-checked="true"]) .vis-check { background: var(--accent); box-shadow: none; color: #fff; transform: scale(1.06); }
-.vis-foto:is([aria-pressed="true"], [aria-checked="true"]) .vis-foto-t { color: var(--accent-strong); }
-/* Meses: botones chicos, seis por fila (dos filas parejas); cuatro solo en pantallas muy angostas */
-.vis-meses { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
-@media (max-width: 340px) { .vis-meses { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.vis-mes { display: grid; justify-items: center; gap: 0; padding: 7px 2px 6px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font-variant-numeric: tabular-nums; }
-.vis-mes-n { font-size: .875rem; font-weight: 700; line-height: 1.2; text-transform: capitalize; }
-.vis-mes-a { color: var(--muted); font-size: .6875rem; font-weight: 600; line-height: 1.3; }
-.vis-mes[aria-checked="true"] { border-color: var(--accent); background: var(--accent); color: #fff; }
-.vis-mes[aria-checked="true"] .vis-mes-a { color: rgb(255 255 255 / .85); }
-.vis-pie { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.vis-plazo { display: flex; align-items: flex-start; gap: 6px; flex: 1 1 200px; margin: 0; color: var(--ink-2); font-size: .8125rem; line-height: 1.4; }
-.vis-plazo svg { flex: none; width: 14px; height: 14px; margin-top: 2px; color: var(--accent-strong); }
+@media (hover: hover) and (pointer: fine) { .vis-op:not([aria-checked="true"]):not([aria-pressed="true"]):hover { background: var(--vis-fondo-2); } }
+/* Tarjetas */
+.vis-fotos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.vis-foto { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 52px; padding: 12px 14px; border-radius: 14px; background: var(--vis-fondo); text-align: left; }
+.vis-icono { display: grid; place-items: center; width: 24px; height: 24px; color: var(--ink-2); }
+.vis-icono svg { width: 22px; height: 22px; }
+.vis-icono img { width: 28px; height: 28px; object-fit: contain; }
+.vis-foto-t { padding-right: 6px; font-size: .875rem; font-weight: 600; line-height: 1.25; text-wrap: balance; }
+/* La marca flota en la esquina: no le quita espacio al nombre */
+.vis-check { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: #fff; opacity: 0; transform: scale(.6); transition: opacity .16s ease, transform .2s cubic-bezier(.23, 1, .32, 1); }
+.vis-foto:is([aria-pressed="true"], [aria-checked="true"]) { background: var(--accent-soft, #e8f3ed); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.vis-foto:is([aria-pressed="true"], [aria-checked="true"]) :is(.vis-foto-t, .vis-icono) { color: var(--accent-strong); }
+.vis-foto:is([aria-pressed="true"], [aria-checked="true"]) .vis-check { opacity: 1; transform: none; }
+/* Meses: una fila de píldoras que se desliza; el año aparece donde cambia */
+.vis-meses { display: flex; align-items: center; gap: 6px; margin: -2px -16px; padding: 2px 16px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 24px), transparent); }
+.vis-meses::-webkit-scrollbar { display: none; }
+.vis-anio { flex: none; padding: 0 2px 0 8px; color: var(--muted); font-size: .75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.vis-anio:first-child { padding-left: 0; }
+.vis-mes { flex: none; display: grid; place-items: center; min-width: 52px; height: 36px; padding: 0 12px; border-radius: 99px; background: var(--vis-fondo); font-size: .875rem; font-weight: 600; scroll-snap-align: center; }
+.vis-mes[aria-checked="true"] { background: var(--accent); color: #fff; }
+.vis-plazo { margin: 0; color: var(--ink-2); font-size: .8125rem; line-height: 1.45; }
 /* Botones en fila */
 .vis-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.vis-chip { min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 99px; background: #fff; font-size: .8125rem; font-weight: 600; }
-.vis-chip:is([aria-checked="true"], [aria-pressed="true"]) { border-color: var(--accent); background: var(--accent); color: #fff; }
-.pick.es-visual[data-invalid] :is(.vis-foto, .vis-mes) { border-color: #b7791f; }
+.vis-chip { display: grid; place-items: center; height: 36px; padding: 0 14px; border-radius: 99px; background: var(--vis-fondo); font-size: .875rem; font-weight: 600; }
+.vis-chip:is([aria-checked="true"], [aria-pressed="true"]) { background: var(--accent); color: #fff; }
+/* Ajuste óptico del texto en botones y píldoras (Chrome 133+, Safari 18.2+; en otros, igual queda centrado) */
+@supports (text-box: trim-both cap alphabetic) { :is(.vis-mes, .vis-chip, .vis-foto-t, .vis-titulo) { text-box: trim-both cap alphabetic; } .vis-foto-t { line-height: 1.35; } }
+.pick.es-visual[data-invalid] :is(.vis-foto, .vis-mes) { box-shadow: inset 0 0 0 1.5px #b7791f; }
 @media (prefers-reduced-motion: no-preference) {
-  .vis-op { animation: vis-entra .2s cubic-bezier(.23, 1, .32, 1) both; animation-delay: calc(var(--i, 0) * 25ms); }
+  .vis-foto { animation: vis-entra .2s cubic-bezier(.23, 1, .32, 1) both; animation-delay: calc(var(--i, 0) * 25ms); }
   @keyframes vis-entra { from { opacity: 0; transform: translateY(3px); } }
 }
 @media (prefers-reduced-motion: reduce) { .vis-op, .vis-check { transition: none; } }
@@ -1053,11 +1053,9 @@ body[data-site="campanas"] .norm-toc a { border-radius: 15px; }
 .busca-avance-barra { border-radius: 99px; }
 .busca-chip { border-radius: 99px; }
 .busca-resp-ocultar { border-radius: 99px; }
-.vis-titulo span { border-radius: 99px; }
 .vis-foto { border-radius: 21px; }
-.vis-foto-img { border-radius: 15px; }
 .vis-check { border-radius: 50%; }
-.vis-mes { border-radius: 18px; }
+.vis-mes { border-radius: 99px; }
 .vis-chip { border-radius: 99px; }
 /* Burbuja «?» abierta: opciones de 48 px a 8 px del borde (24 + 8 = 32); abajo a la derecha, el botón redondo de 56 px
    va al ras: esa esquina es la del círculo (28 px, redonda) */
