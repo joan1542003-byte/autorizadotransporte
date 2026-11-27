@@ -17,6 +17,22 @@ ROOT = Path(__file__).resolve().parent.parent
 HOJAS = ['assets/site/site.css', 'assets/site/transporte.css', 'assets/campanas/campanas.css']
 FACTOR = 1.5
 INI, FIN = '/* squircle:inicio (generado por tools/squircle.py; no editar a mano) */', '/* squircle:fin */'
+# Esquinas concéntricas: lo que va a pocos px de la esquina de su contenedor sigue la misma curva (radio de adentro =
+# radio de afuera − separación). Si el de adentro es una cápsula (su radio ya es la mitad de su alto), manda él y el
+# contenedor se ajusta. Medido con la prueba de esquinas (concentricos.mjs).
+AJUSTES = """
+/* Burbuja «?» abierta: opciones de 48 px a 8 px del borde (24 + 8 = 32); abajo a la derecha, el botón redondo de 56 px
+   va al ras: esa esquina es la del círculo (28 px, redonda) */
+body[data-site="campanas"] .dock.is-open { border-radius: 32px 32px 28px 32px; corner-shape: squircle squircle round squircle; }
+body[data-site="campanas"] .dock-action { border-radius: 24px; }
+body[data-site="campanas"] .dock-action.is-ia::before { border-radius: 25px; }
+/* Hero en el teléfono: el bloque de opciones va a 12 px del borde de la foto (33 − 12 = 21) */
+@media (max-width: 860px) {
+  body[data-site="campanas"] .stage .routes { border-radius: 21px; }
+  /* La píldora que marca la opción y cada opción van a 4 px de su borde (21 − 4 = 17) */
+  body[data-site="campanas"] .stage :is(.routes-pill, .route) { border-radius: 17px; }
+}
+"""
 PROP = re.compile(r'(border(?:-(?:top|bottom)-(?:left|right))?-radius)\s*:\s*([^;}]+)')
 
 
@@ -70,7 +86,7 @@ def main():
     # Los radios que usan las variables --r-s, --r-m y --r-l (tokens del sistema de diseño)
     tokens = sorted(set(re.findall(r'(--r-[a-z]+)\s*:\s*(\d+px)', ''.join((ROOT / h).read_text(encoding='utf-8') for h in HOJAS[:-1]))))
     raiz = ':root { ' + ' '.join(f'{k}: {escala(v)};' for k, v in tokens) + ' }'
-    texto += f'\n{INI}\n@supports (corner-shape: squircle) {{\n{raiz}\n' + '\n'.join(bloques) + f'\n}}\n{FIN}\n'
+    texto += f'\n{INI}\n@supports (corner-shape: squircle) {{\n{raiz}\n' + '\n'.join(bloques) + '\n' + AJUSTES.strip() + f'\n}}\n{FIN}\n'
     campanas.write_text(texto, encoding='utf-8')
     print(f'ok squircle: {len(bloques)} reglas')
 

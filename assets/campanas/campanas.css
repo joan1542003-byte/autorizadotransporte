@@ -646,7 +646,8 @@ body[data-site="campanas"] .guia-errors { padding-left: 0; border-left: 0; }
 .tamano-foto { display: block; margin: -16px -16px 10px; overflow: hidden; border-radius: 15px 15px 0 0; background: #eceeed; }
 .tamano-foto img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
 /* El refrigerador es una foto cuadrada: entera, sin recortarle arriba y abajo */
-.tamano-foto img[src*="aparato-"] { object-fit: contain; background: #f0f0f1; }
+/* Mismos tonos que los bordes de su foto (arena), para que no se note dónde termina */
+.tamano-foto img[src*="aparato-"] { object-fit: contain; background: linear-gradient(90deg, rgb(245 236 229), rgb(224 208 194)); }
 .doc-case-foto { display: block; width: 100%; max-width: 360px; height: auto; aspect-ratio: 4 / 3; margin-bottom: 14px; border-radius: 12px; object-fit: cover; background: #eceeed; }
 
 /* Opciones del buscador: compactas (título y foto chica); la marcada (puntero o flechas) se agranda: foto más grande,
@@ -772,6 +773,14 @@ body[data-site="campanas"] :is(.etapas-lista, .accordion) summary:active { trans
 }
 /* Acordeones más pausados (site.js lee --acordeon-ms) */
 body[data-site="campanas"] .accordion details { --acordeon-ms: 520; }
+
+/* Ficha en el teléfono con el teclado abierto (iPhone, 27-11-2026). La hoja ya se apoya sobre el teclado (--vv-top y
+   --vv-bottom, site.js); además: el cuerpo con campos ocupa solo el espacio que queda (base 0) y se desplaza por dentro,
+   así los botones quedan justo sobre el teclado, sin tapar campos ni dejar espacio perdido; sin el relleno de 55vh que
+   agrandaba el formulario; el campo activo lo centra campanas.js cuando el teclado termina de abrirse. */
+body[data-site="campanas"] .hero-sheet :is(.hcard, .hcard-panel, .qform) { display: flex; flex-direction: column; min-height: 0; }
+body[data-site="campanas"] .hero-sheet .hcard-body { flex: 1 1 0; min-height: 0; }
+body[data-site="campanas"] .hero-sheet.is-typing .hcard-body { padding-bottom: 18px; scroll-padding-block: 16px; }
 
 /* squircle:inicio (generado por tools/squircle.py; no editar a mano) */
 @supports (corner-shape: squircle) {
@@ -1023,5 +1032,16 @@ body[data-site="campanas"] .norm-toc a { border-radius: 15px; }
 .busca-avance-barra { border-radius: 99px; }
 .busca-chip { border-radius: 99px; }
 .busca-resp-ocultar { border-radius: 99px; }
+/* Burbuja «?» abierta: opciones de 48 px a 8 px del borde (24 + 8 = 32); abajo a la derecha, el botón redondo de 56 px
+   va al ras: esa esquina es la del círculo (28 px, redonda) */
+body[data-site="campanas"] .dock.is-open { border-radius: 32px 32px 28px 32px; corner-shape: squircle squircle round squircle; }
+body[data-site="campanas"] .dock-action { border-radius: 24px; }
+body[data-site="campanas"] .dock-action.is-ia::before { border-radius: 25px; }
+/* Hero en el teléfono: el bloque de opciones va a 12 px del borde de la foto (33 − 12 = 21) */
+@media (max-width: 860px) {
+  body[data-site="campanas"] .stage .routes { border-radius: 21px; }
+  /* La píldora que marca la opción y cada opción van a 4 px de su borde (21 − 4 = 17) */
+  body[data-site="campanas"] .stage :is(.routes-pill, .route) { border-radius: 17px; }
+}
 }
 /* squircle:fin */

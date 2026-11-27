@@ -135,3 +135,9 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 - Las respuestas de los checklists van solas en la ficha (campos ocultos), sin opción en el formulario.
 - Toques: lo que se toca se hunde al presionar y vuelve con resorte; nada se eleva, acerca ni gira al pasar el puntero. Degradados sutiles en vez de colores planos. Esquinas continuas (squircle) con `corner-shape`, nativo y sin JavaScript.
 - Sin degradados en superficies blancas. Squircle más marcado: `tools/squircle.py` reescribe al final de `campanas.css` todas las reglas con `border-radius` (mismo orden y selectores) con los radios ×1,5, dentro de `@supports (corner-shape: squircle)`; correrlo después de cambiar radios. Animaciones más suaves (toques sin rebote, volteo, carrusel, acordeones a 520 ms con `--acordeon-ms`).
+
+## Esquinas concéntricas, ficha con teclado en iPhone y fotos nuevas de aparatos (27-11-2026)
+
+- `tools/squircle.py` lleva una lista de ajustes concéntricos (radio de adentro = de afuera − separación): burbuja «?» abierta (sus opciones y el botón redondo) y el bloque de opciones del hero en el teléfono. Prueba: `concentricos.mjs`.
+- Ficha en el teléfono con el teclado abierto: el cuerpo con campos ocupa solo lo que queda (base 0) y se desplaza por dentro; los botones quedan justo sobre el teclado; sin el relleno de 55vh; el campo activo se centra cuando el teclado termina de abrirse (`campanas.js`).
+- Fotos de aparatos con fondos de color (entregadas el 27-11-2026), en 160, 400 y 800 px.

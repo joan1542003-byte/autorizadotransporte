@@ -109,6 +109,25 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   });
 })();
 
+/* Ficha en el teléfono: con el teclado abierto, el campo activo queda al centro de la lista de campos (no al borde,
+   donde lo dejaba «nearest»). Se espera a que el teclado termine de abrirse (Safari no avisa): al enfocar y al cambiar
+   el área visible. Solo se desplaza la lista, no la página. */
+(() => {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  let espera = 0;
+  const centrar = () => {
+    const el = document.activeElement;
+    const lista = el?.closest?.('.hero-sheet .hcard-body');
+    if (!lista || !el.matches('input, textarea')) return;
+    const r = el.getBoundingClientRect(); const c = lista.getBoundingClientRect();
+    lista.scrollTo({ top: Math.max(0, lista.scrollTop + (r.top - c.top) - (c.height - r.height) / 2), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  };
+  const luego = (ms) => { clearTimeout(espera); espera = setTimeout(() => requestAnimationFrame(centrar), ms); };
+  document.addEventListener('focusin', (e) => { if (e.target.closest?.('.hero-sheet')) luego(340); });
+  vv.addEventListener('resize', () => luego(140));
+})();
+
 /* En iPhone, :active (el hundirse al tocar) solo se activa si la página escucha el toque */
 document.addEventListener('touchstart', () => {}, { passive: true });
 
