@@ -185,3 +185,9 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 - **Autocompletar:** cada campo tiene su etiqueta real, limpia, para el navegador y los lectores de pantalla (las letras que saltan son solo dibujo), su `autocomplete` (organization, name, email, tel) y el teclado que corresponde en el teléfono. Si el navegador llena el campo, la etiqueta sube igual.
 - **Mes estimado:** vuelve a ser la fila que abre la lista de meses.
 - **Burbuja de ayuda:** aparece apenas se entra (antes esperaba a que cargara todo). Empieza como «?» y cada cierto tiempo se transforma en un triángulo con ojos rodeado por las tres flechas del reciclaje, y vuelve. Los ojos siguen al puntero como si estuvieran sobre una esfera y parpadean de vez en cuando. Se detiene con la burbuja abierta, el chat o la pestaña oculta.
+
+## Hero a pantalla completa (27-11-2026)
+
+- **Escritorio:** el hero va de la barra hasta 16 px del borde inferior (antes tenía un máximo de 640 px y en un MacBook de 14" o en un monitor asomaba la sección siguiente). No baja de 540 px (portátiles de 768) ni pasa de 960 px (monitores muy altos). La foto crece desde su esquina de abajo a la derecha para cubrir el alto extra. El formulario abierto usa ese alto: en un MacBook Air de 13" el primer paso cabe sin desplazarse.
+- **Teléfono:** el hero llega hasta 12 px del borde (antes dejaba asomar ~80 px de lo siguiente), y las opciones terminan sobre la burbuja de ayuda, que se posa en la esquina de abajo del hero sin tapar «¿Prefieres conversar?».
+- Medido en MacBook Air 13", MacBook Pro 14" y 16", monitor Full HD y 1440p, portátil de 768, iPad, iPhone 15, iPhone SE y Android.

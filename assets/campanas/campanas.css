@@ -143,10 +143,22 @@ body[data-site="campanas"] :is(.plan, .service, .related):hover { border-color: 
 body[data-site="campanas"] .site-footer { border-top-color: color-mix(in srgb, var(--accent) 22%, var(--line)); }
 
 
+/* El hero ocupa toda la pantalla inicial (27-11-2026): de la barra (abajo a 66 px; el hero parte 12 px más abajo) hasta
+   16 px del borde inferior, sin asomar la sección siguiente. En pantallas muy altas (monitores de 1300 px) se queda en
+   960 px para no volverse un rectángulo parado; en las bajas (portátiles de 768) no baja de 540. La foto cubre el alto
+   extra creciendo desde su esquina de abajo a la derecha. En el teléfono, lo mismo con 12 px abajo (antes dejaba asomar
+   ~80 px de lo siguiente). */
+@media (min-width: 861px) {
+  body[data-site="campanas"] .stage { height: clamp(540px, calc(100vh - 94px), 960px); height: clamp(540px, calc(100svh - 94px), 960px); }
+  body[data-site="campanas"] .stage-media img { min-height: 100%; object-fit: cover; }
+}
 /* Teléfono: el hero ocupa la pantalla bajo la barra; la foto crece y toma el alto que sobra */
 @media (max-width: 860px) {
-  body[data-site="campanas"] .stage { display: flex; flex-direction: column; min-height: calc(100vh - 168px); min-height: calc(100svh - 168px - env(safe-area-inset-bottom, 0px)); }
-  body[data-site="campanas"] .stage-media { flex: 1 1 auto; min-height: 190px; }
+  body[data-site="campanas"] .stage { display: flex; flex-direction: column; min-height: calc(100vh - 86px); min-height: calc(100svh - 86px - env(safe-area-inset-bottom, 0px)); }
+  body[data-site="campanas"] .stage-media { flex: 1 1 auto; min-height: 110px; }
+  /* La burbuja de ayuda (56 px, a 16 px del borde) se posa en la esquina de abajo del hero: las opciones terminan sobre
+     ella y no quedan tapadas (desde el 27-11-2026 la burbuja está desde que se entra) */
+  body[data-site="campanas"]:has([data-dock]) .stage { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
   body[data-site="campanas"] .stage-media img { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; }
 }
 @media (max-width: 599px) {
