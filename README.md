@@ -149,3 +149,9 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 - Panel «Campañas» (secciones como los ajustes de un teléfono, interruptores y barra de cambios sin guardar): Resumen, Publicación, Contacto (WhatsApp), Servicios (retiro domiciliario, reutilización, tarjetas por público, calculadora del plazo, aparatos, buscador), Portada (título, texto, foto de la biblioteca y aviso, con vista previa), Sitios relacionados (Transporte y HDS, con su dirección) y Buscadores (Google y Bing).
 - Los servicios se apagan con las marcas `data-cr-servicio` y `data-cr-grupo` del HTML: el plugin agrega `<html data-cr-off>` y una regla que los oculta, y quita sus opciones de la ficha; `campanas.js` deja de sugerirlos en el buscador. Si agregas un bloque que dependa de un servicio, márcalo.
 - Pruebas sin WordPress: `php tools/pruebas-wordpress.php [salida]` (PHP 8.2 de Local en este computador).
+
+## Hero sin texto que desaparece, movimiento sutil y sin adornos (27-11-2026)
+
+- Hero: al cambiar de opción, el título y el texto se funden uno después del otro (0,18 s y 0,3 s), sin desenfoque ni movimiento: ya no se ven los dos a medias ni «desaparecen». Prueba: `hero4.mjs` (la suma de opacidades nunca pasa de 1).
+- Animaciones sutiles: desplazamientos de 4 a 8 px, sin escala, desenfoque, giro ni rebote.
+- Sin eyebrows (el rótulo chico sobre los títulos de preguntas, normativa, normas y créditos; «Etapa N de 4» pasa al título: «1. Planificación») ni la raya verde bajo los títulos de sección.

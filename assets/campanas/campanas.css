@@ -149,10 +149,11 @@ body[data-site="campanas"] .stage-media img { object-position: 62% 58%; }
 /* Hero: con «Quiero organizar una campaña» abierto, el título y la bajada pasan al plazo (data-view de transporte-ui.js).
    Los dos textos ocupan la misma celda; el que no corresponde queda invisible y fuera de la lectura en voz alta. */
 .hero-cambia { display: grid; }
-.hero-cambia > span { grid-area: 1 / 1; transition: opacity .45s var(--ease), transform .6s cubic-bezier(.2, .8, .2, 1), filter .45s var(--ease), visibility .45s; }
-.hero-cambia > .is-organizar { opacity: 0; visibility: hidden; transform: translateY(.35em); filter: blur(6px); }
-.stage[data-view="contacto"] .hero-cambia > .is-base { opacity: 0; visibility: hidden; transform: translateY(-.35em); filter: blur(6px); }
-.stage[data-view="contacto"] .hero-cambia > .is-organizar { opacity: 1; visibility: visible; transform: none; filter: none; }
+/* El que se va se funde en 0,2 s; el que llega espera ese momento y aparece: nunca se ven los dos a medias, sin
+   desenfoque ni movimiento (27-11-2026). Cada estado lleva su propia transición. */
+.hero-cambia > span { grid-area: 1 / 1; }
+.hero-cambia > .is-base, .stage[data-view="contacto"] .hero-cambia > .is-organizar { opacity: 1; visibility: visible; transition: opacity .3s ease .18s, visibility 0s linear .18s; }
+.hero-cambia > .is-organizar, .stage[data-view="contacto"] .hero-cambia > .is-base { opacity: 0; visibility: hidden; transition: opacity .18s ease, visibility 0s linear .18s; }
 @media (prefers-reduced-motion: reduce) { .hero-cambia > span { transition: none; } }
 
 /* Hero: el panel ocupa siempre todo el alto disponible, para que no cambie de tamaño al pasar de un paso a otro */
@@ -160,14 +161,13 @@ body[data-site="campanas"] .stage-panel { align-items: stretch; }
 body[data-site="campanas"] .stage-panel > .hcard { height: 100%; }
 
 
-/* Fondo de todo el sitio: blanco, el mismo en todas las secciones. El verde queda para detalles: la raya bajo los títulos
-   de sección, los «+» de las preguntas, las viñetas, la selección de texto y el borde de las tarjetas al pasar el puntero.
-   */
+/* Fondo de todo el sitio: blanco, el mismo en todas las secciones. El verde queda para detalles: los «+» de las preguntas,
+   las viñetas, la selección de texto y el borde de las tarjetas al pasar el puntero.
+   Sin raya bajo los títulos de sección (27-11-2026): era un adorno de plantilla. */
 body[data-site="campanas"] { background: #fff; }
 body[data-site="campanas"] .section-alt { background: transparent; }
 body[data-site="campanas"] .related { background: #fff; }
 body[data-site="campanas"] ::selection { background: #d7f5c4; color: var(--ink); }
-body[data-site="campanas"] .section-head .title::after { content: ""; display: block; width: 36px; height: 3px; margin-top: 14px; border-radius: 3px; background: var(--accent); }
 body[data-site="campanas"] .accordion .plus { color: var(--accent); }
 body[data-site="campanas"] .accordion summary:hover { color: var(--accent-strong); }
 body[data-site="campanas"] :is(.plan, .service, .related):hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
@@ -199,23 +199,11 @@ body[data-site="campanas"] .site-footer { border-top-color: color-mix(in srgb, v
 @media (max-width: 860px) { .cta-band.has-foto { grid-template-columns: minmax(0, 1fr); } .cta-foto { order: -1; aspect-ratio: 16 / 10; } }
 
 
-/* ---------- Movimiento: suave y con cuerpo (desplazamiento, escala y un leve desenfoque), no solo fundidos ----------
-   Mismos nombres que site.css y transporte.css: como este archivo va después, estas versiones mandan. */
+/* ---------- Movimiento (27-11-2026): sutil. Fundidos con desplazamientos de pocos px, sin escala, desenfoque ni rebote.
+   Mismos nombres que site.css y transporte.css: como este archivo va después, estas versiones mandan (las de los
+   paneles y ventanas están más abajo; el toque de lo que se presiona, en «Estándar Apple»). */
 @media (prefers-reduced-motion: no-preference) {
-  @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(6px); } }
-  @keyframes panel-in { from { opacity: 0; transform: translateY(10px); filter: blur(4px); } }
-  @keyframes step-in { from { opacity: 0; transform: translateX(22px); filter: blur(4px); } }
-  @keyframes step-back { from { opacity: 0; transform: translateX(-22px); filter: blur(4px); } }
-  @keyframes hero-card-in { from { opacity: 0; transform: translateY(16px) scale(.975); filter: blur(8px); } }
-  @keyframes hero-fade-in { from { opacity: 0; transform: translateY(8px); filter: blur(4px); } }
-  @keyframes picker-in { from { opacity: 0; transform: translateY(18px) scale(.97); filter: blur(6px); } }
-  @keyframes fade-in { from { opacity: 0; transform: translateY(-6px); filter: blur(3px); } }
-  /* Lo que se toca responde: se hunde un poco al presionar y vuelve con un rebote corto */
-  :is(.route, .pick-btn, .opt, .btn, .plan-btn, .carrusel-boton, .more-toggle) { transition-property: background-color, border-color, color, box-shadow, transform; transition-duration: .25s, .25s, .25s, .3s, .45s; transition-timing-function: var(--ease), var(--ease), var(--ease), var(--ease), cubic-bezier(.34, 1.56, .64, 1); }
-  :is(.route, .pick-btn, .opt, .btn, .plan-btn, .carrusel-boton, .more-toggle):active { transform: scale(.97); transition-duration: .1s; }
-  /* La opción elegida en una ventana marca su elección con un pulso breve */
-  .opt[aria-pressed="true"] { animation: opt-elegida .7s cubic-bezier(.22, 1, .36, 1); }
-  @keyframes opt-elegida { 35% { transform: scale(1.012); } }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
 }
 
 /* Un solo fondo para todo el sitio: sin el cambio de color entre secciones, el espacio entre ellas se reduce a la mitad */
@@ -235,13 +223,13 @@ body[data-site="campanas"] main > .section:last-child { padding-bottom: clamp(48
 .ficha-enviada-acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; }
 @media (prefers-reduced-motion: no-preference) {
   .ficha-enviada:not([hidden]) { animation: ficha-gracias .5s var(--ease) both; }
-  .ficha-enviada:not([hidden]) picture { animation: ficha-gracias-foto .8s .05s cubic-bezier(.34, 1.56, .64, 1) both; }
+  .ficha-enviada:not([hidden]) picture { animation: ficha-gracias-foto .7s .05s cubic-bezier(.22, 1, .36, 1) both; }
   .ficha-enviada:not([hidden]) :is(.ficha-enviada-titulo, .ficha-enviada-texto, .ficha-enviada-acciones) { animation: ficha-gracias-texto .6s var(--ease) both; }
   .ficha-enviada:not([hidden]) .ficha-enviada-texto { animation-delay: .08s; }
   .ficha-enviada:not([hidden]) .ficha-enviada-acciones { animation-delay: .16s; }
   @keyframes ficha-gracias { from { opacity: 0; } }
-  @keyframes ficha-gracias-foto { from { opacity: 0; transform: translateY(18px) scale(.82) rotate(-4deg); filter: blur(6px); } }
-  @keyframes ficha-gracias-texto { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } }
+  @keyframes ficha-gracias-foto { from { opacity: 0; transform: translateY(8px); } }
+  @keyframes ficha-gracias-texto { from { opacity: 0; transform: translateY(4px); } }
 }
 
 /* Normativa (normativa.html y una página por norma, tools/normativa.py): resumen en simple, artículos oficiales y tabla */
@@ -488,13 +476,14 @@ body[data-site="campanas"] :is(.law-ref, .norm-crumbs a, .etapa-acciones a, .ckc
    transiciones de paneles, pasos y ventanas más cortas y sin desenfoque */
 @media (prefers-reduced-motion: no-preference) {
   body[data-site="campanas"] :is(.reveal.is-in, .reveal-group.is-in > *) { animation: none; }
-  @keyframes panel-in { from { opacity: 0; transform: translateY(8px); } }
-  @keyframes step-in { from { opacity: 0; transform: translateX(16px); } }
-  @keyframes step-back { from { opacity: 0; transform: translateX(-16px); } }
-  @keyframes hero-card-in { from { opacity: 0; transform: translateY(10px) scale(.985); } }
-  @keyframes hero-fade-in { from { opacity: 0; transform: translateY(6px); } }
-  @keyframes picker-in { from { opacity: 0; transform: translateY(12px) scale(.98); } }
-  @keyframes fade-in { from { opacity: 0; transform: translateY(-4px); } }
+  /* Sutiles (27-11-2026): desplazamientos de pocos px, sin escala ni desenfoque */
+  @keyframes panel-in { from { opacity: 0; transform: translateY(4px); } }
+  @keyframes step-in { from { opacity: 0; transform: translateX(8px); } }
+  @keyframes step-back { from { opacity: 0; transform: translateX(-8px); } }
+  @keyframes hero-card-in { from { opacity: 0; transform: translateY(6px); } }
+  @keyframes hero-fade-in { from { opacity: 0; } }
+  @keyframes picker-in { from { opacity: 0; transform: translateY(8px); } }
+  @keyframes fade-in { from { opacity: 0; } }
 }
 /* Sin barras de color a un costado de los recuadros ni bajo las fotos (recurso típico de plantilla): tinte parejo */
 body[data-site="campanas"] .ckc-reco { border-left: 0; border-radius: 14px; }
@@ -547,7 +536,7 @@ body[data-site="campanas"] { --ease-salida: cubic-bezier(.23, 1, .32, 1); }
 @media (prefers-reduced-motion: no-preference) {
   .busca[open] { animation: busca-in .32s cubic-bezier(.22, 1, .36, 1) both; }
   .busca[open]::backdrop { animation: busca-velo .32s ease both; }
-  @keyframes busca-in { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+  @keyframes busca-in { from { opacity: 0; transform: translateY(-4px); } }
   @keyframes busca-velo { from { opacity: 0; } }
 }
 
@@ -731,7 +720,7 @@ body[data-site="campanas"] .guia-errors { padding-left: 0; border-left: 0; }
   .busca-avance-relleno { animation: busca-llena 1.3s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--n, 1) * 110ms + 160ms); }
   @keyframes busca-llena { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
   .busca-resp.is-saliendo { animation: busca-resp-fuera .36s cubic-bezier(.4, 0, .2, 1) both; }
-  @keyframes busca-resp-fuera { to { opacity: 0; transform: scale(.96) translateY(-6px); filter: blur(2px); } }
+  @keyframes busca-resp-fuera { to { opacity: 0; transform: translateY(-4px); } }
 }
 .busca-corregido { padding: 0 4px; color: var(--ink-2); font-size: var(--fs-small); }
 .busca-op.is-externo { grid-template-columns: minmax(0, 1fr) auto; }
@@ -972,7 +961,6 @@ mark.find-hit { border-radius: 3px; }
 .carrusel.is-3d .carrusel-escena:focus-visible::after { border-radius: 40px; }
 .carrusel-boton { border-radius: 99px; }
 .carrusel-grupo { border-radius: 999px; }
-body[data-site="campanas"] .section-head .title::after { border-radius: 3px; }
 .cta-foto { border-radius: 30px; }
 .ficha-enviada img { border-radius: 36px; }
 .guia-resultado { border-radius: 18px; }

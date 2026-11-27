@@ -285,7 +285,7 @@ def guia_paso_a_paso():
     for c in CHECKLISTS:
         e = c['etapa']
         secciones.append(
-            f'<section class="guia-sec guia-etapa" id="etapa-{e}" aria-labelledby="h-etapa-{e}"><p class="guia-etapa-n">Etapa {e} de 4</p><h2 id="h-etapa-{e}">{esc(c["nombre"])}</h2>'
+            f'<section class="guia-sec guia-etapa" id="etapa-{e}" aria-labelledby="h-etapa-{e}"><h2 id="h-etapa-{e}">{e}. {esc(c["nombre"])}</h2>'
             f'<p class="guia-sub">{esc(c["lema"])}.</p>{foto(FOTO_ETAPA[e])}{puntos(ETAPAS_GUIA[e])}'
             f'<p class="guia-resultado"><strong>Al terminar esta etapa:</strong> {esc(c["resultado"])}</p>{franja_ck(c)}</section>')
     roles = ''.join(f'<li>{I["punto"]}<span><strong>{esc(a)}.</strong> {esc(b)}</span></li>' for a, b in ROLES)

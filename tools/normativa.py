@@ -351,7 +351,6 @@ def pagina_norma(n, base):
     main = f'''  <article class="container norm">
     {crumbs([('Inicio', './'), ('Normativa', 'normativa.html'), (n['corto'], '')])}
     <header class="norm-head">
-      <p class="norm-kind"><span class="doc-icon">{I_NORMA}</span>{esc(n['kind'])}</p>
       <h1 class="norm-title">{esc(n['titulo'])}</h1>
       <p class="norm-lead">{esc(n['lead'])}</p>
       <ul class="norm-facts" data-tips>
@@ -413,7 +412,6 @@ def pagina_indice(base):
     main = f'''  <article class="container guia">
     {crumbs([('Inicio', './'), ('Normativa', '')])}
     <header class="guia-head">
-      <p class="norm-kind"><span class="doc-icon">{I_NORMA}</span>Normativa</p>
       <h1 class="norm-title">Normativa de las campañas de recolección de RAEE</h1>
       <p class="norm-lead">Las tres normas que rigen una campaña de recolección de aparatos eléctricos y electrónicos en Chile, explicadas en simple y con sus artículos oficiales.</p>
     </header>
