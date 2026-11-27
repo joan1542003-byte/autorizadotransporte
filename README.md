@@ -159,3 +159,8 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 ## Carrusel plano al estilo de Apple (27-11-2026)
 
 - Reemplaza al de perspectiva: una fila con desplazamiento nativo e imán por tarjeta (dedo, trackpad, teclado), alineada con el contenido y con la siguiente asomándose; flechas abajo a la derecha que se apagan en los extremos. Cada tarjeta: la foto cuadrada y debajo su nombre y grupo; el «+» muestra su información sobre la foto (medida típica, descripción, nota e «Incluir en la ficha»), Esc la cierra. `carrusel.js` pasó de ~280 a ~70 líneas. Prueba: `carrusel2.mjs`.
+
+## Tipografía Allo (27-11-2026)
+
+- Campañas usa Allo 1.1.0 (Josh Puckett, OFL 1.1), versión «Friendly», recortada al español (U+0000-00FF y puntuación), pesos 400–800 y tamaño óptico de texto: `assets/campanas/fonts/allo-latin.woff2` (50 KB; Nunito pesaba 40 KB), con su licencia al lado. Mientras carga, Arial ajustada a sus medidas («Allo fallback»). Títulos grandes a 650 y con −0,022 em. Transporte sigue con Nunito (`assets/site/`).
+- Para rehacer el recorte (fontTools): subset primero y después `instancer` con `wght (400, 800)` y `opsz 14`; el tamaño óptico de titulares costaba 65 KB más.
