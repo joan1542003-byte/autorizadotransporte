@@ -234,6 +234,7 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
           btnFotos.querySelector('span').textContent = una ? 'Compartir foto' : 'Compartir fotos';
         }
       }
+      if (!on) corta();
       gracias.hidden = !on;
       debajo.forEach((el) => { el.inert = on; });
       if (on) gracias.querySelector('.ficha-enviada-titulo').focus({ preventScroll: true });
@@ -241,7 +242,39 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     btnFotos?.addEventListener('click', async () => {
       try { await navigator.share({ files: fotos() }); } catch (err) { if (err.name !== 'AbortError') window.SITE?.toast?.('No se pudo abrir el menú para compartir: adjunta las fotos en el chat.'); }
     });
-    resumen.querySelector('[data-send]')?.addEventListener('click', () => muestra(true));
+    /* Onda al enviar (27-11-2026; inspirada en «Distortion waves», sin React ni WebGL): un frente de color se abre desde
+       el botón que se presionó y lleva el resumen al agradecimiento. El agradecimiento se revela dentro del círculo
+       (clip-path) y, justo detrás del borde, una banda de color con lente (backdrop-filter) deforma lo que pasa. La
+       avanza requestAnimationFrame con pasos de hasta 34 ms: si WhatsApp se abre en otra pestaña, la onda espera y
+       sigue donde iba al volver. Sin movimiento (prefers-reduced-motion), el agradecimiento aparece como antes. */
+    let ondaViva = null;
+    const corta = () => { if (ondaViva) { ondaViva(); ondaViva = null; } };
+    const onda = (btn) => {
+      corta();
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const caja = resumen.getBoundingClientRect(); const b = btn.getBoundingClientRect();
+      if (!caja.width || !b.width) return;
+      const ox = b.left + b.width / 2 - caja.left; const oy = b.top + b.height / 2 - caja.top;
+      const rmax = Math.hypot(Math.max(ox, caja.width - ox), Math.max(oy, caja.height - oy)) + 64;
+      const capa = document.createElement('div');
+      capa.className = 'onda'; capa.setAttribute('aria-hidden', 'true');
+      resumen.append(capa);
+      [gracias, capa].forEach((el) => { el.style.setProperty('--ox', `${ox}px`); el.style.setProperty('--oy', `${oy}px`); el.style.setProperty('--r', '0px'); });
+      gracias.dataset.onda = '';
+      const DUR = 760; let p = 0; let antes = null; let id = 0;
+      const fin = () => { cancelAnimationFrame(id); delete gracias.dataset.onda; gracias.style.removeProperty('--r'); capa.remove(); };
+      const paso = (t) => {
+        if (antes !== null) p = Math.min(1, p + Math.min(t - antes, 34) / DUR);
+        antes = t;
+        const r = `${(1 - (1 - p) ** 3) * rmax}px`;
+        gracias.style.setProperty('--r', r); capa.style.setProperty('--r', r);
+        capa.style.opacity = p < 0.55 ? 1 : Math.max(0, 1 - (p - 0.55) / 0.45);
+        if (p < 1) id = requestAnimationFrame(paso); else { fin(); ondaViva = null; }
+      };
+      id = requestAnimationFrame(paso);
+      ondaViva = fin;
+    };
+    resumen.querySelector('[data-send]')?.addEventListener('click', (e) => { muestra(true); onda(e.currentTarget); });
     gracias.querySelector('[data-ver-resumen]').addEventListener('click', () => {
       muestra(false);
       resumen.querySelector('[data-send]')?.focus({ preventScroll: true });
@@ -680,11 +713,198 @@ document.addEventListener('touchstart', () => {}, { passive: true });
     }
   };
   d.addEventListener('click', (e) => { const b = e.target.closest('[data-busca-abrir]'); if (b) { e.preventDefault(); abrir(b.dataset.buscaAbrir || ''); } });
+  /* Para la lupa que se estira (Seek, más abajo): abre el buscador con lo que ya se escribió */
+  window.CRBusca = { abrir: (q) => { abrir(q || ''); if (input && q) { input.setSelectionRange(q.length, q.length); } } };
   d.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); if (dlg?.open) dlg.close(); else abrir(); }
   });
   /* En Windows y Linux el atajo es Ctrl+K */
   if (!/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) d.querySelectorAll('.ayu-busca kbd').forEach((k) => { k.textContent = 'Ctrl K'; });
+})();
+
+/* Lupa que se estira (Seek, 27-11-2026; adaptado del componente de referencia, sin React).
+   Una sola pieza, no dos: no es un ícono que se va y un campo que llega, sino una caja cuyo ANCHO es el estado, con la
+   lupa y el campo adentro todo el tiempo. La lupa queda a una distancia fija del borde izquierdo de la caja: cerrada,
+   esa distancia la centra en el círculo ((40 − 18) / 2 = 11) y, abierta, es el margen del campo; que cruce la cabecera
+   hacia la izquierda no es una animación escrita, es la caja creciendo a su alrededor (crece desde la derecha, junto a
+   «Cómo funciona», hacia el espacio libre). La altura no cambia y la esquina es redonda a cualquier ancho: círculo a
+   40, píldora a 240. Al presionar se comprime un instante (90 ms) y después se estira con un resorte (casi sin rebote);
+   cerrada, se inclina unos px hacia el puntero cercano (máx. ~4,5 px, solo con mouse). Al escribir, lo escrito pasa al
+   buscador completo; Esc o salir sin texto la cierran. Solo en escritorio con mouse; en el teléfono, la lupa abre el
+   buscador directamente. Con «reducir movimiento», sin resorte ni inclinación. */
+(() => {
+  const d = document;
+  const lupa = d.querySelector('.nav-busca');
+  if (!lupa || !window.CRBusca || d.documentElement.dataset.crOff?.split(' ').includes('buscador')) return;
+  const escritorio = matchMedia('(min-width: 861px) and (pointer: fine)');
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SHUT = 40; const ANCHO = 240;
+  const sek = d.createElement('div');
+  sek.className = 'sek';
+  sek.innerHTML = '<div class="sek-skin"><svg class="sek-lens" viewBox="0 0 18 18" aria-hidden="true"><circle cx="7.6" cy="7.6" r="5.4"/><path d="M11.6 11.6 15.4 15.4"/></svg>'
+    + '<input class="sek-field" type="text" placeholder="Buscar en la ayuda" aria-label="Buscar en la ayuda" autocomplete="off" spellcheck="false" tabindex="-1">'
+    + '<button class="sek-hit" type="button" aria-label="Buscar en la ayuda" title="Buscar (⌘K)"></button></div>';
+  lupa.after(sek);
+  const piel = sek.querySelector('.sek-skin');
+  const campo = sek.querySelector('.sek-field');
+  const hit = sek.querySelector('.sek-hit');
+
+  /* Resorte por cuadros (no por milisegundos): la amortiguación se eleva a dt, así un cuadro perdido gasta la misma
+     energía que los dos que reemplazó. Se detiene apenas llega. Afinado hacia lo firme: un control que tambalea parece
+     adorno. */
+  const k = 0.112; const amort = 0.66;
+  let w = SHUT; let vel = 0; let meta = SHUT; let raf = 0; let prev = 0; let maximo = ANCHO;
+  const pinta = () => {
+    const p = Math.min(1, Math.max(0, (w - SHUT) / (maximo - SHUT)));
+    piel.style.width = `${w.toFixed(2)}px`;
+    piel.style.setProperty('--p', p.toFixed(3));
+    piel.style.setProperty('--say', Math.min(1, Math.max(0, (p - 0.55) / 0.45)).toFixed(3));
+  };
+  const tick = (t) => {
+    const dt = prev ? Math.min(2.5, Math.max(0, (t - prev) / 16.67)) : 1;
+    prev = t;
+    vel += (meta - w) * k * dt;
+    vel *= amort ** dt;
+    w += vel * dt;
+    if (Math.abs(meta - w) < 0.02 && Math.abs(vel) < 0.02) { w = meta; vel = 0; raf = 0; pinta(); return; }
+    pinta();
+    raf = requestAnimationFrame(tick);
+  };
+  const ve = (m) => {
+    meta = m;
+    if (quieto) { w = m; pinta(); return; }
+    if (!raf) { prev = 0; raf = requestAnimationFrame(tick); }
+  };
+  /* Cuánto puede crecer: el espacio libre entre el logo y la lupa */
+  const cabe = () => {
+    const logo = d.querySelector('.site-header .brand, .site-header .logo, .site-header a[class*="logo"]');
+    const libre = logo ? sek.getBoundingClientRect().right - logo.getBoundingClientRect().right - 24 : ANCHO;
+    return Math.max(SHUT, Math.min(ANCHO, libre));
+  };
+
+  let abierta = false; let beat = 0;
+  const abre = () => {
+    if (abierta) return;
+    sek.dataset.press = 'true';
+    clearTimeout(beat);
+    beat = setTimeout(() => {
+      sek.dataset.press = 'false';
+      abierta = true;
+      sek.dataset.open = 'true';
+      maximo = cabe();
+      ve(maximo);
+      campo.tabIndex = 0;
+      campo.focus({ preventScroll: true });
+    }, quieto ? 0 : 90);
+  };
+  const cierra = (inmediato) => {
+    abierta = false;
+    sek.dataset.open = 'false';
+    campo.tabIndex = -1;
+    campo.value = '';
+    if (inmediato) { cancelAnimationFrame(raf); raf = 0; w = SHUT; vel = 0; meta = SHUT; pinta(); } else ve(SHUT);
+  };
+  hit.addEventListener('click', abre);
+  /* Lo escrito pasa al buscador completo (con sus resultados), y la pieza vuelve a ser lupa detrás de él */
+  campo.addEventListener('input', () => {
+    const q = campo.value;
+    if (!q.trim()) return;
+    cierra(true);
+    window.CRBusca.abrir(q);
+  });
+  campo.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); cierra(); hit.focus(); }
+    if (e.key === 'Enter') { e.preventDefault(); const q = campo.value; cierra(true); window.CRBusca.abrir(q); }
+  });
+  campo.addEventListener('blur', () => { if (!campo.value.trim() && abierta) cierra(); });
+
+  /* El imán: medido desde el marco (que no se mueve), no desde la piel (que sí): leer un vector de algo que ese mismo
+     vector desplaza es un circuito que tiembla. Unos px como mucho: reconoce, no persigue. Apagado si está abierta. */
+  if (!quieto) {
+    let lx = 0; let ly = 0; let pend = 0;
+    const publica = () => { pend = 0; piel.style.setProperty('--lx', `${lx.toFixed(2)}px`); piel.style.setProperty('--ly', `${ly.toFixed(2)}px`); };
+    d.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse' || abierta || !escritorio.matches) return;
+      const b = sek.getBoundingClientRect();
+      const dx = e.clientX - (b.left + b.width / 2); const dy = e.clientY - (b.top + b.height / 2);
+      const dist = Math.hypot(dx, dy); const R = 110;
+      const tira = dist > R ? 0 : (1 - dist / R) ** 1.4 * 4.5;
+      const nx = dist ? (dx / dist) * tira : 0; const ny = dist ? (dy / dist) * tira : 0;
+      if (Math.abs(nx - lx) < 0.05 && Math.abs(ny - ly) < 0.05) return;
+      lx = nx; ly = ny;
+      if (!pend) pend = requestAnimationFrame(publica);
+    }, { passive: true });
+  }
+  pinta();
+})();
+
+/* Campos con la etiqueta que sube (Label input, 27-11-2026; adaptado del componente de referencia, sin React).
+   La etiqueta es el placeholder hasta que entras. Al enfocar, sube al borde de arriba con un saltito que recorre sus
+   letras, el contorno se oscurece en su lugar y la línea de arriba se abre bajo la etiqueta desde el medio hacia los
+   lados. UNA cosa se mueve: el contorno siempre está entero y solo cambia de tinta; la etiqueta es el evento y la línea
+   le hace espacio. El contorno es un SVG con dos medios (desde la muesca, cada uno por su lado, hasta el medio de
+   abajo) y la muesca son dos trazos cortos desde su centro, que se retiran hacia afuera (stroke-dashoffset). La muesca
+   mide lo que mide la etiqueta (se mide), nunca cae en la curva de la esquina y se recalcula si cambia el ancho.
+   El campo es el mismo input de siempre (id, name, required, autocomplete, validación); el texto de ayuda del
+   placeholder aparece solo con el foco. */
+(() => {
+  const d = document;
+  const campos = [...d.querySelectorAll('form .pick-field')].filter((f) => f.querySelector('input:not([type="hidden"]), textarea'));
+  if (!campos.length) return;
+  const H = 52; const S = 0.78; const IN = 0.75; const R = 14;
+  campos.forEach((fila) => {
+    const input = fila.querySelector('input, textarea');
+    const etiqueta = fila.querySelector('label');
+    if (!input || !etiqueta) return;
+    const texto = etiqueta.textContent.trim();
+    const ns = 'http://www.w3.org/2000/svg';
+    const caja = d.createElement('div');
+    caja.className = 'lbi';
+    caja.innerHTML = `<div class="lbi-box"><svg class="lbi-ring" aria-hidden="true"><path class="lbi-lado"/><path class="lbi-lado"/><path class="lbi-gap" pathLength="1"/><path class="lbi-gap" pathLength="1"/></svg></div>`;
+    const box = caja.firstChild;
+    const lab = d.createElement('label');
+    lab.className = 'lbi-label';
+    lab.htmlFor = input.id;
+    [...texto].forEach((ch, i) => { const sp = d.createElement('span'); sp.textContent = ch === ' ' ? ' ' : ch; sp.style.setProperty('--i', i); lab.append(sp); });
+    box.append(lab, input);
+    input.classList.add('lbi-field');
+    fila.replaceChildren(caja);
+    fila.classList.add('es-lbi');
+    const svg = box.querySelector('svg');
+    const [der, izq, gapL, gapR] = svg.querySelectorAll('path');
+    void ns;
+
+    const dibuja = () => {
+      const W = box.clientWidth;
+      if (!W) return;
+      const lw = lab.offsetWidth;
+      const r = Math.min(R, H / 2);
+      const lx = Math.max(14, r + 4);
+      const x0 = Math.max(r * 0.6, lx - 5); const x1 = lx + lw * S + 5;
+      const a = r - IN; const RR = W - IN; const B = H - IN; const mid = W / 2; const nm = (x0 + x1) / 2;
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      svg.setAttribute('width', W); svg.setAttribute('height', H);
+      gapL.setAttribute('d', `M${nm},${IN} L${x0},${IN}`);
+      gapR.setAttribute('d', `M${nm},${IN} L${x1},${IN}`);
+      der.setAttribute('d', `M${x1},${IN} L${W - r},${IN} A${a},${a} 0 0 1 ${RR},${r} L${RR},${H - r} A${a},${a} 0 0 1 ${W - r},${B} L${mid},${B}`);
+      izq.setAttribute('d', `M${x0},${IN} L${r},${IN} A${a},${a} 0 0 0 ${IN},${r} L${IN},${H - r} A${a},${a} 0 0 0 ${r},${B} L${mid},${B}`);
+      box.style.setProperty('--lbi-x', `${lx}px`);
+    };
+    const estado = () => {
+      caja.dataset.up = String(d.activeElement === input || input.value.length > 0);
+      caja.dataset.focus = String(d.activeElement === input);
+      caja.dataset.invalid = String(input.getAttribute('aria-invalid') === 'true');
+    };
+    input.addEventListener('focus', () => { estado(); caja.dataset.hop = String(Number(caja.dataset.hop || 0) + 1); });
+    input.addEventListener('blur', estado);
+    input.addEventListener('input', estado);
+    input.addEventListener('change', estado);
+    new MutationObserver(estado).observe(input, { attributes: true, attributeFilter: ['aria-invalid'] });
+    if ('ResizeObserver' in window) new ResizeObserver(dibuja).observe(box);
+    d.fonts?.ready.then(dibuja);
+    dibuja();
+    estado();
+  });
 })();
 
 /* Avisos como Sonner (26-11-2026): reemplaza window.SITE.toast en Campañas. Se apilan (los anteriores quedan detrás,
