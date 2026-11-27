@@ -53,7 +53,7 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   if (!filas.length) return;
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
-  const MAS = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+  const MAS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
   const CAL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
   const otro = (v) => /^Otr[oa]s?\b/.test(v);
   const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -69,7 +69,7 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
     const opcional = /Opcional/.test(row.querySelector('.pick-value')?.dataset.empty || '') || row.dataset.fila === 'varias' && !row.dataset.requiredPick;
     const imgs = row.dataset.imgs ? row.dataset.imgs.split('|') : [];
     const opciones = multi
-      ? row.dataset.options.split('|').map((v, i) => ({ value: v, label: v, img: (imgs[i] || '').replace('-160.webp', '-400.webp') }))
+      ? row.dataset.options.split('|').map((v, i) => ({ value: v, label: v, img: imgs[i] || '' }))
       : [...campo.options].filter((o) => o.value).map((o) => ({ value: o.value, label: o.textContent.trim(), img: o.dataset.img || '' }));
     const caja = d.createElement('div');
     caja.className = `vis vis-modo-${modo}`;
@@ -86,7 +86,7 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
       html = `<div class="vis-chips">${opciones.map((o) => `<button type="button" class="vis-op vis-chip" ${rol}="false" data-v="${esc(o.value)}">${esc(o.label)}</button>`).join('')}</div>`;
     } else {
       html = `<div class="vis-fotos">${opciones.map((o, i) => `<button type="button" class="vis-op vis-foto${o.img ? '' : ' sin-foto'}${otro(o.value) ? ' es-otro' : ''}" ${rol}="false" data-v="${esc(o.value)}" style="--i:${i}">`
-        + `<span class="vis-foto-img">${o.img ? `<img src="${esc(o.img)}" alt="" loading="lazy" decoding="async">` : MAS}</span>`
+        + `<span class="vis-foto-img">${o.img ? `<img src="${esc(o.img)}" width="160" height="160" alt="" loading="lazy" decoding="async">` : MAS}</span>`
         + `<span class="vis-foto-t">${esc(o.label)}</span><span class="vis-check" aria-hidden="true">${CHECK}</span></button>`).join('')}</div>`;
     }
     caja.innerHTML = titulo + html;

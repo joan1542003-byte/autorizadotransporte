@@ -168,3 +168,4 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 ## Ficha visual (27-11-2026)
 
 - Filas con `data-visual` (campanas.js): `fotos` (quién organiza, aparatos, servicios adicionales: tarjetas con foto y marca de elegido), `meses` (calendario de 12 meses con «Aún no lo sé» y hasta cuándo pedir la autorización) y `chips` (peso). El dato vive en el mismo campo de siempre: resumen, validación, campos condicionales y preselecciones (planes, carrusel, calculadora del plazo) siguen igual. «Otro…» abre la ventana de siempre. La foto de cada opción va en `data-img` (opciones) o `data-imgs` (varias). Prueba: `ficha.mjs` y `sinc.mjs`.
+- Ficha visual compacta (27-11-2026): cada opción es una fila baja con miniatura de 44 px (`assets/campanas/mini-*-160.webp`, recortes cuadrados), nombre y marca redonda; dos columnas donde cabe, una en el teléfono. Meses en seis columnas, botones de peso de 34 px.
