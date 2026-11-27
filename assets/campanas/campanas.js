@@ -37,6 +37,121 @@ if (window.PICK) window.PICK.REGION_NAMES = ['Metropolitana'];
   });
 })();
 
+/* Ficha visual (27-11-2026): algunas filas se eligen a la vista, sin abrir una ventana ([data-visual] en la fila).
+   - fotos:  tarjetas con foto (quién organiza, aparatos, servicios adicionales). Una opción (<select>) o varias (campo
+             oculto con data-options); la foto sale de data-img en cada <option> o de data-imgs en la fila.
+   - meses:  calendario de los doce meses posibles (los arma el bloque anterior), con «Aún no lo sé» y, al elegir un mes,
+             hasta cuándo pedir la autorización sanitaria (40 días hábiles antes del día 1; aproximado, sin feriados).
+   - chips:  botones en fila (peso estimado).
+   El dato vive en el mismo campo de siempre (select o campo oculto) y se avisa con «change»: el resumen, los campos
+   condicionales, las preselecciones (data-set, data-add) y la validación siguen igual; si algo cambia el campo desde
+   fuera, las tarjetas se ponen al día. Una opción «Otro…» abre la ventana de siempre para escribir cuál. Sin
+   JavaScript, la fila sigue siendo el botón que abre la ventana. */
+(() => {
+  const d = document;
+  const filas = [...d.querySelectorAll('[data-visual]')];
+  if (!filas.length) return;
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  const MAS = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+  const CAL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+  const otro = (v) => /^Otr[oa]s?\b/.test(v);
+  const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  const antesHabiles = (f, n) => { const x = new Date(f); for (let k = 0; k < n;) { x.setDate(x.getDate() - 1); if (x.getDay() % 6) k++; } return x; };
+
+  filas.forEach((row) => {
+    const modo = row.dataset.visual;
+    const campo = row.querySelector('select, input[type="hidden"]');
+    const multi = row.dataset.fila === 'varias';
+    if (!campo) return;
+    const rotulo = row.querySelector('.pick-label')?.textContent.trim() || row.dataset.title;
+    const opcional = /Opcional/.test(row.querySelector('.pick-value')?.dataset.empty || '') || row.dataset.fila === 'varias' && !row.dataset.requiredPick;
+    const imgs = row.dataset.imgs ? row.dataset.imgs.split('|') : [];
+    const opciones = multi
+      ? row.dataset.options.split('|').map((v, i) => ({ value: v, label: v, img: (imgs[i] || '').replace('-160.webp', '-400.webp') }))
+      : [...campo.options].filter((o) => o.value).map((o) => ({ value: o.value, label: o.textContent.trim(), img: o.dataset.img || '' }));
+    const caja = d.createElement('div');
+    caja.className = `vis vis-modo-${modo}`;
+    caja.setAttribute('role', multi ? 'group' : 'radiogroup');
+    caja.setAttribute('aria-label', rotulo);
+    const titulo = `<p class="vis-titulo" aria-hidden="true">${esc(rotulo)}${opcional ? ' <span>Opcional</span>' : ''}</p>`;
+    const rol = multi ? 'aria-pressed' : 'role="radio" aria-checked';
+    let html = '';
+    if (modo === 'meses') {
+      const meses = opciones.filter((o) => o.value !== 'Aún no lo sé');
+      html = `<div class="vis-meses">${meses.map((o, i) => { const [mes, , anio] = o.value.split(' '); return `<button type="button" class="vis-op vis-mes" ${rol}="false" data-v="${esc(o.value)}" style="--i:${i}"><span class="vis-mes-n">${esc(mes.slice(0, 3))}</span><span class="vis-mes-a">${esc(anio)}</span></button>`; }).join('')}</div>`
+        + `<div class="vis-pie"><button type="button" class="vis-op vis-chip" ${rol}="false" data-v="Aún no lo sé">Aún no lo sé</button><p class="vis-plazo" data-vis-plazo hidden>${CAL}<span></span></p></div>`;
+    } else if (modo === 'chips') {
+      html = `<div class="vis-chips">${opciones.map((o) => `<button type="button" class="vis-op vis-chip" ${rol}="false" data-v="${esc(o.value)}">${esc(o.label)}</button>`).join('')}</div>`;
+    } else {
+      html = `<div class="vis-fotos">${opciones.map((o, i) => `<button type="button" class="vis-op vis-foto${o.img ? '' : ' sin-foto'}${otro(o.value) ? ' es-otro' : ''}" ${rol}="false" data-v="${esc(o.value)}" style="--i:${i}">`
+        + `<span class="vis-foto-img">${o.img ? `<img src="${esc(o.img)}" alt="" loading="lazy" decoding="async">` : MAS}</span>`
+        + `<span class="vis-foto-t">${esc(o.label)}</span><span class="vis-check" aria-hidden="true">${CHECK}</span></button>`).join('')}</div>`;
+    }
+    caja.innerHTML = titulo + html;
+    row.prepend(caja);
+    row.classList.add('es-visual');
+    const ayuda = row.querySelector(':scope > .pick-ayuda');
+    if (ayuda) caja.querySelector('.vis-titulo').append(ayuda);
+    const botones = [...caja.querySelectorAll('.vis-op')];
+
+    const lista = () => (campo.value ? campo.value.split(', ').filter(Boolean) : []);
+    const pinta = () => {
+      const valores = multi ? lista() : [campo.value];
+      botones.forEach((b) => {
+        const v = b.dataset.v;
+        const on = multi ? valores.some((x) => x === v || (otro(v) && x.startsWith(`${v.split(' ')[0]}`) && otro(x))) : valores[0] === v;
+        b.setAttribute(multi ? 'aria-pressed' : 'aria-checked', String(on));
+        if (!multi) b.tabIndex = on || (!campo.value && b === botones[0]) ? 0 : -1;
+      });
+      const plazo = caja.querySelector('[data-vis-plazo]');
+      if (plazo) {
+        const m = /^(\w+) de (\d{4})$/.exec(campo.value);
+        const i = m ? MESES.indexOf(m[1].toLowerCase()) : -1;
+        plazo.hidden = i < 0;
+        if (i >= 0) {
+          const lim = antesHabiles(new Date(Number(m[2]), i, 1), 40);
+          plazo.querySelector('span').textContent = `Pide la autorización sanitaria a más tardar el ${DIAS[lim.getDay()]} ${lim.getDate()} de ${MESES[lim.getMonth()]} (aprox.).`;
+        }
+      }
+    };
+    const guarda = (valor) => {
+      campo.value = valor;
+      campo.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    caja.addEventListener('click', (e) => {
+      const b = e.target.closest('.vis-op');
+      if (!b) return;
+      const v = b.dataset.v;
+      if (otro(v) && multi && b.getAttribute('aria-pressed') !== 'true') { row.querySelector('.pick-btn')?.click(); return; }
+      if (multi) {
+        const l = lista();
+        const ya = l.findIndex((x) => x === v || (otro(v) && otro(x)));
+        if (ya >= 0) l.splice(ya, 1); else l.push(v);
+        const orden = opciones.map((o) => o.value);
+        l.sort((a, b2) => orden.indexOf(otro(a) ? orden.find(otro) : a) - orden.indexOf(otro(b2) ? orden.find(otro) : b2));
+        guarda(l.join(', '));
+      } else guarda(campo.value === v && row.dataset.fila !== 'opciones' ? '' : v);
+      row.removeAttribute('data-invalid');
+    });
+    /* Una opción: flechas para moverse entre las tarjetas, como un grupo de radios */
+    if (!multi) caja.addEventListener('keydown', (e) => {
+      const paso = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+      if (!paso) return;
+      const i = botones.indexOf(d.activeElement);
+      if (i < 0) return;
+      e.preventDefault();
+      const b = botones[(i + paso + botones.length) % botones.length];
+      b.focus();
+      b.click();
+    });
+    campo.addEventListener('change', pinta);
+    d.addEventListener('change', (e) => { if (e.target === campo) pinta(); });
+    pinta();
+  });
+})();
+
 /* Checklists en la ficha: si en este dispositivo se respondió alguno (checklist.js deja un resumen por etapa en
    cr-res-<etapa>), sus respuestas van solas en la ficha, sin opción a la vista: cada etapa en su campo oculto, que se
    llena justo antes de armar el resumen y llega a WhatsApp: cuántas respondió y, textuales, las preguntas que quedaron

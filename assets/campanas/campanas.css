@@ -727,7 +727,7 @@ body[data-site="campanas"] :is(.etapas-lista, .accordion) summary:active { trans
 /* Esquinas continuas */
 @supports (corner-shape: squircle) {
   body[data-site="campanas"] * { corner-shape: squircle; }
-  body[data-site="campanas"] :is(.dock, .nav-busca, .dock-toggle, .carrusel-boton, .carrusel-mas, .carrusel-girar, .ckc-etapa-n, .ckc-num, .pm, .hcard-close, .plazo-punto, .busca-linea-barra i, .busca-avance-barra, .busca-regla, .busca-regla-rango, .wa-icon, .dot) { corner-shape: round; }
+  body[data-site="campanas"] :is(.dock, .nav-busca, .dock-toggle, .carrusel-boton, .carrusel-mas, .vis-check, .vis-chip, .carrusel-girar, .ckc-etapa-n, .ckc-num, .pm, .hcard-close, .plazo-punto, .busca-linea-barra i, .busca-avance-barra, .busca-regla, .busca-regla-rango, .wa-icon, .dot) { corner-shape: round; }
 }
 /* Acordeones más pausados (site.js lee --acordeon-ms) */
 body[data-site="campanas"] .accordion details { --acordeon-ms: 520; }
@@ -757,6 +757,54 @@ body[data-site="campanas"] .hero-sheet.is-typing .hcard-body { padding-bottom: 1
 body[data-site="campanas"] { --font: Allo, "Allo fallback", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-optical-sizing: auto; }
 /* Como en las tipografías de la familia de Inter: en los títulos grandes, un poco más juntas y algo menos gruesas */
 body[data-site="campanas"] :is(.display, .title, .norm-title) { font-weight: 650; letter-spacing: -.022em; }
+
+/* ---------- Ficha visual (campanas.js, 27-11-2026): tarjetas con foto, calendario de meses y botones en fila ----------
+   Elegir es un toque y se ve: borde y marca de color, sin mover nada de lugar. Entrada escalonada corta (30 ms entre
+   tarjetas, 200 ms, ease-out); al tocar se hunde un poco. Lo de siempre (el botón que abre la ventana) queda para
+   «Otro…» y sin JavaScript. */
+.pick.es-visual > .pick-btn { display: none; }
+.pick.es-visual { display: block; padding: 14px 16px 16px; background: #fff !important; }
+/* La ayuda «?» (tamaño de los aparatos) pasa a la línea del título, a la derecha */
+.vis-titulo .pick-ayuda { position: static; flex: none; margin-left: auto; transform: none; }
+.vis { display: grid; gap: 10px; }
+.vis-titulo { display: flex; align-items: center; gap: 8px; color: var(--ink); font-size: .9375rem; font-weight: 700; }
+.vis-titulo span { padding: 2px 8px; border-radius: 99px; background: var(--bg-alt); color: var(--muted); font-size: .75rem; font-weight: 700; }
+.vis-op { -webkit-tap-highlight-color: transparent; font: inherit; color: var(--ink); cursor: pointer; transition: transform .16s ease-out, box-shadow .2s ease, background-color .2s ease, color .2s ease, border-color .2s ease; }
+.vis-op:active { transform: scale(.97); }
+.vis-op:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* Fotos */
+.vis-fotos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.vis-fotos:has(> :nth-child(5)) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 420px) { .vis-fotos:has(> :nth-child(5)) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.vis-foto { position: relative; display: grid; grid-template-rows: auto 1fr; align-items: center; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #fff; text-align: left; }
+.vis-foto-img { display: grid; place-items: center; aspect-ratio: 4 / 3; overflow: hidden; background: var(--bg-alt); color: var(--muted); }
+.vis-foto-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s cubic-bezier(.23, 1, .32, 1); }
+.vis-foto-t { padding: 9px 12px 11px; font-size: .875rem; font-weight: 600; line-height: 1.3; }
+.vis-check { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgb(255 255 255 / .9); box-shadow: 0 0 0 1px rgb(21 26 45 / .12); color: transparent; transition: background-color .2s ease, color .2s ease, transform .2s cubic-bezier(.23, 1, .32, 1); transform: scale(.9); }
+.vis-foto[aria-pressed="true"], .vis-foto[aria-checked="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.vis-foto:is([aria-pressed="true"], [aria-checked="true"]) .vis-check { background: var(--accent); box-shadow: none; color: #fff; transform: scale(1); }
+.vis-foto:is([aria-pressed="true"], [aria-checked="true"]) .vis-foto-t { color: var(--accent-strong); }
+/* Meses */
+.vis-meses { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.vis-mes { display: grid; justify-items: center; gap: 1px; padding: 10px 4px; border: 1px solid var(--line); border-radius: 14px; background: #fff; font-variant-numeric: tabular-nums; }
+.vis-mes-n { font-size: 1rem; font-weight: 700; text-transform: capitalize; }
+.vis-mes-a { color: var(--muted); font-size: .75rem; font-weight: 600; }
+.vis-mes[aria-checked="true"] { border-color: var(--accent); background: var(--accent); color: #fff; }
+.vis-mes[aria-checked="true"] .vis-mes-a { color: rgb(255 255 255 / .82); }
+.vis-pie { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.vis-plazo { display: flex; align-items: flex-start; gap: 8px; flex: 1 1 220px; margin: 0; color: var(--ink-2); font-size: .8125rem; line-height: 1.4; }
+.vis-plazo svg { flex: none; margin-top: 1px; color: var(--accent-strong); }
+/* Botones en fila */
+.vis-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.vis-chip { min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 99px; background: #fff; font-size: .875rem; font-weight: 600; }
+.vis-chip:is([aria-checked="true"], [aria-pressed="true"]) { border-color: var(--accent); background: var(--accent); color: #fff; }
+@media (hover: hover) and (pointer: fine) { .vis-op:not([aria-checked="true"]):not([aria-pressed="true"]):hover { border-color: var(--line-strong); } }
+.pick.es-visual[data-invalid] .vis-foto, .pick.es-visual[data-invalid] .vis-mes { border-color: #b7791f; }
+@media (prefers-reduced-motion: no-preference) {
+  .vis-op { animation: vis-entra .2s cubic-bezier(.23, 1, .32, 1) both; animation-delay: calc(var(--i, 0) * 30ms); }
+  @keyframes vis-entra { from { opacity: 0; transform: translateY(4px); } }
+}
+@media (prefers-reduced-motion: reduce) { .vis-op, .vis-check, .vis-foto-img img { transition: none; } }
 
 /* squircle:inicio (generado por tools/squircle.py; no editar a mano) */
 @supports (corner-shape: squircle) {
@@ -1006,6 +1054,11 @@ body[data-site="campanas"] .norm-toc a { border-radius: 15px; }
 .busca-avance-barra { border-radius: 99px; }
 .busca-chip { border-radius: 99px; }
 .busca-resp-ocultar { border-radius: 99px; }
+.vis-titulo span { border-radius: 99px; }
+.vis-foto { border-radius: 27px; }
+.vis-check { border-radius: 50%; }
+.vis-mes { border-radius: 21px; }
+.vis-chip { border-radius: 99px; }
 /* Burbuja «?» abierta: opciones de 48 px a 8 px del borde (24 + 8 = 32); abajo a la derecha, el botón redondo de 56 px
    va al ras: esa esquina es la del círculo (28 px, redonda) */
 body[data-site="campanas"] .dock.is-open { border-radius: 32px 32px 28px 32px; corner-shape: squircle squircle round squircle; }

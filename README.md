@@ -164,3 +164,7 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 
 - Campañas usa Allo 1.1.0 (Josh Puckett, OFL 1.1), versión «Friendly», recortada al español (U+0000-00FF y puntuación), pesos 400–800 y tamaño óptico de texto: `assets/campanas/fonts/allo-latin.woff2` (50 KB; Nunito pesaba 40 KB), con su licencia al lado. Mientras carga, Arial ajustada a sus medidas («Allo fallback»). Títulos grandes a 650 y con −0,022 em. Transporte sigue con Nunito (`assets/site/`).
 - Para rehacer el recorte (fontTools): subset primero y después `instancer` con `wght (400, 800)` y `opsz 14`; el tamaño óptico de titulares costaba 65 KB más.
+
+## Ficha visual (27-11-2026)
+
+- Filas con `data-visual` (campanas.js): `fotos` (quién organiza, aparatos, servicios adicionales: tarjetas con foto y marca de elegido), `meses` (calendario de 12 meses con «Aún no lo sé» y hasta cuándo pedir la autorización) y `chips` (peso). El dato vive en el mismo campo de siempre: resumen, validación, campos condicionales y preselecciones (planes, carrusel, calculadora del plazo) siguen igual. «Otro…» abre la ventana de siempre. La foto de cada opción va en `data-img` (opciones) o `data-imgs` (varias). Prueba: `ficha.mjs` y `sinc.mjs`.
