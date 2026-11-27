@@ -141,3 +141,11 @@ Referencias del cliente: Vercel Web Interface Guidelines, las 13 reglas de tipog
 - `tools/squircle.py` lleva una lista de ajustes concéntricos (radio de adentro = de afuera − separación): burbuja «?» abierta (sus opciones y el botón redondo) y el bloque de opciones del hero en el teléfono. Prueba: `concentricos.mjs`.
 - Ficha en el teléfono con el teclado abierto: el cuerpo con campos ocupa solo lo que queda (base 0) y se desplaza por dentro; los botones quedan justo sobre el teclado; sin el relleno de 55vh; el campo activo se centra cuando el teclado termina de abrirse (`campanas.js`).
 - Fotos de aparatos con fondos de color (entregadas el 27-11-2026), en 160, 400 y 800 px.
+
+## Plugin de WordPress «Campañas de recolección – Sitio» (27-11-2026)
+
+- Código en `wordpress/campanas-sitio/` (basado en el de Transporte). Se arma con `python3 tools/wordpress.py`: deja `../wordpress/campanas-sitio.zip`, fuera del repositorio. Se instala en Plugins → Añadir nuevo → Subir plugin.
+- Sirve el sitio en una vista privada (`/campanas-vista/`, con sesión o con un enlace para compartir) o publicado en la portada, con cabeceras de seguridad, `/sitemap-sitio.xml` y robots.txt.
+- Panel «Campañas» (secciones como los ajustes de un teléfono, interruptores y barra de cambios sin guardar): Resumen, Publicación, Contacto (WhatsApp), Servicios (retiro domiciliario, reutilización, tarjetas por público, calculadora del plazo, aparatos, buscador), Portada (título, texto, foto de la biblioteca y aviso, con vista previa), Sitios relacionados (Transporte y HDS, con su dirección) y Buscadores (Google y Bing).
+- Los servicios se apagan con las marcas `data-cr-servicio` y `data-cr-grupo` del HTML: el plugin agrega `<html data-cr-off>` y una regla que los oculta, y quita sus opciones de la ficha; `campanas.js` deja de sugerirlos en el buscador. Si agregas un bloque que dependa de un servicio, márcalo.
+- Pruebas sin WordPress: `php tools/pruebas-wordpress.php [salida]` (PHP 8.2 de Local en este computador).

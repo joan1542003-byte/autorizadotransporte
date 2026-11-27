@@ -471,14 +471,14 @@ def menu_html():
     pie = (f'<div class="docs-pie"><p>¿No encuentras lo que buscas?</p><button class="docs-pie-btn" type="button" data-dock-open="conversar">{I["conversar"]}<span>Conversar por WhatsApp</span></button></div>')
     return (f'<div class="docs-panel" id="docs-panel" data-docs-panel inert><div class="docs-inner"><div class="docs-scroll"><div class="docs-wrap">'
             f'<button class="ayu-volver" type="button" data-ayu-volver hidden>{I["volver"]}<span>Todos los temas</span></button>'
-            f'<button class="ayu-busca" type="button" data-busca-abrir>{I["buscar"]}<span>Buscar en guías, checklists, preguntas y normas…</span><kbd aria-hidden="true">⌘K</kbd></button>'
+            f'<button class="ayu-busca" type="button" data-cr-servicio="buscador" data-busca-abrir>{I["buscar"]}<span>Buscar en guías, checklists, preguntas y normas…</span><kbd aria-hidden="true">⌘K</kbd></button>'
             f'{grupos}{pie}</div></div></div></div>')
 
 
 BOTON = (f'<a href="#ayuda" class="nav-docs" data-docs-open aria-controls="docs-panel" aria-expanded="false">Ayuda<span class="nav-docs-chev">{I["abajo"]}</span></a>')
 
 
-BUSCA = (f'<button class="nav-busca" type="button" data-busca-abrir aria-label="Buscar en la ayuda" title="Buscar (⌘K)">{I["buscar"]}</button>')
+BUSCA = (f'<button class="nav-busca" type="button" data-cr-servicio="buscador" data-busca-abrir aria-label="Buscar en la ayuda" title="Buscar (⌘K)">{I["buscar"]}</button>')
 
 
 def con_menu(s):
@@ -828,7 +828,7 @@ def indice_busqueda():
     for pagina in paginas:
         archivo = './' if pagina == 'index.html' else pagina
         s = (ROOT / pagina).read_text(encoding='utf-8')
-        for pid, q, a in re.findall(r'<details id="(p-[^"]+)"><summary>(.*?)<span class="plus".*?<div class="answer">(.*?)</div></details>', s, re.S):
+        for pid, q, a in re.findall(r'<details id="(p-[^"]+)"[^>]*><summary>(.*?)<span class="plus".*?<div class="answer">(.*?)</div></details>', s, re.S):
             if any(x['t'] == texto_plano(q) and x['g'] == 'Preguntas' for x in items):
                 continue
             extra = {}

@@ -157,6 +157,15 @@ document.addEventListener('touchstart', () => {}, { passive: true });
    quedan primero en la lista: Enter hace la principal. Flechas para moverse, Enter para abrir, Esc para cerrar. */
 (() => {
   const d = document;
+  /* Servicios apagados desde el panel de WordPress (plugin campanas-sitio: <html data-cr-off="retiro plazo …">): el
+     buscador no los sugiere; sin buscador, no se arma */
+  const OFF = new Set((d.documentElement.dataset.crOff || '').split(/\s+/).filter(Boolean));
+  if (OFF.has('buscador')) return;
+  const RUTA_OFF = { retiro: /#ad-retiro|retiro-domiciliario/, reutilizacion: /#ad-reutilizacion/, plazo: /#plazo$/, aparatos: /^\.\/#aparatos$/,
+    transporte: /transporteautorizado\.cl/, hds: /hds\.cl/ };
+  if (OFF.has('retiro') && OFF.has('reutilizacion')) RUTA_OFF.adicionales = /#adicionales/;
+  if (OFF.has('municipal') && OFF.has('empresa') && OFF.has('sistema')) RUTA_OFF.publicos = /#publicos/;
+  const apagado = (x) => Object.entries(RUTA_OFF).some(([k, re]) => (OFF.has(k) || k === 'adicionales' || k === 'publicos') && re.test(x.u || x.id || ''));
   const V = (d.currentScript?.src.match(/\?v=(\w+)/) || [])[1] || '1';
   const GRUPOS = ['Acciones', 'Guías', 'Checklists', 'Preguntas', 'Aparatos', 'Tamaños', 'Normativa', 'Portada'];
   /* Cómo lo dice la gente → cómo está escrito en el sitio (sin tildes, en minúscula) */
@@ -224,8 +233,9 @@ document.addEventListener('touchstart', () => {}, { passive: true });
   ];
   const atajos = (q) => {
     const frase = ` ${q} `;
+    if (!atajos.listos) { atajos.listos = ATAJOS.filter((x) => !apagado(x)); }
     const palabras = q.split(/\s+/).filter((p) => p.length >= 3);
-    return ATAJOS.filter((x) => x.q.some((k) => (k.includes(' ') ? frase.includes(` ${k}`) : palabras.some((p) => p === k || (p.length >= 4 && k.startsWith(p)) || (k.length >= 4 && p.startsWith(k)))))).slice(0, 3);
+    return atajos.listos.filter((x) => x.q.some((k) => (k.includes(' ') ? frase.includes(` ${k}`) : palabras.some((p) => p === k || (p.length >= 4 && k.startsWith(p)) || (k.length >= 4 && p.startsWith(k)))))).slice(0, 3);
   };
   /* Errores de tipeo: si una palabra no aparece en el índice, se cambia por la más parecida (una letra de diferencia; dos
      en palabras largas) */
@@ -331,7 +341,7 @@ document.addEventListener('touchstart', () => {}, { passive: true });
           + '<p class="busca-resp-nota">Aproximado: cuenta de lunes a viernes, sin feriados. Si hay observaciones, se responden en 5 días hábiles y la SEREMI tiene otros 30: conviene presentarla antes.</p>'),
         titulo: 'Plazo de la autorización',
         acciones: [...(guia ? [indice.find((x) => x.u === 'autorizacion-sanitaria.html')].filter(Boolean) : []),
-          { t: 'Calcular la fecha para mi campaña', s: 'Elige el día de inicio y te decimos hasta cuándo presentar la solicitud', u: './#plazo' },
+          ...(OFF.has('plazo') ? [] : [{ t: 'Calcular la fecha para mi campaña', s: 'Elige el día de inicio y te decimos hasta cuándo presentar la solicitud', u: './#plazo' }]),
           ...(guia ? [] : [{ t: 'Plazos de la revisión', s: 'Autorización sanitaria, paso a paso', u: 'autorizacion-sanitaria.html#h-plazos' }])]
       };
     },
@@ -386,7 +396,7 @@ document.addEventListener('touchstart', () => {}, { passive: true });
     const hay = (lista) => lista.some((w) => (w.includes(' ') ? frase.includes(w) : todas.some((f) => f.startsWith(w))));
     const ap = filas.find((x) => x.g === 'Tamaños' && x.enTitulo);
     if (ap) return respuestas.aparato(ap);
-    for (const k of ['pilas', 'domicilio', 'costo']) if (hay(INTENCION[k])) return respuestas.faq(k);
+    for (const k of ['pilas', 'domicilio', 'costo']) if (!(k === 'domicilio' && OFF.has('retiro')) && hay(INTENCION[k])) return respuestas.faq(k);
     if (hay(INTENCION.avance)) return respuestas.avance();
     if (hay(INTENCION.plazo)) return respuestas.plazo(false);
     if (hay(['autorizacion', 'seremi'])) return respuestas.plazo(true);
@@ -403,7 +413,7 @@ document.addEventListener('touchstart', () => {}, { passive: true });
     const filas = [...pick('Acciones', 1), indice.find((x) => x.u === './#plazo'), ...pick('Guías', 3), ...pick('Checklists', 4)].filter(Boolean);
     return {
       html: (l.some((x) => x.r?.hechas) && !leer(SIN_AVANCE, 0) ? respuestas.avance().html : '')
-        + chips('Búsquedas recientes', leer(RECIENTES, []), true) + chips('Lo más buscado', FRECUENTES),
+        + chips('Búsquedas recientes', leer(RECIENTES, []), true) + chips('Lo más buscado', FRECUENTES.filter((f) => !(f === 'retiro domiciliario' && OFF.has('retiro')))),
       filas
     };
   };
@@ -522,7 +532,7 @@ document.addEventListener('touchstart', () => {}, { passive: true });
     dlg.showModal();
     input.focus();
     if (!indice) {
-      fetch(`assets/campanas/ayuda-indice.json?v=${V}`).then((r) => r.json()).then((x) => { indice = x; pinta(); })
+      fetch(`assets/campanas/ayuda-indice.json?v=${V}`).then((r) => r.json()).then((x) => { indice = OFF.size ? x.filter((y) => !apagado(y)) : x; pinta(); })
         .catch(() => { lista.innerHTML = '<p class="busca-vacio">No se pudo cargar el buscador. Revisa tu conexión e inténtalo de nuevo.</p>'; });
     }
   };
